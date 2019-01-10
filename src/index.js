@@ -13,7 +13,7 @@ let myAccount = {balanceEUR: 0.0000,availableEUR: 0.0000,balanceIOT: 0.0000,avai
 let ticksCoinfalcon = {bid: 0.0000, bidSize: 0.0, bidSecond: 0.0000, bidSecondSize: 0.00, ask: 0.0000, askSize: 0.0, askSecond: 0.0000, askSecondSize: 0.0};
 let ticksBitfinex = {bid: 0.0000, ask: 0.0000};
 
-const sleepPause = 10000;
+const sleepPause = config.sleepPause;
 
 async function begin(){
     await start();
