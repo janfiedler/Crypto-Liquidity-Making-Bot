@@ -65,5 +65,5 @@ typings/
 config.js
 package-lock.json
 #ignore filedb tables
-/filedb/*.json
-/filedb/*.sqlite3
+/db/*.json
+/db/*.sqlite3
