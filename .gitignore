@@ -59,3 +59,11 @@ typings/
 
 # next.js build output
 .next
+# IDEA
+.idea/*
+#config.js mineiota
+config.js
+package-lock.json
+#ignore filedb tables
+/filedb/*.json
+/filedb/*.sqlite3
