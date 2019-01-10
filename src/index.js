@@ -10,7 +10,7 @@ let doOrder = "ask";
 
 
 let myAccount = {balanceEUR: 0.0000,availableEUR: 0.0000,balanceIOT: 0.0000,availableIOT: 0.0000,"buyId": "", buyPrice:0.0000, "sellId":"", sellPrice:0.0000};
-let ticksCoinfalcon = {bid: 0.0000, bidSize: 0.0, bidSecond: 0.0000, bidSecondSize: 0.00, ask: 0.0000, askSize: 0.0, askSecond: 0.0000, askSecondSize: 0.0};
+let ticksCoinfalcon = {bidBorder: 0.0000, bid: 0.0000, bidSize: 0.0, bidSecond: 0.0000, bidSecondSize: 0.00, askBorder: 0.0000, ask: 0.0000, askSize: 0.0, askSecond: 0.0000, askSecondSize: 0.0};
 let ticksBitfinex = {bid: 0.0000, ask: 0.0000};
 
 const sleepPause = config.sleepPause;
@@ -141,6 +141,9 @@ async function fetchCoinfalconOrders(ticksCoinfalcon){
     //console.log(coinfalconOrders.data.bids);
     let ii=0;
     for(let i=0;i<coinfalconOrders.data.asks.length;i++){
+        if(i===0){
+            ticksCoinfalcon.askBorder = parseFloat(parseFloat(coinfalconOrders.data.asks[i].price).toFixed(4));
+        }
         if(coinfalconOrders.data.asks[i].size > config.ignoreOrderSize){
             ii++;
             if(ii === 1){
@@ -155,6 +158,9 @@ async function fetchCoinfalconOrders(ticksCoinfalcon){
     }
     ii=0;
     for(let i=0;i<coinfalconOrders.data.bids.length;i++){
+        if(i === 0){
+            ticksCoinfalcon.bidBorder = parseFloat(parseFloat(coinfalconOrders.data.bids[i].price).toFixed(4));
+        }
         if(coinfalconOrders.data.bids[i].size > config.ignoreOrderSize){
             ii++;
             if(ii === 1){
@@ -228,11 +234,11 @@ async function findSpotForAsk(){
             targetAsk =  ticksBitfinex.ask;
         }
     }
-    //Validate if new target ask is not close to bid order
-    if(targetAsk < Math.floor((ticksCoinfalcon.bid+0.0010)*10000)/10000) {
+    //Validate if new target ask is not close to bid order or taking bid order.
+    if(targetAsk < Math.floor((ticksCoinfalcon.bidBorder+0.0010)*10000)/10000) {
         console.log(new Date().toISOString()+ "targetAsk: " + targetAsk);
         console.log(new Date().toISOString()+ "### New target ask is in danger zone, need go higher with price");
-        targetAsk = Math.floor((ticksCoinfalcon.bid+0.0010)*10000)/10000;
+        targetAsk = Math.floor((ticksCoinfalcon.bidBorder+0.0010)*10000)/10000;
     }
     console.log(new Date().toISOString()+" targetAsk: " + targetAsk);
     return targetAsk;
@@ -301,10 +307,11 @@ async function findSpotForBid(){
             targetBid = ticksBitfinex.bid;
         }
     }
-    if(targetBid > Math.floor((ticksCoinfalcon.ask-0.0010)*10000)/10000) {
+    //Validate if new target bid is not close to ask order or taking ask order.
+    if(targetBid > Math.floor((ticksCoinfalcon.askBorder-0.0010)*10000)/10000) {
         console.log(new Date().toISOString()+" targetBid: " + targetBid);
         console.log(new Date().toISOString()+" ### New target bid is in danger zone, need go lower with price");
-        targetBid = Math.floor((ticksCoinfalcon.ask-0.0010)*10000 )/10000;
+        targetBid = Math.floor((ticksCoinfalcon.askBorder-0.0010)*10000 )/10000;
     }
     console.log(new Date().toISOString()+" targetBid: " + targetBid);
     return targetBid;
