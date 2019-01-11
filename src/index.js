@@ -113,7 +113,7 @@ async function checkForCancelOrder(type, newPrice){
                 myAccount = await coinfalcon.cancelOrder("sell", myAccount);
                 canceled = true;
             } else if(newPrice !== myAccount.sellPrice && myAccount.sellId !== ""){
-                //If new bid price is higher than my actual and it is not close than 0.0010 to ticksCoinfalcon.ask, than close actual order for make new.
+                //If new bid price is higher than my actual and it is not close than config.spreadSize to ticksCoinfalcon.ask, than close actual order for make new.
                 console.log(new Date().toISOString()+" We have new price, need close old sell order");
                 myAccount = await coinfalcon.cancelOrder("sell", myAccount);
                 canceled = true;
@@ -126,7 +126,7 @@ async function checkForCancelOrder(type, newPrice){
                 myAccount = await coinfalcon.cancelOrder("buy", myAccount);
                 canceled = true;
             } else if(newPrice !== myAccount.buyPrice && myAccount.buyId !== ""){
-                //If new bid price is higher than my actual and it is not close than 0.0010 to ticksCoinfalcon.ask, than close actual order for make new.
+                //If new bid price is higher than my actual and it is not close than config.spreadSize to ticksCoinfalcon.ask, than close actual order for make new.
                 console.log(new Date().toISOString()+" We have new price, need close old buy order");
                 myAccount = await coinfalcon.cancelOrder("buy", myAccount);
                 canceled = true;
@@ -191,7 +191,7 @@ async function findSpotForAsk(){
             targetAsk = ticksBitfinex.ask;
         }
         /* When we want copy bitfinex ticks
-        else if(ticksBitfinex.ask < myAccount.sellPrice &&  ticksBitfinex.ask > Math.floor((ticksCoinfalcon.bid+0.0010)*10000)/10000){
+        else if(ticksBitfinex.ask < myAccount.sellPrice &&  ticksBitfinex.ask > Math.round((ticksCoinfalcon.bid+config.spreadSize)*10000)/10000){
             console.log(new Date().toISOString()+" ### Replacing our sell order to lower price");
             targetAsk = ticksBitfinex.ask;
         } else {
@@ -205,27 +205,34 @@ async function findSpotForAsk(){
         // If targetAsk is lower price than askSecond and my sell order is only one higher and bigger than 10 IOTA, move close to askSecond
         if(targetAsk < (ticksCoinfalcon.askSecond-0.0001) && (ticksCoinfalcon.askSize-myAccount.balanceIOT) <= config.ignoreOrderSize){
             console.log(new Date().toISOString()+" ### To far away from askSecond, let askSecond-0.0001");
-            targetAsk = Math.floor((ticksCoinfalcon.askSecond-0.0001)*10000)/10000;
+            targetAsk = Math.round((ticksCoinfalcon.askSecond-0.0001)*10000)/10000;
+        }
+    } else if(myAccount.sellId !== ""){
+        let preTargetAsk = 0;
+        if(preTargetAsk <= ticksBitfinex.bid){
+            if((ticksCoinfalcon.askSecond-ticksCoinfalcon.ask) > config.spreadSize && ticksCoinfalcon.askSecond !== myAccount.sellPrice){
+                preTargetAsk =  Math.round((ticksCoinfalcon.askSecond+0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than second order "+ticksCoinfalcon.askSecond+", add +0.0001");
+            } else if((ticksCoinfalcon.askSecond-ticksCoinfalcon.ask) > config.spreadSize && ticksCoinfalcon.askSecond === myAccount.sellPrice){
+                if((ticksCoinfalcon.askSecondSize-myAccount.balanceIOT) <= config.ignoreOrderSize){
+                    preTargetAsk = Math.round((ticksCoinfalcon.askSecond+0.0001)*10000)/10000;
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice and askSecond is  <= config.ignoreOrderSize go higher find big ask order ");
+                } else {
+                    preTargetAsk = myAccount.sellPrice;
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice");
+                }
+            } else {
+                preTargetAsk =  Math.round((ticksCoinfalcon.ask+0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than than first order "+ticksCoinfalcon.ask+", add +0.0001");
+            }
+            targetAsk = preTargetAsk;
+        } else {
+            targetAsk = ticksBitfinex.ask;
+            console.log(new Date().toISOString()+" ### targetBid "+targetAsk+" > ticksBitfinex.ask "+ticksBitfinex.ask+" set buy order to Bitfinex.bid");
         }
     } else {
-        /* When we want copy bitfinex ticks
-        if(ticksBitfinex.ask > ticksCoinfalcon.bid && ticksBitfinex.ask < ticksCoinfalcon.ask){
-            console.log(new Date().toISOString()+" ### Target ask is equal to bitfinexAsk");
-            targetAsk = ticksBitfinex.ask;
-        } else if(ticksBitfinex.ask > ticksCoinfalcon.bid && ticksBitfinex.ask >= ticksCoinfalcon.ask){
-            console.log(new Date().toISOString()+" new Date().toISOString()+ ### bitfinexAsk > coinfalconBid && bitfinexAsk >= ticksCoinfalcon.ask add 0.0001 below to be first");
-            targetAsk =  Math.floor((ticksCoinfalcon.ask-0.0001)*10000)/10000;
-        } else if( ticksBitfinex.ask === ticksCoinfalcon.bid){
-            targetAsk =  Math.floor((ticksBitfinex.ask+0.0011)*10000)/10000;
-        } else if(ticksBitfinex.ask <= ticksCoinfalcon.bid) {
-            console.log(new Date().toISOString()+" ### Bitfinex ask is bigger than  coinfalconBid, go +11 from ask");
-            targetAsk = Math.floor((ticksCoinfalcon.bid+0.0011)*10000)/10000;
-        } else {
-            console.error(new Date().toISOString()+" ### There is problem with find new bid price!");
-        }
-        */
         // If ask price is not lower than on bitfinex (dont be cheaper than on bitfinex) you can be cheaper than others
-        let preTargetAsk = Math.floor((ticksCoinfalcon.ask-0.0001)*10000)/10000;
+        let preTargetAsk = Math.round((ticksCoinfalcon.ask-0.0001)*10000)/10000;
         if(preTargetAsk >= ticksBitfinex.ask){
             targetAsk = preTargetAsk;
             console.log(new Date().toISOString()+" ### targetAsk "+targetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell for better price than others "+ticksCoinfalcon.ask+" - 0.0001");
@@ -235,10 +242,10 @@ async function findSpotForAsk(){
         }
     }
     //Validate if new target ask is not close to bid order or taking bid order.
-    if(targetAsk < Math.floor((ticksCoinfalcon.bidBorder+0.0010)*10000)/10000) {
+    if(targetAsk < Math.round((ticksCoinfalcon.bidBorder+config.spreadSize)*10000)/10000) {
         console.log(new Date().toISOString()+ "targetAsk: " + targetAsk);
         console.log(new Date().toISOString()+ "### New target ask is in danger zone, need go higher with price");
-        targetAsk = Math.floor((ticksCoinfalcon.bidBorder+0.0010)*10000)/10000;
+        targetAsk = Math.round((ticksCoinfalcon.bidBorder+config.spreadSize)*10000)/10000;
     }
     console.log(new Date().toISOString()+" targetAsk: " + targetAsk);
     return targetAsk;
@@ -259,7 +266,7 @@ async function findSpotForBid(){
             targetBid = ticksBitfinex.bid;
         }
         /* When we want copy bitfinex ticks
-        else if(ticksBitfinex.bid > myAccount.buyPrice &&  ticksBitfinex.bid < Math.floor((ticksCoinfalcon.ask-0.0010)*10000)/10000){
+        else if(ticksBitfinex.bid > myAccount.buyPrice &&  ticksBitfinex.bid < Math.round((ticksCoinfalcon.ask-config.spreadSize)*10000)/10000){
             console.log(new Date().toISOString()+" ### Replacing our bid order to higher price");
             targetBid = ticksBitfinex.bid;
         } else {
@@ -270,48 +277,40 @@ async function findSpotForBid(){
         console.log("### myAccount.balanceEUR: " + myAccount.balanceEUR);
         console.log("### Size comparator: " + (ticksCoinfalcon.bidSize-(myAccount.balanceEUR/ticksCoinfalcon.bid)));
         // If target price is bigger than actual order and my sell order is only one bigger than 10 IOTA, move close to askSecond
-        if(targetBid > (ticksCoinfalcon.bidSecond+0.0001) && (ticksCoinfalcon.bidSize-(myAccount.balanceEUR/ticksCoinfalcon.bid)) <= config.ignoreOrderSize ){
+        if(targetBid > (ticksCoinfalcon.bidSecond+0.0001) && (ticksCoinfalcon.bidSize-(myAccount.balanceEUR/ticksCoinfalcon.bid)) <= config.ignoreOrderSize){
             console.log(new Date().toISOString()+" ### To far away from ticksCoinfalcon.bidSecond, let ticksCoinfalcon.bidSecond+0.0001");
-            targetBid = Math.floor((ticksCoinfalcon.bidSecond+0.0001)*10000)/10000;
+            targetBid = Math.round((ticksCoinfalcon.bidSecond+0.0001)*10000)/10000;
         }
     } else {
-        /* When we want copy bitfinex ticks
-        if(ticksBitfinex.bid < ticksCoinfalcon.ask && ticksBitfinex.bid > ticksCoinfalcon.bid){
-            console.log(new Date().toISOString()+" ### Target bid is equal to bitfinexBid");
-            targetBid = ticksBitfinex.bid;
-        } else if(ticksBitfinex.bid < ticksCoinfalcon.ask && ticksBitfinex.bid <= ticksCoinfalcon.bid){
-            console.log(new Date().toISOString()+" ### Target bid is equal to bitfinexBid");
-            //targetBid = ticksBitfinex.bid;
-            //console.log(new Date().toISOString()+" ### bitfinexBid <= ticksCoinfalcon.bid add 0.0001 above");
-            targetBid = ticksCoinfalcon.bid+0.0001;
-        } else if( ticksBitfinex.bid === ticksCoinfalcon.ask){
-            targetBid = Math.floor((ticksBitfinex.bid - 0.0011)*10000)/10000;
-        } else if(ticksBitfinex.bid >= ticksCoinfalcon.ask) {
-            console.log(new Date().toISOString()+" ### Bitfinex bid is bigger than  ticksCoinfalcon.ask, go -11 from ask");
-            targetBid = Math.floor((ticksCoinfalcon.ask - 0.0011)*10000)/10000;
-        } else {
-            console.error("###  There is problem with find new bid price!");
-        }
-        */
-
-        /*
-        if(targetBid > ticksCoinfalcon.bid){
-        }
-        */
-
-        let preTargetBid =  Math.floor((ticksCoinfalcon.bid+0.0001)*10000)/10000;
+        let preTargetBid = 0;
         if(preTargetBid <= ticksBitfinex.bid){
+            if((ticksCoinfalcon.bid-ticksCoinfalcon.bidSecond) > config.spreadSize && ticksCoinfalcon.bidSecond !== myAccount.buyPrice){
+                preTargetBid = Math.round((ticksCoinfalcon.bidSecond+0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetBid "+preTargetBid+" <= ticksBitfinex.bid "+ticksBitfinex.bid+" pay more than second order "+ticksCoinfalcon.bidSecond+", add +0.0001");
+            } else if((ticksCoinfalcon.bid-ticksCoinfalcon.bidSecond) > config.spreadSize && ticksCoinfalcon.bidSecond === myAccount.buyPrice){
+                if((ticksCoinfalcon.bidSecondSize-(myAccount.balanceEUR/ticksCoinfalcon.bidSecond)) <= config.ignoreOrderSize){
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.buyPrice and bidSecond my order <= ignoreOrderSize find true big second order");
+                    preTargetBid = Math.round((ticksCoinfalcon.bidSecond-0.0001)*10000)/10000;
+                } else {
+                    preTargetBid = myAccount.buyPrice;
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.buyPrice");
+                }
+            } else {
+                preTargetBid = Math.round((ticksCoinfalcon.bid+0.0001)*10000)/10000;
+                console.log("preTargetBid: " + preTargetBid);
+                console.log(new Date().toISOString()+" ### targetBid "+preTargetBid+" <= ticksBitfinex.bid "+ticksBitfinex.bid+" pay more than first order "+ticksCoinfalcon.bid+", add +0.0001");
+            }
             targetBid = preTargetBid;
-            console.log(new Date().toISOString()+" ### targetBid "+targetBid+" <= ticksBitfinex.bid "+ticksBitfinex.bid+" pay more than others "+ticksCoinfalcon.bid+", add +0.0001");
         } else {
             targetBid = ticksBitfinex.bid;
+            console.log(new Date().toISOString()+" ### targetBid "+targetBid+" > ticksBitfinex.bid "+ticksBitfinex.bid+" set buy order to Bitfinex.bid");
         }
     }
     //Validate if new target bid is not close to ask order or taking ask order.
-    if(targetBid > Math.floor((ticksCoinfalcon.askBorder-0.0010)*10000)/10000) {
+    if(targetBid > Math.round((ticksCoinfalcon.askBorder-config.spreadSize)*10000)/10000) {
         console.log(new Date().toISOString()+" targetBid: " + targetBid);
         console.log(new Date().toISOString()+" ### New target bid is in danger zone, need go lower with price");
-        targetBid = Math.floor((ticksCoinfalcon.askBorder-0.0010)*10000 )/10000;
+        targetBid = Math.round((ticksCoinfalcon.askBorder-config.spreadSize)*10000 )/10000;
     }
     console.log(new Date().toISOString()+" targetBid: " + targetBid);
     return targetBid;

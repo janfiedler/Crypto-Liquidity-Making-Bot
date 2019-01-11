@@ -2,6 +2,7 @@ let config = {
     development: {
         debug: true,
         ignoreOrderSize: 10, // How big size of order is ignored
+        spreadSize: 0.0010, // How big spread between ask/bid order and between first and second order
         sleepPause: 10000, // How much ms wait before continue new loop
         coinfalcon: {
             url: "https://coinfalcon.com",
@@ -17,6 +18,7 @@ let config = {
     production: {
         debug: true,
         ignoreOrderSize: 10,
+        spreadSize: 0.0010, // How big spread between ask/bid order and between first and second order
         sleepPause: 10000, // How much ms wait before continue new loop
         coinfalcon: {
             url: "https://coinfalcon.com",
