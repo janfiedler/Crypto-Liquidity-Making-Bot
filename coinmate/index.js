@@ -5,12 +5,12 @@ const crypto = require('crypto');
 var request = require('request');
 
 sign = function() {
-    let clientId = config.clientId;
-    let publicApiKey = config.publicKey;
+    let clientId = config.coinmate.clientId;
+    let publicApiKey = config.coinmate.publicKey;
     let nonce = Date.now().toString();
     let signatureInput =  nonce + clientId + publicApiKey;
 
-    const hmac = crypto.createHmac('sha256', config.privateKey);
+    const hmac = crypto.createHmac('sha256', config.coinmate.privateKey);
     hmac.update(signatureInput);
     let signature = hmac.digest('hex').toUpperCase();
     return "clientId="+clientId+"&publicKey="+publicApiKey+"&nonce="+nonce+"&signature="+signature;

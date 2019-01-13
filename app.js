@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-const cmmb = require('./src/index');
+const cmmb = require('./src/coinmate');
 
 let env = process.env.NODE_ENV || 'development';
 

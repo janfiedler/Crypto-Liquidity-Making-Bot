@@ -24,34 +24,36 @@ var coinmate = require('../coinmate');
 // setTimeout with support await
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
+let myAccount = {balanceEUR: 0.0000,availableEUR: 0.0000,balanceIOT: 0.0000,availableIOT: 0.0000,"buyId": "", buyPrice:0.0000, "sellId":"", sellPrice:0.0000};
+
 async function start() {
-    try {
-        //await timeout(5000);
-        let countLocalOpenOrders = await db.countOpenOrders();
-        let countCoinmateOpenOrders = await coinmate.getOpenOrders("BTC_CZK");
-        let isSynced = await checkSyncDbs(countLocalOpenOrders, countCoinmateOpenOrders);
-        if (isSynced && countLocalOpenOrders === 0){
-            console.log("Open new order!");
-            let book = await coinmate.getOrderBook("BTC_CZK");
-            console.log(book.data.asks[0]);
-            console.log(book.data.bids[0]);
-        } else {
-            console.log("Check progress!");
-        }
 
-        /*
-        let balance = await coinmate.getBalance();
-        let openOrders = await coinmate.getOpenOrders("BTC_CZK");
-        console.log(balance);
-
-        let transactionHistory = await coinmate.getTransactionHistory(148114073);
-        console.log(transactionHistory);
-        let orderHistory = await coinmate.getOrderHistory("BTC_CZK", 1);
-        console.log(orderHistory);
-*/
-    } catch (e) {
-        console.error(e); // 💩
+    //await timeout(5000);
+    /*
+    let countLocalOpenOrders = await db.countOpenOrders();
+    let countCoinmateOpenOrders = await coinmate.getOpenOrders("BTC_CZK");
+    let isSynced = await checkSyncDbs(countLocalOpenOrders, countCoinmateOpenOrders);
+    if (isSynced && countLocalOpenOrders === 0){
+        console.log("Open new order!");
+        let book = await coinmate.getOrderBook("BTC_CZK");
+        console.log(book.data.asks[0]);
+        console.log(book.data.bids[0]);
+    } else {
+        console.log("Check progress!");
     }
+    */
+
+    let balance = await coinmate.getBalance();
+    console.log(balance);
+    /*
+    let openOrders = await coinmate.getOpenOrders("BTC_CZK");
+
+    let transactionHistory = await coinmate.getTransactionHistory(148114073);
+    console.log(transactionHistory);
+    let orderHistory = await coinmate.getOrderHistory("BTC_CZK", 1);
+    console.log(orderHistory);
+    */
+
 }
 
 async function checkSyncDbs(countLocalOpenOrders, countCoinmateOpenOrders){
