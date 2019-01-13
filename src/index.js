@@ -222,8 +222,8 @@ async function findSpotForAsk(){
                     console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice");
                 }
             } else {
-                preTargetAsk =  Math.round((ticksCoinfalcon.ask+0.0001)*10000)/10000;
-                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than than first order "+ticksCoinfalcon.ask+", add +0.0001");
+                preTargetAsk =  Math.round((ticksCoinfalcon.ask-0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than than first order "+ticksCoinfalcon.ask+", add -0.0001");
             }
             targetAsk = preTargetAsk;
         } else {
