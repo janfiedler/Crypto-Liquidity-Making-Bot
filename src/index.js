@@ -16,7 +16,10 @@ let ticksBitfinex = {bid: 0.0000, ask: 0.0000};
 const sleepPause = config.sleepPause;
 
 async function begin(){
-    await start();
+    console.log(new Date().toISOString()+" Let´s call start()");
+    const startResult = await start();
+    console.log(new Date().toISOString()+ " startResult: " + startResult);
+    console.log(new Date().toISOString()+" start() finished, let´s call begin() after 1 second");
     setTimeout(begin, 1000);
 }
 begin();
@@ -33,7 +36,7 @@ async function start() {
         ticksBitfinex.bid = parseFloat(price.body[0].toFixed(4));
         ticksBitfinex.ask = parseFloat(price.body[2].toFixed(4));
     } else {
-        console.error("Faild fetch prices from bitfinex, wait 10 seconds and start again");
+        console.error(new Date().toISOString()+" Faild fetch prices from bitfinex, wait 10 seconds and start again");
         await sleep(10000);
         return true;
     }
