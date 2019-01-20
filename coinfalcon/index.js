@@ -1,11 +1,14 @@
 let env = process.env.NODE_ENV || 'development';
 let config = require('../config')[env];
 
+const sleepPause = config.sleepPause;
+
 const crypto = require('crypto');
+const tools = require('../src/tools');
 var request = require('request');
 
-exports.getPriceIOTEUR = function(level) {
-    return new Promise(function (resolve) {
+exports.getTicker = function(pair, level) {
+    return new Promise(async function (resolve) {
         /*
             Response schema type: object
 
@@ -20,7 +23,9 @@ exports.getPriceIOTEUR = function(level) {
             String	asks[].price
             String	asks[].size
         */
-        request.get({url: "https://coinfalcon.com/api/v1/markets/IOT-EUR/orders", qs: { level: level.toString() }}, function(error, response, body) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
+        request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair+"/orders", qs: { level: level.toString() }}, function(error, response, body) {
             if (!error && response.statusCode == 200) {
                 let info = JSON.parse(body);
                 resolve(info);
@@ -37,16 +42,34 @@ sign = function(method, request_path, body = undefined) {
         payload += '|' + JSON.stringify(body);
     }
     //console.log(payload);
-    const hmac = crypto.createHmac('sha256', config.coinfalcon.CD_API_SECRET_KEY);
+    const hmac = crypto.createHmac('sha256', config.exchanges.coinfalcon.CD_API_SECRET_KEY);
     hmac.update(payload);
     let signature = hmac.digest('hex');
-    return {"CF-API-KEY": config.coinfalcon.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
+    return {"CF-API-KEY": config.exchanges.coinfalcon.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
 };
 
 exports.getAccountsBalance = function(){
-    return new Promise(function (resolve) {
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
         let request_path = "/api/v1/user/accounts";
-        let url = config.coinfalcon.url + request_path;
+        let url = config.exchanges.coinfalcon.url + request_path;
+        request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                resolve(JSON.parse(body));
+            } else {
+                console.error(JSON.parse(body).error);
+            }
+        });
+    });
+};
+
+exports.getOrders = function(pair, status){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
+        let request_path = "/api/v1/user/orders?market="+pair+"&status="+status;
+        let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             if (!error && response.statusCode === 200) {
                 resolve(JSON.parse(body));
@@ -59,10 +82,12 @@ exports.getAccountsBalance = function(){
     });
 };
 
-exports.getOrders = function(status){
-    return new Promise(function (resolve) {
-        let request_path = "/api/v1/user/orders?market=IOT-EUR&status="+status;
-        let url = config.coinfalcon.url + request_path;
+exports.getOrder = function(id){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
+        let request_path = "/api/v1/user/orders/"+id;
+        let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             if (!error && response.statusCode === 200) {
                 resolve(JSON.parse(body));
@@ -75,53 +100,41 @@ exports.getOrders = function(status){
     });
 };
 
-exports.cancelOrder = function(type, myAccount){
-    return new Promise(function (resolve) {
-        let orderId;
-        if(type === "sell"){
-            orderId = myAccount.sellId;
-        } else if(type === "buy"){
-            orderId = myAccount.buyId;
-        }
-        let request_path = "/api/v1/user/orders/"+orderId;
-        let url = config.coinfalcon.url + request_path;
+exports.cancelOrder = function(id){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
+        let request_path = "/api/v1/user/orders/"+id;
+        let url = config.exchanges.coinfalcon.url + request_path;
         request.delete({url: url, headers : sign("DELETE", request_path, {})}, async function (error, response, body) {
-            //const result = JSON.parse(body);
+            const result = JSON.parse(body);
             //console.log(result);
             if (!error && response.statusCode === 200) {
-                //const result = JSON.parse(body);
-                if(type === "sell"){
-                    myAccount.sellId = "";
-                    myAccount.sellPrice = 0.0000;
-                    myAccount.availableIOT = myAccount.balanceIOT + myAccount.availableIOT;
-                } else if(type === "buy"){
-                    myAccount.buyId = "";
-                    myAccount.buyPrice = 0.0000;
-                    myAccount.availableEUR = myAccount.balanceEUR + myAccount.availableEUR;
-                }
-                resolve(myAccount);
+                resolve({s: 1, data: result.data});
             } else {
-                resolve(myAccount);
+                resolve({s:0, data: result});
             }
         });
 
     });
 };
 
-exports.createOrder = function(order_type, myAccount, price, funds){
-    return new Promise(function (resolve) {
+exports.createOrder = function(order_type, pair, myAccount, price){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
         let size = "";
         switch(order_type){
             case "buy":
-                size = (Math.floor((funds/price)*100000)/100000).toString();
+                size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
             case "sell":
-                size = funds.toString();
+                size = myAccount.coinfalcon.balance[pair.name.split('-')[1]].toString();
                 break;
         }
-        let body = { market: 'IOT-EUR', operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
+        let body = { market: pair.name, operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
         let request_path = "/api/v1/user/orders";
-        let url = config.coinfalcon.url + request_path;
+        let url = config.exchanges.coinfalcon.url + request_path;
         let o1 = { 'content-type': 'application/x-www-form-urlencoded',
             accept: 'application/json' };
 
@@ -133,16 +146,63 @@ exports.createOrder = function(order_type, myAccount, price, funds){
             if (!error && response.statusCode === 201) {
                 switch(result.data.order_type){
                     case "buy":
-                        myAccount.buyId = result.data.id;
-                        myAccount.buyPrice = parseFloat(result.data.price);
+                        //console.log(result.data);
+                        myAccount.coinfalcon.buyData[pair.name].id = result.data.id;
+                        myAccount.coinfalcon.buyData[pair.name].price = parseFloat(result.data.price);
+                        myAccount.coinfalcon.buyData[pair.name].size = parseFloat(result.data.size);
+                        myAccount.coinfalcon.buyData[pair.name].funds = parseFloat(result.data.funds);
+                        myAccount.coinfalcon.buyData[pair.name].created_at = result.data.created_at;
                         break;
                     case "sell":
-                        myAccount.sellId = result.data.id;
-                        myAccount.sellPrice = parseFloat(result.data.price);
+                        myAccount.coinfalcon.sellData[pair.name].id = result.data.id;
+                        myAccount.coinfalcon.sellData[pair.name].price = parseFloat(result.data.price);
+                        myAccount.coinfalcon.sellData[pair.name].size = parseFloat(result.data.size);
+                        myAccount.coinfalcon.sellData[pair.name].funds = parseFloat(result.data.funds);
+                        myAccount.coinfalcon.sellData[pair.name].created_at = result.data.created_at;
                         break;
                 }
             }
             resolve(myAccount);
         });
     });
+};
+
+exports.parseCoinfalconTicker = function(coinfalconOrders, pair){
+    //console.log(coinfalconOrders);
+    let ticksCoinfalcon = {bidBorder: 0, bid: 0, bidSize: 0, bidSecond: 0, bidSecondSize: 0, askBorder: 0, ask: 0, askSize: 0, askSecond: 0, askSecondSize: 0};
+    let ii=0;
+    for(let i=0;i<coinfalconOrders.data.asks.length;i++){
+        if(i===0){
+            ticksCoinfalcon.askBorder = parseFloat(coinfalconOrders.data.asks[i].price);
+        }
+        if( parseFloat(coinfalconOrders.data.asks[i].size) > pair.ignoreOrderSize){
+            ii++;
+            if(ii === 1){
+                ticksCoinfalcon.ask = parseFloat(coinfalconOrders.data.asks[i].price);
+                ticksCoinfalcon.askSize = parseFloat(coinfalconOrders.data.asks[i].size);
+            } else if (ii === 2){
+                ticksCoinfalcon.askSecond = parseFloat(coinfalconOrders.data.asks[i].price);
+                ticksCoinfalcon.askSecondSize = parseFloat(coinfalconOrders.data.asks[i].size);
+                break;
+            }
+        }
+    }
+    ii=0;
+    for(let i=0;i<coinfalconOrders.data.bids.length;i++){
+        if(i === 0){
+            ticksCoinfalcon.bidBorder = parseFloat(coinfalconOrders.data.bids[i].price);
+        }
+        if(parseFloat(coinfalconOrders.data.bids[i].size) > pair.ignoreOrderSize){
+            ii++;
+            if(ii === 1){
+                ticksCoinfalcon.bid = parseFloat(coinfalconOrders.data.bids[i].price);
+                ticksCoinfalcon.bidSize = parseFloat(coinfalconOrders.data.bids[i].size);
+            } else if (ii === 2){
+                ticksCoinfalcon.bidSecond = parseFloat(coinfalconOrders.data.bids[i].price);
+                ticksCoinfalcon.bidSecondSize = parseFloat(coinfalconOrders.data.bids[i].size);
+                break;
+            }
+        }
+    }
+    return ticksCoinfalcon;
 };

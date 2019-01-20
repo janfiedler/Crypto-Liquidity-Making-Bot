@@ -15,6 +15,73 @@ dbApi.connect = function(){
     });
 };
 
+dbApi.getOpenedBuyOrder = function(pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE pair = ? AND buy_status = ? AND buy_id IS NOT NULL`, pair, "open", (err, row) => {
+            if (err) {
+                console.error(err.message);
+            }
+            resolve(row);
+        });
+    });
+};
+
+dbApi.saveOpenedBuyOrder = function(pair, myAccount){
+    return new Promise(function (resolve) {
+        db.run(`insert INTO orders(pair, status, buy_status, buy_id, buy_price, buy_size, buy_funds, buy_created) VALUES (?,?,?,?,?,?,?,?)`, pair.name, "buy", "open", myAccount.coinfalcon.buyData[pair.name].id, myAccount.coinfalcon.buyData[pair.name].price, myAccount.coinfalcon.buyData[pair.name].size, myAccount.coinfalcon.buyData[pair.name].funds, myAccount.coinfalcon.buyData[pair.name].created_at, function(err) {
+            if (err) {
+                return console.log(err.message);
+            }
+            resolve(true);
+        });
+    });
+};
+
+dbApi.deleteOpenedBuyOrder = function(id){
+    return new Promise(function (resolve) {
+        db.run(`DELETE FROM orders WHERE buy_id=?`, id, function(err) {
+            if (err) {
+                return console.log(err.message);
+            }
+            resolve(true);
+        });
+    });
+};
+
+dbApi.getLowestFilledBuyOrder = function(pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE pair = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`, pair, "sell", 1, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            }
+            resolve(row);
+        });
+    });
+};
+
+
+dbApi.setPendingSellOrder = function(id, buy_status, buy_size_filled,  sell_price){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET status = ?, buy_status = ?, sell_status = ?, sell_price = ? WHERE buy_id= ?;`, "sell", buy_status, "pending", sell_price, id, function(err) {
+            if (err) {
+                return console.log(err.message);
+            }
+            resolve(true);
+        });
+    });
+};
+
+dbApi.setOpenedSellerOrder = function(pair, myAccount){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET sell_status = ?, sell_id = ? WHERE buy_id = ?;`, "open", myAccount.coinfalcon.sellData[pair.name].id, myAccount.coinfalcon.buyData[pair.name].id, function(err) {
+            if (err) {
+                return console.log(err.message);
+            }
+            resolve(true);
+        });
+    });
+};
+
 dbApi.countOpenOrders = function(){
     return new Promise(function (resolve) {
         db.get(`SELECT COUNT(*) AS openCount FROM orders WHERE status = ?`, "ACTIVE", (err, row) => {

@@ -1,6 +1,6 @@
 var request = require('request');
 
-exports.getPriceIOTEUR = function() {
+exports.getTickers = function(tickers) {
     return new Promise(function (resolve) {
         /* on trading pairs (ex. tBTCUSD)
         [
@@ -16,7 +16,7 @@ exports.getPriceIOTEUR = function() {
           LOW
         ]
         */
-        request.get({url: "https://api.bitfinex.com/v2/ticker/tIOTEUR"}, function(error, response, body) {
+        request.get({url: "https://api.bitfinex.com/v2/tickers?symbols="+tickers}, function(error, response, body) {
             if (!error && response.statusCode == 200) {
                 resolve({s:true, body:JSON.parse(body)});
             } else {

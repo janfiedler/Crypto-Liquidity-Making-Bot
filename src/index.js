@@ -3,385 +3,400 @@ let config = require('../config')[env];
 let request = require('request');
 let crypto = require('crypto');
 var coinfalcon = require('../coinfalcon');
-var bitfinex = require('../bitfinex');
+let db = require('../db/sqlite3');
+const tools = require('../src/tools');
+// Multi threading
+var cp = require('child_process');
 
 // Start with ask order
-let doOrder = "ask";
+let doOrder = "bid";
 
 
-let myAccount = {balanceEUR: 0.0000,availableEUR: 0.0000,balanceIOT: 0.0000,availableIOT: 0.0000,"buyId": "", buyPrice:0.0000, "sellId":"", sellPrice:0.0000};
-let ticksCoinfalcon = {bidBorder: 0.0000, bid: 0.0000, bidSize: 0.0, bidSecond: 0.0000, bidSecondSize: 0.00, askBorder: 0.0000, ask: 0.0000, askSize: 0.0, askSecond: 0.0000, askSecondSize: 0.0};
-let ticksBitfinex = {bid: 0.0000, ask: 0.0000};
+let myAccount = {coinfalcon: {balance: {},available: {},buyData: {}, sellData:{}}};
+let tickersCoinfalcon = {};
+let tickersBitfinex = {};
 
-const sleepPause = config.coinfalcon.sleepPause;
+// Async Init
+(async function () {
+    // Promise not compatible with console.log, async is?
+    await db.connect();
+    startRetrieveRates();
+})();
+
+function startRetrieveRates() {
+    let firstInit = true;
+    // Worker for get rates in interval
+    let proxyStatsWorker = cp.fork('workers/rates.js');
+    // Send child process work
+    proxyStatsWorker.send({});
+    proxyStatsWorker.on('message', async function (result) {
+        if(result.bitfinexTickers.s && result.coinfalconBalance){
+            myAccount = await tools.parseBalance(result.coinfalconBalance, myAccount);
+            tickersBitfinex = result.bitfinexTickers.data;
+            console.log(tickersBitfinex);
+            if(firstInit){
+                firstInit = false;
+                begin();
+            }
+        }
+    });
+}
 
 async function begin(){
     console.log(new Date().toISOString()+" Let´s call start()");
     const startResult = await start();
     console.log(new Date().toISOString()+ " startResult: " + startResult);
-    console.log(new Date().toISOString()+" start() finished, let´s call begin() after 1 second");
-    setTimeout(begin, 1000);
+    console.log(new Date().toISOString()+" start() finished, let´s call begin()");
+    begin();
 }
-begin();
 
 async function start() {
-    //update my available accounts balance
-    const balance = await coinfalcon.getAccountsBalance();
-    myAccount = await parseBalance(balance, myAccount);
-    //get price from external source
-
-    console.log(new Date().toISOString()+" await bitfinex.getPriceIOTEUR()");
-    const price = await bitfinex.getPriceIOTEUR();
-    if(price.s){
-        ticksBitfinex.bid = parseFloat(price.body[0].toFixed(4));
-        ticksBitfinex.ask = parseFloat(price.body[2].toFixed(4));
-    } else {
-        console.error(new Date().toISOString()+" Faild fetch prices from bitfinex, wait 10 seconds and start again");
-        await sleep(10000);
-        return true;
-    }
-
-    //Get my orders on start || when buy order was closed by fully filled || when sell order was fully filled
-    if(myAccount.buyId === "" && myAccount.sellId === "" || myAccount.buyId !== "" && myAccount.availableEUR > 0 || myAccount.sellId !== "" && myAccount.availableIOT > 0 ){
-        console.log(new Date().toISOString()+" Get my opened orders");
-        let data = await coinfalcon.getOrders("open");
-        if(data.data.length > 0){
-            await parseMyOrders(data);
-        }
-        data = await coinfalcon.getOrders("partially_filled");
-        if(data.data.length > 0){
-            await parseMyOrders(data);
-        }
-    }
-    console.log(myAccount);
-
-    //fetch actual prices IOT/EUR on coinfalcon exchange
-    console.log(new Date().toISOString()+" fetch actual prices IOT/EUR on coinfalcon exchange");
-    ticksCoinfalcon = await fetchCoinfalconOrders(ticksCoinfalcon);
-    console.log(ticksCoinfalcon);
-
     if(doOrder === "ask"){
-        //find open price for ask order
-        let targetAsk = await findSpotForAsk();
-        if(myAccount.sellId !== ""){
-            const canceled = await checkForCancelOrder("ask", targetAsk);
-            if(canceled){
-                console.log(new Date().toISOString()+" My ask order was canceled");
-                //const balance = await coinfalcon.getAccountsBalance();
-                //myAccount = await parseBalance(balance, myAccount);
-                //await fetchCoinfalconOrders();
-                //targetAsk = await findSpotForAsk();
-            }
-        }
-        //process ask order
-        await processAskOrder(targetAsk);
+        // Parse all currency pair in config and check if is available balance for sell trade
+        for(let i=0;i<config.exchanges.coinfalcon.pairs.length;i++){
+            let pair = config.exchanges.coinfalcon.pairs[i];
+            let sellingForCurrency = pair.name.split('-')[1];
+            let sellingCurrency = pair.name.split('-')[0];
+            if(myAccount.coinfalcon.available[sellingCurrency] > 0){
+                console.log("lets sell " + sellingCurrency + " for " + sellingForCurrency);
 
-        //wait x = (sleepPause) seconds on reaction others bot before we set bid order
-        await sleep(sleepPause);
+                console.log(new Date().toISOString()+" fetch actual prices "+pair.name+" on coinfalcon exchange");
+                const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
+                tickersCoinfalcon[pair.name] = await coinfalcon.parseCoinfalconTicker(resultCoinfalconTicker, pair);
+
+                //find open price for ask order
+                let targetAsk = await findSpotForAsk();
+
+                //Fetch data from database
+                const resultOpenedBuyOrder = await db.getOpenedBuyOrder(pair.name);
+                myAccount.coinfalcon.sellData[pair.name] = { id: '',
+                    price: 0,
+                    size: 0,
+                    size_filled: 0,
+                    fee: 0,
+                    funds: 0,
+                    created_at: '' };
+
+                if(resultOpenedBuyOrder){
+                    //console.log(resultOpenedBuyOrder);
+                    myAccount.coinfalcon.sellData[pair.name].id = resultOpenedBuyOrder.sell_id;
+                    myAccount.coinfalcon.sellData[pair.name].price = resultOpenedBuyOrder.sell_price;
+                }
+
+
+                if(myAccount.sellId !== ""){
+                    const canceled = await checkOrder("ask", targetAsk);
+                    if(canceled){
+                        console.log(new Date().toISOString()+" My ask order was canceled");
+                        //const balance = await coinfalcon.getAccountsBalance();
+                        //myAccount = await parseBalance(balance, myAccount);
+                        //await fetchCoinfalconOrders();
+                        //targetAsk = await findSpotForAsk();
+                    }
+                } else {
+                    //process ask order
+                    await processAskOrder(targetAsk);
+                }
+            } else {
+                console.log("No funds for sell order " + sellingCurrency);
+            }
+
+        }
         doOrder = "bid";
         return true;
     }
 
     if(doOrder === "bid"){
-        //find price for bid order
+        // Parse all currency pair in config and check if is available balance for sell trade
+        for(let i=0;i<config.exchanges.coinfalcon.pairs.length;i++){
+            let pair = config.exchanges.coinfalcon.pairs[i];
+            let buyForCurrency = pair.name.split('-')[1];
+            let buyCurrency = pair.name.split('-')[0];
+            if(myAccount.coinfalcon.available[buyForCurrency] > 0){
+                console.log("lets buy " + buyCurrency + " for " + buyForCurrency);
 
-        let targetBid = await findSpotForBid();
-        if(myAccount.buyId !== ""){
-            let canceled = await checkForCancelOrder("bid", targetBid);
-            if(canceled){
-                console.log(new Date().toISOString()+" My bid order was canceled");
-                //const balance = await coinfalcon.getAccountsBalance();
-                //myAccount = await parseBalance(balance, myAccount);
-                //await fetchCoinfalconOrders();
-                //targetBid = await findSpotForBid();
+                console.log(new Date().toISOString()+" fetch actual prices "+pair.name+" on coinfalcon exchange");
+                const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
+                tickersCoinfalcon[pair.name] = await coinfalcon.parseCoinfalconTicker(resultCoinfalconTicker, pair);
+                //console.log(tickersCoinfalcon);
+
+                //Fetch data from database
+                const resultOpenedBuyOrder = await db.getOpenedBuyOrder(pair.name);
+                myAccount.coinfalcon.buyData[pair.name] = { id: '',
+                    price: 0,
+                    size: 0,
+                    size_filled: 0,
+                    fee: 0,
+                    funds: 0,
+                    created_at: '' };
+
+                if(resultOpenedBuyOrder){
+                    //console.log(resultOpenedBuyOrder);
+                    myAccount.coinfalcon.buyData[pair.name].id = resultOpenedBuyOrder.buy_id;
+                    myAccount.coinfalcon.buyData[pair.name].price = resultOpenedBuyOrder.buy_price;
+                }
+
+                const targetBid = await findSpotForBid(pair);
+                //console.log(targetBid);
+                //console.log(myAccount);
+
+                if(myAccount.coinfalcon.buyData[pair.name].id !== ""){
+                    let canceled = await checkOrder(pair, "bid", targetBid);
+                    if(canceled){
+                        console.log(new Date().toISOString()+" My bid order was canceled");
+                        break;
+                    }
+                } else {
+                    //process bid order
+                    await processBidOrder(pair, targetBid);
+                }
+            } else {
+                console.log("No funds for buy order " + buyCurrency);
             }
         }
-        //process bid order
-        await processBidOrder(targetBid);
-
-        //wait x = (sleepPause)  seconds on reaction others bot before we set ask order
-        await sleep(sleepPause);
-        doOrder = "ask";
+        doOrder = "bid";
         return true;
     }
 }
 
-async function checkForCancelOrder(type, newPrice){
+async function checkOrder(pair, type, newPrice){
     let canceled = false;
     switch(type){
         case "ask":
-            if(myAccount.availableIOT > 0){
-                //If availableIOT > 0 some buy order filled. Cancel sell order and make new with full size.
-                console.log(new Date().toISOString()+" If availableIOT > 0 some buy order filled. Cancel sell order and make new with full size.");
-                myAccount = await coinfalcon.cancelOrder("sell", myAccount);
-                canceled = true;
-            } else if(newPrice !== myAccount.sellPrice && myAccount.sellId !== ""){
+            if(newPrice !== myAccount.coinfalcon.sellData[pair.name].price && myAccount.coinfalcon.sellData[pair.name].id !== ""){
                 //If new bid price is higher than my actual and it is not close than config.spreadSize to ticksCoinfalcon.ask, than close actual order for make new.
                 console.log(new Date().toISOString()+" We have new price, need close old sell order");
-                myAccount = await coinfalcon.cancelOrder("sell", myAccount);
+                await coinfalcon.cancelOrder(myAccount.coinfalcon.sellData[pair.name].id);
                 canceled = true;
+            } else if(newPrice === myAccount.coinfalcon.sellData[pair.name].price){
+                console.log(new Date().toISOString()+" ### We already have opened ask order at " + newPrice);
             }
             break;
         case "bid":
-            if(myAccount.availableEUR > 0 && myAccount.buyId !== ""){
-                //If availableEUR > 0 some sell order filled. Cancel buy order and make new with full size.
-                console.log(new Date().toISOString()+" If availableEUR > 0 some sell order filled. Cancel buy order and make new with full size.");
-                myAccount = await coinfalcon.cancelOrder("buy", myAccount);
-                canceled = true;
-            } else if(newPrice !== myAccount.buyPrice && myAccount.buyId !== ""){
+            if(newPrice !== myAccount.coinfalcon.buyData[pair.name].price && myAccount.coinfalcon.buyData[pair.name].id !== ""){
+                //Let´s check order state
+                const orderDetail = await coinfalcon.getOrder(myAccount.coinfalcon.buyData[pair.name].id);
+                console.log(orderDetail);
+                if(orderDetail.data.size_filled > 0){
+                    const sell_price = tools.addPipsToPrice(parseFloat(orderDetail.data.price), pair.pipsProfitTarget, pair.digitsPrice);
+                    switch(orderDetail.data.status) {
+                        case "part-filled":
+                            console.log("part-filled");
+                            //need cancel order on exchange
+                            const resultCancelOrder = await coinfalcon.cancelOrder(myAccount.coinfalcon.buyData[pair.name].id);
+                            db.setPendingSellOrder(resultCancelOrder.data.id, orderDetail.data.status, resultCancelOrder.data.size_filled, sell_price);
+                            break;
+                        case "fulfilled":
+                            // do not need close order on exchange, just update info to local db
+                            db.setPendingSellOrder(orderDetail.data.id,  orderDetail.data.status, orderDetail.data.size_filled, sell_price);
+                            break;
+                        case "canceled":
+                            //Skip, forgot delete from DB.
+                            console.log("cancel size_filled > 0");
+                            await db.deleteOpenedBuyOrder(myAccount.coinfalcon.buyData[pair.name].id);
+                            break;
+                        default:
+                            await tools.sleep(99999000);
+                            break;
+                    }
+                } else {
+                    switch(orderDetail.data.status) {
+                        case "open":
+                            console.log(new Date().toISOString()+" We have new price, need close old buy order and delete db record");
+                            const resultCancelOrder = await coinfalcon.cancelOrder(myAccount.coinfalcon.buyData[pair.name].id);
+                            //console.log(resultCancelOrder);
+                            myAccount.coinfalcon.buyData[pair.name] = {};
+                            if(resultCancelOrder.s){
+                                await db.deleteOpenedBuyOrder(resultCancelOrder.data.id);
+                                canceled = true;
+                            } else {
+                                canceled = false;
+                            }
+                            break;
+                        case "canceled":
+                            //Skip, forgot delete from DB.
+                            console.log("canceleled else");
+                            await db.deleteOpenedBuyOrder(myAccount.coinfalcon.buyData[pair.name].id);
+                            break;
+                    }
+                }
                 //If new bid price is higher than my actual and it is not close than config.spreadSize to ticksCoinfalcon.ask, than close actual order for make new.
-                console.log(new Date().toISOString()+" We have new price, need close old buy order");
-                myAccount = await coinfalcon.cancelOrder("buy", myAccount);
-                canceled = true;
+
+            } else if(newPrice === myAccount.coinfalcon.buyData[pair.name].price){
+                console.log(new Date().toISOString()+" ### We already have opened bid order at " + newPrice);
             }
             break;
     }
     return canceled;
 }
 
-async function fetchCoinfalconOrders(ticksCoinfalcon){
-    const coinfalconOrders = await coinfalcon.getPriceIOTEUR(2);
-    //console.log(coinfalconOrders.data.bids);
-    let ii=0;
-    for(let i=0;i<coinfalconOrders.data.asks.length;i++){
-        if(i===0){
-            ticksCoinfalcon.askBorder = parseFloat(parseFloat(coinfalconOrders.data.asks[i].price).toFixed(4));
-        }
-        if(coinfalconOrders.data.asks[i].size > config.coinfalcon.ignoreOrderSize){
-            ii++;
-            if(ii === 1){
-                ticksCoinfalcon.ask = parseFloat(parseFloat(coinfalconOrders.data.asks[i].price).toFixed(4));
-                ticksCoinfalcon.askSize = parseFloat(parseFloat(coinfalconOrders.data.asks[i].size).toFixed(4));
-            } else if (ii === 2){
-                ticksCoinfalcon.askSecond = parseFloat(parseFloat(coinfalconOrders.data.asks[i].price).toFixed(4));
-                ticksCoinfalcon.askSecondSize = parseFloat(parseFloat(coinfalconOrders.data.asks[i].size).toFixed(4));
-                break;
-            }
-        }
-    }
-    ii=0;
-    for(let i=0;i<coinfalconOrders.data.bids.length;i++){
-        if(i === 0){
-            ticksCoinfalcon.bidBorder = parseFloat(parseFloat(coinfalconOrders.data.bids[i].price).toFixed(4));
-        }
-        if(coinfalconOrders.data.bids[i].size > config.coinfalcon.ignoreOrderSize){
-            ii++;
-            if(ii === 1){
-                ticksCoinfalcon.bid = parseFloat(parseFloat(coinfalconOrders.data.bids[i].price).toFixed(4));
-                ticksCoinfalcon.bidSize = parseFloat(parseFloat(coinfalconOrders.data.bids[i].size).toFixed(4));
-            } else if (ii === 2){
-                ticksCoinfalcon.bidSecond = parseFloat(parseFloat(coinfalconOrders.data.bids[i].price).toFixed(4));
-                ticksCoinfalcon.bidSecondSize = parseFloat(parseFloat(coinfalconOrders.data.bids[i].size).toFixed(4));
-                break;
-            }
-        }
-    }
-    return ticksCoinfalcon;
-}
-
-async function findSpotForAsk(){
+async function findSpotForAsk(pair){
     let targetAsk = 0.0000;
-    console.log(new Date().toISOString()+" Bitfinex ask: " + ticksBitfinex.ask);
-    console.log(new Date().toISOString()+" Coinfalcon ask: " + ticksCoinfalcon.ask);
-    console.log(new Date().toISOString()+" Coinfalcon bid: " + ticksCoinfalcon.bid);
+    console.log(new Date().toISOString()+" Bitfinex ask: " + tickersBitfinex[pair].ask);
+    console.log(new Date().toISOString()+" Coinfalcon ask: " + tickersCoinfalcon[pair].ask);
+    console.log(new Date().toISOString()+" Coinfalcon bid: " + tickersCoinfalcon[pair].bid);
     //console.log(typeof myAccount.sellPrice);
-    if(ticksCoinfalcon.ask === myAccount.sellPrice){
+    if(tickersCoinfalcon[pair.name].ask === myAccount.coinfalcon.sellData[pair.name].price){
         console.log(new Date().toISOString()+" ### ticksCoinfalcon.ask is my opened order");
-        targetAsk = myAccount.sellPrice;
+        targetAsk = myAccount.coinfalcon.sellData[pair.name].price;
 
-        if(ticksBitfinex.ask > myAccount.sellPrice &&  ticksBitfinex.ask < ticksCoinfalcon.askSecond){
+        if(tickersBitfinex[pair.name].ask > myAccount.coinfalcon.sellData[pair.name].price &&  tickersBitfinex[pair.name].ask < tickersCoinfalcon[pair.name].askSecond){
             console.log(new Date().toISOString()+" ### Replacing our sell order to higher price");
-            targetAsk = ticksBitfinex.ask;
+            targetAsk = tickersBitfinex[pair.name].ask;
         }
         /* When we want copy bitfinex ticks
-        else if(ticksBitfinex.ask < myAccount.sellPrice &&  ticksBitfinex.ask > Math.round((ticksCoinfalcon.bid+config.spreadSize)*10000)/10000){
+        else if(tickersBitfinex[pair].ask < myAccount.sellPrice &&  tickersBitfinex[pair].ask > Math.round((ticksCoinfalcon.bid+config.spreadSize)*10000)/10000){
             console.log(new Date().toISOString()+" ### Replacing our sell order to lower price");
-            targetAsk = ticksBitfinex.ask;
+            targetAsk = tickersBitfinex[pair].ask;
         } else {
             console.log(new Date().toISOString()+" ### No reason for replacing sell order");
         }
         */
 
-        console.log("### ticksCoinfalcon.askSize: " + ticksCoinfalcon.askSize);
-        console.log("### myAccount.balanceIOT: " + myAccount.balanceIOT);
-        console.log("### Size comparator: " + (ticksCoinfalcon.askSize-myAccount.balanceIOT));
-        // If targetAsk is lower price than askSecond and my sell order is only one higher and bigger than 10 IOTA, move close to askSecond
-        if(targetAsk < (ticksCoinfalcon.askSecond-0.0001) && (ticksCoinfalcon.askSize-myAccount.balanceIOT) <= config.coinfalcon.ignoreOrderSize){
-            console.log(new Date().toISOString()+" ### To far away from askSecond, let askSecond-0.0001");
-            targetAsk = Math.round((ticksCoinfalcon.askSecond-0.0001)*10000)/10000;
+        console.log("### ticksCoinfalcon.askSize: " + tickersCoinfalcon[pair.name].askSize);
+        console.log("### myAccount.balance"+pair.name.split('-')[0]+": " + myAccount.coinfalcon.balance[pair.name.split('-')[0]]);
+
+        const sizeComparison = tickersCoinfalcon[pair.name].askSize-myAccount.coinfalcon.balance[pair.name.split('-')[0]];
+        console.log("### Size comparison: " + sizeComparison);
+        // If target price is bigger than actual second order and my buy order is only one bigger than x pair.name, move close to bidSecond
+        const askSecondTakeOnePip = tools.takePipsFromPrice(tickersCoinfalcon[pair.name].askSecond, 1, pair.digitsPrice);
+        if(targetAsk < askSecondTakeOnePip && sizeComparison <= pair.ignoreOrderSize){
+            console.log(new Date().toISOString()+" ### To far away from ticksCoinfalcon.askSecond, take pip from askSecond");
+            targetAsk = askSecondTakeOnePip;
         }
+        //TODO pokracovat zde
     } else if(myAccount.sellId !== ""){
         let preTargetAsk = 0;
-        if(preTargetAsk <= ticksBitfinex.bid){
-            if((ticksCoinfalcon.askSecond-ticksCoinfalcon.ask) > config.coinfalcon.spreadSize && ticksCoinfalcon.askSecond !== myAccount.sellPrice){
-                preTargetAsk =  Math.round((ticksCoinfalcon.askSecond+0.0001)*10000)/10000;
-                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than second order "+ticksCoinfalcon.askSecond+", add +0.0001");
-            } else if((ticksCoinfalcon.askSecond-ticksCoinfalcon.ask) > config.coinfalcon.spreadSize && ticksCoinfalcon.askSecond === myAccount.sellPrice){
-                if((ticksCoinfalcon.askSecondSize-myAccount.balanceIOT) <= config.coinfalcon.ignoreOrderSize){
-                    preTargetAsk = Math.round((ticksCoinfalcon.askSecond+0.0001)*10000)/10000;
-                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice and askSecond is  <= config.coinfalcon.ignoreOrderSize go higher find big ask order ");
+        if(preTargetAsk <= tickersBitfinex[pair].bid){
+            if((tickersCoinfalcon[pair].askSecond-tickersCoinfalcon[pair].ask) > config.exchanges.coinfalcon.spreadSize && tickersCoinfalcon[pair].askSecond !== myAccount.sellPrice){
+                preTargetAsk =  Math.round((tickersCoinfalcon[pair].askSecond+0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= tickersBitfinex[pair].ask "+tickersBitfinex[pair].ask+" sell cheaper than second order "+tickersCoinfalcon[pair].askSecond+", add +0.0001");
+            } else if((tickersCoinfalcon[pair].askSecond-tickersCoinfalcon[pair].ask) > config.exchanges.coinfalcon.spreadSize && tickersCoinfalcon[pair].askSecond === myAccount.sellPrice){
+                if((tickersCoinfalcon[pair].askSecondSize-myAccount.balanceIOT) <= pair.ignoreOrderSize){
+                    preTargetAsk = Math.round((tickersCoinfalcon[pair].askSecond+0.0001)*10000)/10000;
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice and askSecond is  <= pair.ignoreOrderSize go higher find big ask order ");
                 } else {
                     preTargetAsk = myAccount.sellPrice;
                     console.log(new Date().toISOString()+" ### ticksCoinfalcon.askSecond === myAccount.sellPrice");
                 }
             } else {
-                preTargetAsk =  Math.round((ticksCoinfalcon.ask-0.0001)*10000)/10000;
-                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell cheaper than than first order "+ticksCoinfalcon.ask+", add -0.0001");
+                preTargetAsk =  Math.round((tickersCoinfalcon[pair].ask-0.0001)*10000)/10000;
+                console.log(new Date().toISOString()+" ### targetAsk "+preTargetAsk+" >= tickersBitfinex[pair].ask "+tickersBitfinex[pair].ask+" sell cheaper than than first order "+tickersCoinfalcon[pair].ask+", add -0.0001");
             }
             targetAsk = preTargetAsk;
         } else {
-            targetAsk = ticksBitfinex.ask;
-            console.log(new Date().toISOString()+" ### targetBid "+targetAsk+" > ticksBitfinex.ask "+ticksBitfinex.ask+" set buy order to Bitfinex.bid");
+            targetAsk = tickersBitfinex[pair].ask;
+            console.log(new Date().toISOString()+" ### targetBid "+targetAsk+" > tickersBitfinex[pair].ask "+tickersBitfinex[pair].ask+" set buy order to Bitfinex.bid");
         }
     } else {
         // If ask price is not lower than on bitfinex (dont be cheaper than on bitfinex) you can be cheaper than others
-        let preTargetAsk = Math.round((ticksCoinfalcon.ask-0.0001)*10000)/10000;
-        if(preTargetAsk >= ticksBitfinex.ask){
+        let preTargetAsk = Math.round((tickersCoinfalcon[pair].ask-0.0001)*10000)/10000;
+        if(preTargetAsk >= tickersBitfinex[pair].ask){
             targetAsk = preTargetAsk;
-            console.log(new Date().toISOString()+" ### targetAsk "+targetAsk+" >= ticksBitfinex.ask "+ticksBitfinex.ask+" sell for better price than others "+ticksCoinfalcon.ask+" - 0.0001");
+            console.log(new Date().toISOString()+" ### targetAsk "+tickersCoinfalcon[pair]+" >= tickersBitfinex[pair].ask "+tickersCoinfalcon[pair].ask+" sell for better price than others "+tickersCoinfalcon[pair].ask+" - 0.0001");
         } else {
             // Else dont go for cheaper price than on bitfinex, stay at bitfinex ask price.
-            targetAsk =  ticksBitfinex.ask;
+            targetAsk =  tickersBitfinex[pair].ask;
         }
     }
     //Validate if new target ask is not close to bid order or taking bid order.
-    if(targetAsk < Math.round((ticksCoinfalcon.bidBorder+config.coinfalcon.spreadSize)*10000)/10000) {
+    if(targetAsk < Math.round((tickersCoinfalcon[pair].bidBorder+config.exchanges.coinfalcon.spreadSize)*10000)/10000) {
         console.log(new Date().toISOString()+ "targetAsk: " + targetAsk);
         console.log(new Date().toISOString()+ "### New target ask is in danger zone, need go higher with price");
-        targetAsk = Math.round((ticksCoinfalcon.bidBorder+config.coinfalcon.spreadSize)*10000)/10000;
+        targetAsk = Math.round((tickersCoinfalcon[pair].bidBorder+config.exchanges.coinfalcon.spreadSize)*10000)/10000;
     }
     console.log(new Date().toISOString()+" targetAsk: " + targetAsk);
     return targetAsk;
 }
 
-async function findSpotForBid(){
+async function findSpotForBid(pair){
     let targetBid = 0.0000;
-    console.log(new Date().toISOString()+" Bitfinex bid: " + ticksBitfinex.bid);
-    console.log(new Date().toISOString()+" Coinfalcon ask: " + ticksCoinfalcon.ask);
-    console.log(new Date().toISOString()+" Coinfalcon bid: " + ticksCoinfalcon.bid);
+    console.log(new Date().toISOString()+" Bitfinex bid "+pair.name+": " + tickersBitfinex[pair.name].bid);
+    console.log(new Date().toISOString()+" Coinfalcon ask "+pair.name+": " + tickersCoinfalcon[pair.name].ask);
+    console.log(new Date().toISOString()+" Coinfalcon bid "+pair.name+": " + tickersCoinfalcon[pair.name].bid);
 
-    if(ticksCoinfalcon.bid === myAccount.buyPrice){
+    if(tickersCoinfalcon[pair.name].bid === myAccount.coinfalcon.buyData[pair.name].price){
         console.log(new Date().toISOString()+" ### coinfalconBid is my opened order");
-        targetBid = myAccount.buyPrice;
+        targetBid = myAccount.coinfalcon.buyData[pair.name].price;
 
-        if(ticksBitfinex.bid < myAccount.buyPrice &&  ticksBitfinex.bid > ticksCoinfalcon.bidSecond){
+        if(tickersBitfinex[pair.name].bid < myAccount.coinfalcon.buyData[pair.name].price && tickersBitfinex[pair.name].bid > tickersCoinfalcon[pair.name].bidSecond){
             console.log(new Date().toISOString()+" ### Replacing our bid order to lower price");
-            targetBid = ticksBitfinex.bid;
+            targetBid = tickersBitfinex[pair.name].bid;
         }
         /* When we want copy bitfinex ticks
-        else if(ticksBitfinex.bid > myAccount.buyPrice &&  ticksBitfinex.bid < Math.round((ticksCoinfalcon.ask-config.coinfalcon.spreadSize)*10000)/10000){
+        else if(tickersBitfinex[pair.name].bid > myAccount.coinfalcon.buyData[pair.name].price &&  tickersBitfinex[pair.name].bid < Math.round((ticksCoinfalcon.ask-config.coinfalcon.spreadSize)*10000)/10000){
             console.log(new Date().toISOString()+" ### Replacing our bid order to higher price");
-            targetBid = ticksBitfinex.bid;
+            targetBid = tickersBitfinex[pair.name].bid;
         } else {
             console.log(new Date().toISOString()+" ### No reason for replacing bid order");
         }
         */
-        console.log("### ticksCoinfalcon.bidSecondSize: " + ticksCoinfalcon.bidSize);
-        console.log("### myAccount.balanceEUR: " + myAccount.balanceEUR);
-        console.log("### Size comparator: " + (ticksCoinfalcon.bidSize-(myAccount.balanceEUR/ticksCoinfalcon.bid)));
-        // If target price is bigger than actual order and my sell order is only one bigger than 10 IOTA, move close to askSecond
-        if(targetBid > (ticksCoinfalcon.bidSecond+0.0001) && (ticksCoinfalcon.bidSize-(myAccount.balanceEUR/ticksCoinfalcon.bid)) <= config.coinfalcon.ignoreOrderSize){
-            console.log(new Date().toISOString()+" ### To far away from ticksCoinfalcon.bidSecond, let ticksCoinfalcon.bidSecond+0.0001");
-            targetBid = Math.round((ticksCoinfalcon.bidSecond+0.0001)*10000)/10000;
+        console.log("### ticksCoinfalcon.bidSecondSize: " + tickersCoinfalcon[pair.name].bidSize);
+        console.log("### myAccount.balance"+pair.name.split('-')[1]+": " + myAccount.coinfalcon.balance[pair.name.split('-')[1]]);
+
+        const sizeComparison = tickersCoinfalcon[pair.name].bidSize-(myAccount.coinfalcon.balance[pair.name.split('-')[1]]/tickersCoinfalcon[pair.name].bid);
+        console.log("### Size comparison: " + sizeComparison);
+        // If target price is bigger than actual second order and my buy order is only one bigger than x pair.name, move close to bidSecond
+        const bidSecondPlusOnePip = tools.addPipsToPrice(tickersCoinfalcon[pair.name].bidSecond, 1, pair.digitsPrice);
+        if(targetBid > bidSecondPlusOnePip && sizeComparison <= pair.ignoreOrderSize){
+            console.log(new Date().toISOString()+" ### To far away from ticksCoinfalcon.bidSecond, add pip to bidSecond");
+            targetBid = bidSecondPlusOnePip;
         }
     } else {
         let preTargetBid = 0;
-        if(preTargetBid <= ticksBitfinex.bid){
-            if((ticksCoinfalcon.bid-ticksCoinfalcon.bidSecond) > config.coinfalcon.spreadSize && ticksCoinfalcon.bidSecond !== myAccount.buyPrice){
-                preTargetBid = Math.round((ticksCoinfalcon.bidSecond+0.0001)*10000)/10000;
-                console.log(new Date().toISOString()+" ### targetBid "+preTargetBid+" <= ticksBitfinex.bid "+ticksBitfinex.bid+" pay more than second order "+ticksCoinfalcon.bidSecond+", add +0.0001");
-            } else if((ticksCoinfalcon.bid-ticksCoinfalcon.bidSecond) > config.coinfalcon.spreadSize && ticksCoinfalcon.bidSecond === myAccount.buyPrice){
-                if((ticksCoinfalcon.bidSecondSize-(myAccount.balanceEUR/ticksCoinfalcon.bidSecond)) <= config.coinfalcon.ignoreOrderSize){
-                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.buyPrice and bidSecond my order <= ignoreOrderSize find true big second order");
-                    preTargetBid = Math.round((ticksCoinfalcon.bidSecond-0.0001)*10000)/10000;
+        if(preTargetBid <= tickersBitfinex[pair.name].bid){
+            if((tickersCoinfalcon[pair.name].bid-tickersCoinfalcon[pair.name].bidSecond) > config.exchanges.coinfalcon.spreadSize && tickersCoinfalcon[pair.name].bidSecond !== myAccount.coinfalcon.buyData[pair.name].price){
+                console.log(new Date().toISOString()+" ### targetBid <= tickersBitfinex[pair.name].bid add pip to bidSecond");
+                preTargetBid = tools.addPipsToPrice(tickersCoinfalcon[pair.name].bidSecond, 1, pair.digitsPrice);
+            } else if((tickersCoinfalcon[pair.name].bid-tickersCoinfalcon[pair.name].bidSecond) > config.exchanges.coinfalcon.spreadSize && tickersCoinfalcon[pair.name].bidSecond === myAccount.coinfalcon.buyData[pair.name].price){
+                if((tickersCoinfalcon[pair.name].bidSecondSize-(myAccount.coinfalcon.balance[pair.name.split('-')[1]]/tickersCoinfalcon[pair.name].bidSecond)) <= pair.ignoreOrderSize){
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.coinfalcon.buyData[pair.name].price and bidSecond my order <= ignoreOrderSize find true big second order");
+                    preTargetBid = tools.takePipsFromPrice(tickersCoinfalcon[pair.name].bidSecond, 1, pair.digitsPrice);
                 } else {
-                    preTargetBid = myAccount.buyPrice;
-                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.buyPrice");
+                    preTargetBid = myAccount.coinfalcon.buyData[pair.name].price;
+                    console.log(new Date().toISOString()+" ### ticksCoinfalcon.bidSecond === myAccount.coinfalcon.buyData[pair.name].price");
                 }
             } else {
-                preTargetBid = Math.round((ticksCoinfalcon.bid+0.0001)*10000)/10000;
+                preTargetBid = tools.addPipsToPrice(tickersCoinfalcon[pair.name].bid, 1, pair.digitsPrice);
                 console.log("preTargetBid: " + preTargetBid);
-                console.log(new Date().toISOString()+" ### targetBid "+preTargetBid+" <= ticksBitfinex.bid "+ticksBitfinex.bid+" pay more than first order "+ticksCoinfalcon.bid+", add +0.0001");
+                console.log(new Date().toISOString()+" ### targetBid <= tickersBitfinex[pair.name].bid add pip to bid");
             }
             targetBid = preTargetBid;
         } else {
-            targetBid = ticksBitfinex.bid;
-            console.log(new Date().toISOString()+" ### targetBid "+targetBid+" > ticksBitfinex.bid "+ticksBitfinex.bid+" set buy order to Bitfinex.bid");
+            targetBid = tickersBitfinex[pair.name].bid;
+            console.log(new Date().toISOString()+" ### targetBid "+targetBid+" > tickersBitfinex[pair.name].bid "+tickersBitfinex[pair.name].bid+" set buy order to Bitfinex.bid");
         }
     }
     //Validate if new target bid is not close to ask order or taking ask order.
-    if(targetBid > Math.round((ticksCoinfalcon.askBorder-config.coinfalcon.spreadSize)*10000)/10000) {
-        console.log(new Date().toISOString()+" targetBid: " + targetBid);
+    let askBorderSpreadPips = tools.takePipsFromPrice(tickersCoinfalcon[pair.name].askBorder, pair.spreadSize, pair.digitsPrice);
+    if(targetBid > askBorderSpreadPips) {
         console.log(new Date().toISOString()+" ### New target bid is in danger zone, need go lower with price");
-        targetBid = Math.round((ticksCoinfalcon.askBorder-config.coinfalcon.spreadSize)*10000 )/10000;
+        targetBid = askBorderSpreadPips;
+    }
+    //Validate if final bid is lower than buy bid from sell order
+    const lowerFilledBuyOrder = await db.getLowestFilledBuyOrder(pair.name);
+    if(lowerFilledBuyOrder !== undefined && targetBid >= lowerFilledBuyOrder.buy_price){
+        console.log(new Date().toISOString()+" ### New target bid collision with lowest filled buy order (opened sell order), -1 pip");
+        targetBid = tools.takePipsFromPrice( lowerFilledBuyOrder.buy_price, 1, pair.digitsPrice);
     }
     console.log(new Date().toISOString()+" targetBid: " + targetBid);
     return targetBid;
 }
 
-async function processAskOrder(targetAsk){
-    if(myAccount.balanceIOT > 0 && myAccount.availableIOT > 0){
+async function processAskOrder(pair, targetAsk){
+    if(myAccount.coinfalcon.available[pair.name.split('-')[1]] >= myAccount.coinfalcon.buyData[pair.name].size){
         console.log(new Date().toISOString()+" ### Let´go open new sell order!");
-        myAccount = await coinfalcon.createOrder('sell', myAccount, targetAsk, myAccount.balanceIOT);
-    } else {
-        if(targetAsk === myAccount.sellPrice){
-            console.log(new Date().toISOString()+" ### We already have opened ask order at " + targetAsk);
-        } else {
-            console.log(new Date().toISOString()+" ### Insufficient IOT funds");
-        }
+        myAccount = await coinfalcon.createOrder('sell', pair, myAccount, targetAsk);
+        await db.setOpenedSellerOrder(pair, myAccount);
     }
     return true;
 }
 
-async function processBidOrder(targetBid){
-    if(myAccount.balanceEUR > 0 && myAccount.availableEUR > 0){
+async function processBidOrder(pair, targetBid){
+    if(myAccount.coinfalcon.balance[pair.name.split('-')[1]] > pair.buyForAmount && myAccount.coinfalcon.available[pair.name.split('-')[1]] > pair.buyForAmount){
         console.log(new Date().toISOString()+" ### Let´go open new buy order!");
-        myAccount = await coinfalcon.createOrder('buy', myAccount, targetBid, myAccount.balanceEUR);
-    } else {
-        if(targetBid === myAccount.buyPrice){
-            console.log(new Date().toISOString()+" ### We already have opened bid order at " + targetBid);
-        } else {
-            console.log(new Date().toISOString()+" ### Insufficient eur funds");
-        }
-
+        myAccount = await coinfalcon.createOrder('buy', pair, myAccount, targetBid);
+        await db.saveOpenedBuyOrder(pair, myAccount);
     }
     return true;
-}
-
-async function parseBalance(funds, myAccount){
-    for (const fund of funds.data) {
-        switch(fund.currency_code){
-            case "iot":
-                myAccount.balanceIOT = Math.floor(fund.balance*10000)/10000;
-                myAccount.availableIOT = Math.floor(fund.available_balance*10000)/10000;
-                break;
-            case "eur":
-                myAccount.balanceEUR = Math.floor(fund.balance*10000)/10000;
-                myAccount.availableEUR = Math.floor(fund.available_balance*10000)/10000;
-                break;
-        }
-    }
-    return myAccount;
-}
-
-async function parseMyOrders(orders){
-    for (const order of orders.data) {
-        switch(order.order_type) {
-            case "buy":
-                myAccount.buyId = order.id;
-                myAccount.buyPrice = parseFloat(parseFloat(order.price).toFixed(4));
-                break;
-            case "sell":
-                myAccount.sellId = order.id;
-                myAccount.sellPrice = parseFloat(parseFloat(order.price).toFixed(4));
-                break;
-        }
-    }
-    return true;
-}
-
-function sleep(ms){
-    return new Promise(resolve=>{
-        setTimeout(resolve,ms)
-    })
 }
