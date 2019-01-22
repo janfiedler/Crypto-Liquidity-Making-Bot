@@ -1,12 +1,11 @@
-let env = process.env.NODE_ENV || 'development';
-let config = require('../config')[env];
+let config = require('../config');
 
 let db = require('../db/sqlite3');
 var coinmate = require('../coinmate');
 
 // Async Init
 (async function () {
-    // Promise not compatible with console.log, async is?
+    // Promise not compatible with config.debug && console.log, async is?
     await db.connect();
     await start();
 })();
@@ -34,24 +33,24 @@ async function start() {
     let countCoinmateOpenOrders = await coinmate.getOpenOrders("BTC_CZK");
     let isSynced = await checkSyncDbs(countLocalOpenOrders, countCoinmateOpenOrders);
     if (isSynced && countLocalOpenOrders === 0){
-        console.log("Open new order!");
+        config.debug && console.log("Open new order!");
         let book = await coinmate.getOrderBook("BTC_CZK");
-        console.log(book.data.asks[0]);
-        console.log(book.data.bids[0]);
+        config.debug && console.log(book.data.asks[0]);
+        config.debug && console.log(book.data.bids[0]);
     } else {
-        console.log("Check progress!");
+        config.debug && console.log("Check progress!");
     }
     */
 
     let balance = await coinmate.getBalance();
-    console.log(balance);
+    config.debug && console.log(balance);
     /*
     let openOrders = await coinmate.getOpenOrders("BTC_CZK");
 
     let transactionHistory = await coinmate.getTransactionHistory(148114073);
-    console.log(transactionHistory);
+    config.debug && console.log(transactionHistory);
     let orderHistory = await coinmate.getOrderHistory("BTC_CZK", 1);
-    console.log(orderHistory);
+    config.debug && console.log(orderHistory);
     */
 
 }
@@ -61,11 +60,11 @@ async function checkSyncDbs(countLocalOpenOrders, countCoinmateOpenOrders){
         if(countLocalOpenOrders === countCoinmateOpenOrders.data.length){
             return true;
         } else {
-            console.log("Count open orders does not match (local db vs coinmate db)!");
+            config.debug && console.log("Count open orders does not match (local db vs coinmate db)!");
             return false;
         }
     } else {
-        console.log("countCoinmateOpenOrders error! " + countCoinmateOpenOrders);
+        config.debug && console.log("countCoinmateOpenOrders error! " + countCoinmateOpenOrders);
         return false;
     }
 }
@@ -107,7 +106,7 @@ async function go() {
 function insertOrder(order){
     return new Promise(function (resolve) {
         db.insertOrder(function (response) {
-            console.log(response);
+            config.debug && console.log(response);
             resolve();
         }, order);
     });
@@ -115,7 +114,7 @@ function insertOrder(order){
 function getAllOrders(){
     return new Promise(function (resolve) {
         db.getAllOrders(function(response) {
-            //console.log(response);
+            //config.debug && console.log(response);
             resolve(response.length);
         });
     });
@@ -124,8 +123,8 @@ function getOpenOrders(){
     return new Promise(function (resolve) {
         coinmate.getOpenOrders(function(status, body) {
             if(status === 200 && !body.error ) {
-                console.log(body.data.length);
-                console.log(body);
+                config.debug && console.log(body.data.length);
+                config.debug && console.log(body);
                 resolve(body.data[0].id);
             }
         }, "BTC_CZK");
@@ -136,7 +135,7 @@ function buyLimitOrder(currencyPair, amount, price){
     return new Promise(function (resolve) {
         coinmate.buyLimitOrder(function(status, body) {
             if(status === 200 && !body.error ) {
-                console.log(body);
+                config.debug && console.log(body);
                 resolve(body.data);
             }
         }, currencyPair, amount, price);
@@ -147,7 +146,7 @@ function getTransactionHistory(orderId){
     return new Promise(function (resolve) {
         coinmate.getTransactionHistory(function(status, body) {
             if(status === 200 && !body.error ) {
-                console.log(body);
+                config.debug && console.log(body);
                 resolve();
             }
         }, orderId);
@@ -157,8 +156,8 @@ function getOrderHistory(){
     return new Promise(function (resolve) {
         coinmate.getOrderHistory(function(status, body) {
             if(status === 200 && !body.error ) {
-                console.log(body.data.length)
-                console.log(body);
+                config.debug && console.log(body.data.length)
+                config.debug && console.log(body);
                 resolve();
             }
         }, "BTC_CZK", 1);

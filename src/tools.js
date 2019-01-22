@@ -1,5 +1,4 @@
-let env = process.env.NODE_ENV || 'development';
-let config = require('../config')[env];
+let config = require('../config');
 let bitfinex = require('../bitfinex');
 
 exports.getBitfinexTickers = function(){
@@ -49,9 +48,14 @@ exports.takePipsFromPrice = function(price, pips, digits){
     return Math.round((price-(pips/Math.pow(10, digits)))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
+exports.getProfitTargetPrice = function (price, percentage, digits){
+    //Round a number upward
+    return price+(Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
+};
+
 exports.sleep = function (ms){
     return new Promise(resolve=>{
-        console.log("############# PAUSE");
+        config.debug && console.log("############# PAUSE");
         setTimeout(resolve,ms)
     })
 };

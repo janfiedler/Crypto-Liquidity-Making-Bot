@@ -20,7 +20,7 @@ exports.getTickers = function(tickers) {
             if (!error && response.statusCode == 200) {
                 resolve({s:true, body:JSON.parse(body)});
             } else {
-                console.log(body);
+                config.debug && console.log(body);
                 console.error(error);
                 resolve({s:false, body:error});
             }

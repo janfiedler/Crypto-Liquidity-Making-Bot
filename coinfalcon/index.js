@@ -1,5 +1,4 @@
-let env = process.env.NODE_ENV || 'development';
-let config = require('../config')[env];
+let config = require('../config');
 
 const sleepPause = config.sleepPause;
 
@@ -41,7 +40,7 @@ sign = function(method, request_path, body = undefined) {
     if (body) {
         payload += '|' + JSON.stringify(body);
     }
-    //console.log(payload);
+    //config.debug && console.log(payload);
     const hmac = crypto.createHmac('sha256', config.exchanges.coinfalcon.CD_API_SECRET_KEY);
     hmac.update(payload);
     let signature = hmac.digest('hex');
@@ -76,7 +75,7 @@ exports.getOrders = function(pair, status){
             } else {
                 //throw 'Error';
                 console.error(error);
-                //console.log('Error getProxyTotalHashes');
+                //config.debug && console.log('Error getProxyTotalHashes');
             }
         });
     });
@@ -94,7 +93,7 @@ exports.getOrder = function(id){
             } else {
                 //throw 'Error';
                 console.error(error);
-                //console.log('Error getProxyTotalHashes');
+                //config.debug && console.log('Error getProxyTotalHashes');
             }
         });
     });
@@ -108,7 +107,7 @@ exports.cancelOrder = function(id){
         let url = config.exchanges.coinfalcon.url + request_path;
         request.delete({url: url, headers : sign("DELETE", request_path, {})}, async function (error, response, body) {
             const result = JSON.parse(body);
-            //console.log(result);
+            //config.debug && console.log(result);
             if (!error && response.statusCode === 200) {
                 resolve({s: 1, data: result.data});
             } else {
@@ -142,7 +141,7 @@ exports.createOrder = function(order_type, pair, myAccount, price){
         request.post({url: url, headers: headers, form: body}, function(error, response, body) {
             const result = JSON.parse(body);
             if (!error && response.statusCode === 201) {
-                //console.log(result.data);
+                //config.debug && console.log(result.data);
                 switch(result.data.order_type){
                     case "buy":
                         myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(result.data.size);
@@ -170,7 +169,7 @@ exports.createOrder = function(order_type, pair, myAccount, price){
 };
 
 exports.parseCoinfalconTicker = function(coinfalconOrders, pair){
-    //console.log(coinfalconOrders);
+    //config.debug && console.log(coinfalconOrders);
     let ticksCoinfalcon = {bidBorder: 0, bid: 0, bidSize: 0, bidSecond: 0, bidSecondSize: 0, askBorder: 0, ask: 0, askSize: 0, askSecond: 0, askSecondSize: 0};
     let ii=0;
     for(let i=0;i<coinfalconOrders.data.asks.length;i++){

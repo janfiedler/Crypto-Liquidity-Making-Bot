@@ -1,5 +1,4 @@
-let env = process.env.NODE_ENV || 'development';
-let config = require('../config')[env];
+let config = require('../config');
 
 const crypto = require('crypto');
 var request = require('request');
