@@ -129,7 +129,7 @@ exports.createOrder = function(order_type, pair, myAccount, price){
                 size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
             case "sell":
-                size = myAccount.coinfalcon.balance[pair.name.split('-')[1]].toString();
+                size = myAccount.coinfalcon.sellData[pair.name].size.toString();
                 break;
         }
         let body = { market: pair.name, operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
@@ -139,14 +139,13 @@ exports.createOrder = function(order_type, pair, myAccount, price){
             accept: 'application/json' };
 
         let headers = Object.assign(o1, sign("POST", request_path, body));
-
         request.post({url: url, headers: headers, form: body}, function(error, response, body) {
             const result = JSON.parse(body);
-            //console.log(result.data);
             if (!error && response.statusCode === 201) {
+                //console.log(result.data);
                 switch(result.data.order_type){
                     case "buy":
-                        //console.log(result.data);
+                        myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(result.data.size);
                         myAccount.coinfalcon.buyData[pair.name].id = result.data.id;
                         myAccount.coinfalcon.buyData[pair.name].price = parseFloat(result.data.price);
                         myAccount.coinfalcon.buyData[pair.name].size = parseFloat(result.data.size);
@@ -154,6 +153,7 @@ exports.createOrder = function(order_type, pair, myAccount, price){
                         myAccount.coinfalcon.buyData[pair.name].created_at = result.data.created_at;
                         break;
                     case "sell":
+                        myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(result.data.size);
                         myAccount.coinfalcon.sellData[pair.name].id = result.data.id;
                         myAccount.coinfalcon.sellData[pair.name].price = parseFloat(result.data.price);
                         myAccount.coinfalcon.sellData[pair.name].size = parseFloat(result.data.size);
@@ -161,6 +161,8 @@ exports.createOrder = function(order_type, pair, myAccount, price){
                         myAccount.coinfalcon.sellData[pair.name].created_at = result.data.created_at;
                         break;
                 }
+            } else {
+                console.error(result);
             }
             resolve(myAccount);
         });
