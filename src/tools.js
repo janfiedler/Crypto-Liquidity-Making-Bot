@@ -53,6 +53,10 @@ exports.getProfitTargetPrice = function (price, percentage, digits){
     return price+(Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
 };
 
+exports.convertPipsToPrice = function (pips, digits){
+    return  Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
+};
+
 exports.sleep = function (ms){
     return new Promise(resolve=>{
         config.debug && console.log("############# PAUSE");
