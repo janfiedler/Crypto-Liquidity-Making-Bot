@@ -27,6 +27,8 @@ dbApi.getOpenedBuyOrder = function(pair){
     });
 };
 
+
+
 dbApi.getOpenedSellOrder = function(pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE pair = ? AND sell_status = ? AND sell_id IS NOT NULL`, pair, "open", (err, row) => {
@@ -38,9 +40,9 @@ dbApi.getOpenedSellOrder = function(pair){
     });
 };
 
-dbApi.saveOpenedBuyOrder = function(pair, myAccount){
+dbApi.saveOpenedBuyOrder = function(pair, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(pair, status, buy_status, buy_id, buy_price, buy_size, buy_funds, buy_created) VALUES (?,?,?,?,?,?,?,?)`, pair.name, "buy", "open", myAccount.coinfalcon.buyData[pair.name].id, myAccount.coinfalcon.buyData[pair.name].price, myAccount.coinfalcon.buyData[pair.name].size, myAccount.coinfalcon.buyData[pair.name].funds, myAccount.coinfalcon.buyData[pair.name].created_at, function(err) {
+        db.run(`insert INTO orders(pair, status, buy_status, buy_id, buy_price, buy_size, buy_funds, buy_created) VALUES (?,?,?,?,?,?,?,?)`, pair.name, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.funds, createdOrder.data.created_at, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -63,17 +65,6 @@ dbApi.deleteOpenedBuyOrder = function(id){
 dbApi.getLowestFilledBuyOrder = function(pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE pair = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`, pair, "sell", 1, (err, row) => {
-            if (err) {
-                console.error(err.message);
-            }
-            resolve(row);
-        });
-    });
-};
-
-dbApi.getPendingSellOrder = function(pair, targetAsk){
-    return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE pair = ? AND status = ? AND sell_target_price <= ? ORDER BY sell_target_price ASC LIMIT ?`, pair, "sell", targetAsk, 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             }
@@ -115,9 +106,9 @@ dbApi.setCompletedSellOrder = function(id, sell_status, sell_size_filled){
     });
 };
 
-dbApi.reOpenPartFilledSellOrder = function(pair, myAccount, newSellSize){
+dbApi.reOpenPartFilledSellOrder = function(pair, resultOpenedOrder, newSellSize){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_funds, buy_created, sell_status, sell_target_price = ?, sell_target_price = ?, sell_size = ?) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, pair.name, "sell", myAccount.coinfalcon.buyData[pair.name].status, myAccount.coinfalcon.buyData[pair.name].id, myAccount.coinfalcon.buyData[pair.name].price, myAccount.coinfalcon.buyData[pair.name].size, myAccount.coinfalcon.buyData[pair.name].size_filled, myAccount.coinfalcon.buyData[pair.name].funds, myAccount.coinfalcon.buyData[pair.name].created_at, "pending", myAccount.coinfalcon.sellData[pair.name].price, myAccount.coinfalcon.sellData[pair.name].target_price, newSellSize, function(err) {
+        db.run(`insert INTO orders(pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_funds, buy_created, sell_status, sell_target_price = ?, sell_target_price = ?, sell_size = ?) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_filled,resultOpenedOrder.buy_funds, resultOpenedOrder.buy_created, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -126,9 +117,9 @@ dbApi.reOpenPartFilledSellOrder = function(pair, myAccount, newSellSize){
     });
 };
 
-dbApi.setOpenedSellerOrder = function(pair, myAccount){
+dbApi.setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_funds = ?, sell_created = ? WHERE buy_id = ?;`, "open", myAccount.coinfalcon.sellData[pair.name].id, myAccount.coinfalcon.sellData[pair.name].price, myAccount.coinfalcon.sellData[pair.name].funds, myAccount.coinfalcon.sellData[pair.name].created_at, myAccount.coinfalcon.buyData[pair.name].id, function(err) {
+        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_funds = ?, sell_created = ? WHERE buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), parseFloat(createdOrder.data.funds), createdOrder.data.created_at, pendingSellOrder.buy_id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -145,31 +136,6 @@ dbApi.countOpenOrders = function(){
             }
             resolve(row.openCount);
         });
-    });
-};
-
-dbApi.select = function(){
-    db.serialize(() => {
-        db.each(`SELECT * FROM pool`, (err, row) => {
-            if (err) {
-                console.error(err.message);
-            }
-            config.debug && console.log(row.address + "\t" + row.shares + "\t" + row.withdrawn  + "\t" + row.balance + "\t" + row.total);
-        });
-    });
-};
-
-dbApi.insertShares = function(address, amount){
-    // insert one row into the langs table
-    db.run(`insert or ignore INTO pool(address, shares) VALUES (?, ?);`, address, amount, function(err) {
-        if (err) {
-            return config.debug && console.log(err.message);
-        }
-    });
-    db.run(`UPDATE pool SET shares = shares + ? WHERE address= ?;`, amount, address, function(err) {
-        if (err) {
-            return config.debug && console.log(err.message);
-        }
     });
 };
 

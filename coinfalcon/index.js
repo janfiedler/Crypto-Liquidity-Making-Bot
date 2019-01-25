@@ -133,7 +133,7 @@ exports.cancelOrder = function(id){
     });
 };
 
-exports.createOrder = function(order_type, pair, myAccount, price){
+exports.createOrder = function(pair, order_type, pendingSellOrder, price){
     return new Promise(async function (resolve) {
         let size = "";
         switch(order_type){
@@ -141,7 +141,7 @@ exports.createOrder = function(order_type, pair, myAccount, price){
                 size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
             case "sell":
-                size = myAccount.coinfalcon.sellData[pair.name].size.toString();
+                size = pendingSellOrder.sell_size.toString();
                 break;
         }
         let body = { market: pair.name, operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
@@ -153,31 +153,13 @@ exports.createOrder = function(order_type, pair, myAccount, price){
         let headers = Object.assign(o1, sign("POST", request_path, body));
         request.post({url: url, headers: headers, form: body}, function(error, response, body) {
             try {
-                const result = JSON.parse(body);
                 if (!error && response.statusCode === 201) {
+                    const result = JSON.parse(body);
+                    resolve(result);
                     //config.debug && console.log(result.data);
-                    switch(result.data.order_type){
-                        case "buy":
-                            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(result.data.size);
-                            myAccount.coinfalcon.buyData[pair.name].id = result.data.id;
-                            myAccount.coinfalcon.buyData[pair.name].price = parseFloat(result.data.price);
-                            myAccount.coinfalcon.buyData[pair.name].size = parseFloat(result.data.size);
-                            myAccount.coinfalcon.buyData[pair.name].funds = parseFloat(result.data.funds);
-                            myAccount.coinfalcon.buyData[pair.name].created_at = result.data.created_at;
-                            break;
-                        case "sell":
-                            myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(result.data.size);
-                            myAccount.coinfalcon.sellData[pair.name].id = result.data.id;
-                            myAccount.coinfalcon.sellData[pair.name].price = parseFloat(result.data.price);
-                            myAccount.coinfalcon.sellData[pair.name].size = parseFloat(result.data.size);
-                            myAccount.coinfalcon.sellData[pair.name].funds = parseFloat(result.data.funds);
-                            myAccount.coinfalcon.sellData[pair.name].created_at = result.data.created_at;
-                            break;
-                    }
                 } else {
-                    console.error(result);
+                    console.error(body);
                 }
-                resolve(myAccount);
             } catch (e) {
                 console.error(body);
                 console.error(e);
@@ -185,6 +167,37 @@ exports.createOrder = function(order_type, pair, myAccount, price){
 
         });
     });
+};
+
+exports.parseTicker = function(orders, pair){
+    let ticks = {bid:{},bidBorder: 0, ask:{}, askBorder:0}
+    let ii=0;
+    for(let i=0;i<orders.data.asks.length;i++){
+        if(i===0){
+            ticks.askBorder = parseFloat(orders.data.asks[i].price);
+        }
+        if( parseFloat(orders.data.asks[i].size) > pair.ignoreOrderSize){
+            ticks.ask[ii] = {price: parseFloat(orders.data.asks[i].price), size: parseFloat(orders.data.asks[i].size)};
+            ii++;
+            if (ii === 10){
+                break;
+            }
+        }
+    }
+    ii=0;
+    for(let i=0;i<orders.data.bids.length;i++){
+        if(i === 0){
+            ticks.bidBorder = parseFloat(orders.data.bids[i].price);
+        }
+        if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
+            ticks.bid[ii] = {price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)};
+            ii++;
+            if (ii === 10){
+                break;
+            }
+        }
+    }
+    return ticks;
 };
 
 exports.parseCoinfalconTicker = function(coinfalconOrders, pair){
