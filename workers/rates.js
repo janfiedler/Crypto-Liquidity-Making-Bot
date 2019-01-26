@@ -1,11 +1,11 @@
-let config = require('../config');
-const tools = require('../src/tools');
-const coinfalcon = require('../coinfalcon');
+const coinfalcon = require('../coinfalcon/api');
+const coinmate = require('../coinmate/api');
 
 process.on('message', function() {
     async function getRates() {
-        const balance = await coinfalcon.getAccountsBalance();
-        process.send({coinfalconBalance: balance});
+        const balanceCoinfalcon = await coinfalcon.getAccountsBalance();
+        const balanceCoinmate = await coinmate.getBalance();
+        process.send({balanceCoinfalcon: balanceCoinfalcon, balanceCoinmate: balanceCoinmate});
     }
     getRates();
     setInterval(getRates, 60000);

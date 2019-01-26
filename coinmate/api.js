@@ -3,13 +3,13 @@ let config = require('../config');
 const crypto = require('crypto');
 var request = require('request');
 
-sign = function() {
-    let clientId = config.coinmate.clientId;
-    let publicApiKey = config.coinmate.publicKey;
+let sign = function() {
+    let clientId = config.exchanges.coinmate.clientId;
+    let publicApiKey = config.exchanges.coinmate.publicKey;
     let nonce = Date.now().toString();
     let signatureInput =  nonce + clientId + publicApiKey;
 
-    const hmac = crypto.createHmac('sha256', config.coinmate.privateKey);
+    const hmac = crypto.createHmac('sha256', config.exchanges.coinmate.privateKey);
     hmac.update(signatureInput);
     let signature = hmac.digest('hex').toUpperCase();
     return "clientId="+clientId+"&publicKey="+publicApiKey+"&nonce="+nonce+"&signature="+signature;
@@ -17,7 +17,7 @@ sign = function() {
 
 exports.getNewOrderForm = {order_id: 0, timestamp: 0, type: "", symbol: "", size: 0, price: 0, profit: null};
 
-exports.getBalance = function(){
+let getBalance = function(){
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -36,7 +36,7 @@ exports.getBalance = function(){
 };
 
 /* Get my actual open orders waiting on FILLED*/
-exports.getOpenOrders = function (currencyPair){
+let getOpenOrders = function (currencyPair){
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -54,7 +54,7 @@ exports.getOpenOrders = function (currencyPair){
     });
 };
 
-exports.getTransactionHistory = function (orderId ){
+let getTransactionHistory = function (orderId ){
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -72,7 +72,7 @@ exports.getTransactionHistory = function (orderId ){
     });
 };
 
-exports.getOrderHistory = function (currencyPair, limit){
+let getOrderHistory = function (currencyPair, limit){
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -91,7 +91,7 @@ exports.getOrderHistory = function (currencyPair, limit){
 };
 
 /* Get actual order book with buys and sells */
-exports.getOrderBook = function (pair){
+let getOrderBook = function (pair){
     return new Promise(function (resolve) {
         request('https://coinmate.io/api/orderBook?currencyPair='+pair+'&groupByPriceLimit=false', function (error, response, body) {
             if (error) throw error;
@@ -103,8 +103,7 @@ exports.getOrderBook = function (pair){
 };
 
 
-
-exports.buyLimitOrder = function (callback, currencyPair, amount, price){
+let buyLimitOrder = function (callback, currencyPair, amount, price){
     request({
         method: 'POST',
         url: 'https://coinmate.io/api/buyLimit',
@@ -116,5 +115,14 @@ exports.buyLimitOrder = function (callback, currencyPair, amount, price){
         if (error) throw error;
         callback(response.statusCode, JSON.parse(body));
     });
+};
+
+module.exports = {
+    getBalance: getBalance,
+    getOpenOrders: getOpenOrders,
+    getTransactionHistory: getTransactionHistory,
+    getOrderHistory: getOrderHistory,
+    getOrderBook: getOrderBook,
+    buyLimitOrder: buyLimitOrder
 };
 

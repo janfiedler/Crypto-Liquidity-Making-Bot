@@ -1,7 +1,7 @@
 let config = require('../config');
 
 let db = require('../db/sqlite3');
-var coinmate = require('../coinmate');
+var coinmate = require('../coinmate/api');
 
 // Async Init
 (async function () {
@@ -22,8 +22,6 @@ var coinmate = require('../coinmate');
 
 // setTimeout with support await
 const timeout = ms => new Promise(res => setTimeout(res, ms));
-
-let myAccount = {balanceEUR: 0.0000,availableEUR: 0.0000,balanceIOT: 0.0000,availableIOT: 0.0000,"buyId": "", buyPrice:0.0000, "sellId":"", sellPrice:0.0000};
 
 async function start() {
 

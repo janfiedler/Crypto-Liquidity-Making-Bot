@@ -1,12 +1,47 @@
 let config = require('../config');
 
-const sleepPause = config.sleepPause;
+const sleepPause = config.exchanges.coinfalcon.sleepPause;
 
 const crypto = require('crypto');
 const tools = require('../src/tools');
 var request = require('request');
 
-exports.getTicker = function(pair, level) {
+let sign = function(method, request_path, body = undefined) {
+    let timestamp = Date.now().toString();
+    timestamp = parseInt(timestamp.substring(0, timestamp.length - 3), 10);
+    let payload = timestamp+"|"+method+"|"+request_path;
+    if (body) {
+        payload += '|' + JSON.stringify(body);
+    }
+    //config.debug && console.log(payload);
+    const hmac = crypto.createHmac('sha256', config.exchanges.coinfalcon.CD_API_SECRET_KEY);
+    hmac.update(payload);
+    let signature = hmac.digest('hex');
+    return {"CF-API-KEY": config.exchanges.coinfalcon.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
+};
+
+let getAccountsBalance = function(){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        await tools.sleep(sleepPause);
+        let request_path = "/api/v1/user/accounts";
+        let url = config.exchanges.coinfalcon.url + request_path;
+        request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                try {
+                    resolve(JSON.parse(body));
+                } catch (e) {
+                    //console.error(body);
+                    //console.error(e);
+                }
+            } else {
+                console.error(body);
+            }
+        });
+    });
+};
+
+let getTicker = function(pair, level) {
     return new Promise(async function (resolve) {
         /*
             Response schema type: object
@@ -31,47 +66,7 @@ exports.getTicker = function(pair, level) {
     });
 };
 
-sign = function(method, request_path, body = undefined) {
-    let timestamp = Date.now().toString();
-    timestamp = parseInt(timestamp.substring(0, timestamp.length - 3), 10);
-    let payload = timestamp+"|"+method+"|"+request_path;
-    if (body) {
-        payload += '|' + JSON.stringify(body);
-    }
-    //config.debug && console.log(payload);
-    const hmac = crypto.createHmac('sha256', config.exchanges.coinfalcon.CD_API_SECRET_KEY);
-    hmac.update(payload);
-    let signature = hmac.digest('hex');
-    return {"CF-API-KEY": config.exchanges.coinfalcon.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
-};
-
-exports.getAccountsBalance = function(){
-    return new Promise(async function (resolve) {
-        //Waiting function to prevent reach api limit
-        await tools.sleep(sleepPause);
-        let request_path = "/api/v1/user/accounts";
-        let url = config.exchanges.coinfalcon.url + request_path;
-        request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                try {
-                    resolve(JSON.parse(body));
-                } catch (e) {
-                    console.error(body);
-                    console.error(e);
-                }
-            } else {
-                try {
-                    console.error(JSON.parse(body).error);
-                } catch (e) {
-                    console.error(body);
-                    console.error(e);
-                }
-            }
-        });
-    });
-};
-
-exports.getOrders = function(pair, status){
+let getOrders = function(pair, status){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders?market="+pair+"&status="+status;
         let url = config.exchanges.coinfalcon.url + request_path;
@@ -92,7 +87,7 @@ exports.getOrders = function(pair, status){
     });
 };
 
-exports.getOrder = function(id){
+let getOrder = function(id){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
         let url = config.exchanges.coinfalcon.url + request_path;
@@ -112,7 +107,7 @@ exports.getOrder = function(id){
     });
 };
 
-exports.cancelOrder = function(id){
+let cancelOrder = function(id){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
         let url = config.exchanges.coinfalcon.url + request_path;
@@ -133,7 +128,7 @@ exports.cancelOrder = function(id){
     });
 };
 
-exports.createOrder = function(pair, order_type, pendingSellOrder, price){
+let createOrder = function(pair, order_type, pendingSellOrder, price){
     return new Promise(async function (resolve) {
         let size = "";
         switch(order_type){
@@ -169,7 +164,7 @@ exports.createOrder = function(pair, order_type, pendingSellOrder, price){
     });
 };
 
-exports.parseTicker = function(orders, pair){
+let parseTicker = function(orders, pair){
     let ticks = {bid:{},bidBorder: 0, ask:{}, askBorder:0}
     let ii=0;
     for(let i=0;i<orders.data.asks.length;i++){
@@ -200,48 +195,14 @@ exports.parseTicker = function(orders, pair){
     return ticks;
 };
 
-exports.parseCoinfalconTicker = function(coinfalconOrders, pair){
-    //config.debug && console.log(coinfalconOrders);
-    let ticksCoinfalcon = {bidBorder: 0, bid: 0, bidSize: 0, bidSecond: 0, bidSecondSize: 0, bid3th: 0, bid3thSize: 0, askBorder: 0, ask: 0, askSize: 0, askSecond: 0, askSecondSize: 0, ask3th: 0, ask3thSize: 0};
-    let ii=0;
-    for(let i=0;i<coinfalconOrders.data.asks.length;i++){
-        if(i===0){
-            ticksCoinfalcon.askBorder = parseFloat(coinfalconOrders.data.asks[i].price);
-        }
-        if( parseFloat(coinfalconOrders.data.asks[i].size) > pair.ignoreOrderSize){
-            ii++;
-            if(ii === 1){
-                ticksCoinfalcon.ask = parseFloat(coinfalconOrders.data.asks[i].price);
-                ticksCoinfalcon.askSize = parseFloat(coinfalconOrders.data.asks[i].size);
-            } else if (ii === 2){
-                ticksCoinfalcon.askSecond = parseFloat(coinfalconOrders.data.asks[i].price);
-                ticksCoinfalcon.askSecondSize = parseFloat(coinfalconOrders.data.asks[i].size);
-            } else if (ii === 3){
-                ticksCoinfalcon.ask3th = parseFloat(coinfalconOrders.data.asks[i].price);
-                ticksCoinfalcon.ask3thSize = parseFloat(coinfalconOrders.data.asks[i].size);
-                break;
-            }
-        }
-    }
-    ii=0;
-    for(let i=0;i<coinfalconOrders.data.bids.length;i++){
-        if(i === 0){
-            ticksCoinfalcon.bidBorder = parseFloat(coinfalconOrders.data.bids[i].price);
-        }
-        if(parseFloat(coinfalconOrders.data.bids[i].size) > pair.ignoreOrderSize){
-            ii++;
-            if(ii === 1){
-                ticksCoinfalcon.bid = parseFloat(coinfalconOrders.data.bids[i].price);
-                ticksCoinfalcon.bidSize = parseFloat(coinfalconOrders.data.bids[i].size);
-            } else if (ii === 2){
-                ticksCoinfalcon.bidSecond = parseFloat(coinfalconOrders.data.bids[i].price);
-                ticksCoinfalcon.bidSecondSize = parseFloat(coinfalconOrders.data.bids[i].size);
-            } else if (ii === 3){
-                ticksCoinfalcon.bid3th = parseFloat(coinfalconOrders.data.bids[i].price);
-                ticksCoinfalcon.bid3thSize = parseFloat(coinfalconOrders.data.bids[i].size);
-                break;
-            }
-        }
-    }
-    return ticksCoinfalcon;
+module.exports = {
+    getAccountsBalance: getAccountsBalance,
+    getTicker: getTicker,
+    getOrders: getOrders,
+    getOrder: getOrder,
+    cancelOrder: cancelOrder,
+    createOrder: createOrder,
+    parseTicker: parseTicker
 };
+
+
