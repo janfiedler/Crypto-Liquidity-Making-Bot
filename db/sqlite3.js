@@ -108,7 +108,7 @@ dbApi.setCompletedSellOrder = function(id, sell_status, sell_size_filled){
 
 dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, newSellSize){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_funds, buy_created, sell_status, sell_target_price = ?, sell_target_price = ?, sell_size = ?) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,exchange, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_filled,resultOpenedOrder.buy_funds, resultOpenedOrder.buy_created, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
+        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_funds, buy_created, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,exchange, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_filled,resultOpenedOrder.buy_funds, resultOpenedOrder.buy_created, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -119,7 +119,7 @@ dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, ne
 
 dbApi.setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_funds = ?, sell_created = ? WHERE buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), parseFloat(createdOrder.data.funds), createdOrder.data.created_at, pendingSellOrder.buy_id, function(err) {
+        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_funds = ?, sell_created = ? WHERE status = ? AND buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), parseFloat(createdOrder.data.funds), createdOrder.data.created_at, "sell", pendingSellOrder.buy_id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }

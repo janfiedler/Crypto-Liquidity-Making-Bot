@@ -54,7 +54,11 @@ exports.getProfitTargetPrice = function (price, percentage, digits){
 };
 
 exports.convertPipsToPrice = function (pips, digits){
-    return  Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
+    return Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
+};
+
+exports.verifyDigits = function(price, digits){
+    return Math.round((price*Math.pow(10, digits))/Math.pow(10, digits))
 };
 
 exports.sleep = function (ms){

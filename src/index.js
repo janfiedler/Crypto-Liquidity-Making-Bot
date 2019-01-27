@@ -88,7 +88,7 @@ async function start() {
                 //skipping
             } else if(typeof resultOpenedSellOrder === 'undefined' && !resultOpenedSellOrder){
                 config.debug && console.log(new Date().toISOString()+" !!! This will be first opened sell order!");
-                if(pendingSellOrder.sell_target_price <= targetAsk){
+                if(tools.verifyDigits(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk){
                     await processAskOrder(pair, targetAsk, pendingSellOrder);
                 } else {
                     config.debug && console.error(new Date().toISOString() + " !!! No first sell order for this ask price!");
@@ -100,7 +100,7 @@ async function start() {
                 config.debug && console.log(new Date().toISOString()+" ### We already have opened ask order at " + targetAsk);
             } else if (myAccount.coinfalcon.available[sellingCurrency] < pendingSellOrder.sell_size) {
                 config.debug && console.error(new Date().toISOString() + " !!! No available " + sellingCurrency + " funds!");
-            } else if (pendingSellOrder.sell_target_price <= targetAsk) {
+            } else if (tools.verifyDigits(pendingSellOrder.sell_target_price) <= targetAsk) {
                 await processAskOrder(pair, targetAsk, pendingSellOrder);
             } else {
                 config.debug && console.error(new Date().toISOString() + " !!! No sell order for this ask price!");
