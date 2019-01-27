@@ -42,7 +42,7 @@ dbApi.getOpenedSellOrder = function(exchange, pair){
 
 dbApi.saveOpenedBuyOrder = function(exchange, pair, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_funds, buy_created) VALUES (?,?,?,?,?,?,?,?,?)`, exchange, pair.name, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.funds, createdOrder.data.created_at, function(err) {
+        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.created_at, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -75,7 +75,7 @@ dbApi.getLowestFilledBuyOrder = function(exchange, pair){
 
 dbApi.deleteOpenedSellOrder = function(id){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_funds = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", null, "", id, function(err) {
+        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", "", id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -84,9 +84,9 @@ dbApi.deleteOpenedSellOrder = function(id){
     });
 };
 
-dbApi.setPendingSellOrder = function(id, buy_status, buy_size_filled, sell_target_price){
+dbApi.setPendingSellOrder = function(data, sell_target_price){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET status = ?, buy_status = ?, buy_filled = ?, sell_status = ?, sell_target_price = ?, sell_size = ? WHERE buy_id= ?;`, "sell", buy_status, buy_size_filled, "pending", sell_target_price, buy_size_filled, id, function(err) {
+        db.run(`UPDATE orders SET status = ?, buy_status = ?, buy_filled = ?, buy_fee = ?, sell_status = ?, sell_target_price = ?, sell_size = ? WHERE buy_id= ?;`, "sell", data.status, data.size_filled, data.fee, "pending", sell_target_price, data.size_filled, data.id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -95,9 +95,10 @@ dbApi.setPendingSellOrder = function(id, buy_status, buy_size_filled, sell_targe
     });
 };
 
-dbApi.setCompletedSellOrder = function(id, sell_status, sell_size_filled){
+dbApi.setCompletedSellOrder = function(data){
+
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ? WHERE sell_id = ?;`, "completed", sell_status, sell_size_filled, id, function(err) {
+        db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ?, sell_fee = ?, completed_at = ? WHERE sell_id = ?;`, "completed", data.status, data.size_filled, data.fee, new Date().toISOString(), data.id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -108,7 +109,7 @@ dbApi.setCompletedSellOrder = function(id, sell_status, sell_size_filled){
 
 dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, newSellSize){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_funds, buy_created, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,exchange, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_filled,resultOpenedOrder.buy_funds, resultOpenedOrder.buy_created, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
+        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_filled, buy_created, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,exchange, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_filled, resultOpenedOrder.buy_created, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }
@@ -119,7 +120,7 @@ dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, ne
 
 dbApi.setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_funds = ?, sell_created = ? WHERE status = ? AND buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), parseFloat(createdOrder.data.funds), createdOrder.data.created_at, "sell", pendingSellOrder.buy_id, function(err) {
+        db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_created = ? WHERE status = ? AND buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), createdOrder.data.created_at, "sell", pendingSellOrder.buy_id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }

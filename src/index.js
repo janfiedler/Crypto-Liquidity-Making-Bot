@@ -88,19 +88,19 @@ async function start() {
                 //skipping
             } else if(typeof resultOpenedSellOrder === 'undefined' && !resultOpenedSellOrder){
                 config.debug && console.log(new Date().toISOString()+" !!! This will be first opened sell order!");
-                if(tools.verifyDigits(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk){
+                if(tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk){
                     await processAskOrder(pair, targetAsk, pendingSellOrder);
                 } else {
                     config.debug && console.error(new Date().toISOString() + " !!! No first sell order for this ask price!");
                 }
             } else if(orderDetail.data.size_filled > 0){
                 config.debug && console.log(new Date().toISOString()+" $$$ Filled ask order "+orderDetail.data.id+" processed!");
-            } else if( targetAsk === resultOpenedSellOrder.sell_price){
+            } else if( targetAsk === tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
                 //Skipping because we already have opened bid order at this price
                 config.debug && console.log(new Date().toISOString()+" ### We already have opened ask order at " + targetAsk);
-            } else if (myAccount.coinfalcon.available[sellingCurrency] < pendingSellOrder.sell_size) {
+            } else if (myAccount.coinfalcon.available[sellingCurrency] < tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize)) {
                 config.debug && console.error(new Date().toISOString() + " !!! No available " + sellingCurrency + " funds!");
-            } else if (tools.verifyDigits(pendingSellOrder.sell_target_price) <= targetAsk) {
+            } else if (tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk) {
                 await processAskOrder(pair, targetAsk, pendingSellOrder);
             } else {
                 config.debug && console.error(new Date().toISOString() + " !!! No sell order for this ask price!");
@@ -158,10 +158,10 @@ async function start() {
                 await processBidOrder(pair, targetBid);
             } else if(orderDetail.data.size_filled > 0){
                 config.debug && console.log(new Date().toISOString()+" $$$ Filled bid order "+orderDetail.data.id+" processed!");
-            } else if( targetBid === resultOpenedBuyOrder.buy_price){
+            } else if( targetBid === tools.setPrecision(resultOpenedBuyOrder.buy_price, pair.digitsPrice)){
                 //Skipping because we already have opened bid order at this price
                 config.debug && console.log(new Date().toISOString()+" ### We already have opened bid order at " + targetBid);
-            } else if (myAccount.coinfalcon.available[buyForCurrency] < Math.ceil((pair.buyForAmount/targetBid)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)){
+            } else if (myAccount.coinfalcon.available[buyForCurrency] < tools.setPrecisionUp((pair.buyForAmount/targetBid), pair.digitsPrice)){
                 config.debug && console.error(new Date().toISOString()+" !!! No available "+buyForCurrency+" funds!");
             } else {
                 await processBidOrder(pair, targetBid);
@@ -193,7 +193,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                             myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                             myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                         }
-                        await db.setCompletedSellOrder(resultCancelOrder.data.id, resultCancelOrder.data.status, resultCancelOrder.data.size_filled);
+                        await db.setCompletedSellOrder(resultCancelOrder.data);
                         await db.reOpenPartFilledSellOrder(config.exchanges.coinfalcon.name, pair, resultOpenedOrder, (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled)));
                         break;
                     case "fulfilled":
@@ -203,7 +203,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                             myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                             myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                         }
-                        await db.setCompletedSellOrder(orderDetail.data.id, orderDetail.data.status, orderDetail.data.size_filled);
+                        await db.setCompletedSellOrder(orderDetail.data);
                         break;
                     case "canceled":
                         if(parseFloat(orderDetail.data.size_filled) < parseFloat(orderDetail.data.size)){
@@ -217,7 +217,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                                 myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                                 myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                             }
-                            await db.setCompletedSellOrder(resultCancelOrder.data.id, resultCancelOrder.data.status, resultCancelOrder.data.size_filled);
+                            await db.setCompletedSellOrder(resultCancelOrder.data);
                             await db.reOpenPartFilledSellOrder(config.exchanges.coinfalcon.name, pair, resultOpenedOrder, (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled)));
                             break;
                         } else {
@@ -227,7 +227,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                                 myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                                 myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
                             }
-                            await db.setCompletedSellOrder(orderDetail.data.id, orderDetail.data.status, orderDetail.data.size_filled);
+                            await db.setCompletedSellOrder(orderDetail.data);
                             break;
                         }
                     default:
@@ -272,7 +272,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                             myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                             myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(resultCancelOrder.data.fee);
                         }
-                        await db.setPendingSellOrder(resultCancelOrder.data.id, orderDetail.data.status, resultCancelOrder.data.size_filled, sell_target_price);
+                        await db.setPendingSellOrder(orderDetail.data, sell_target_price);
                         break;
                     case "fulfilled":
                         config.debug && console.log(new Date().toISOString()+" BID fulfilled");
@@ -281,7 +281,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                             myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                             myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                         }
-                        await db.setPendingSellOrder(orderDetail.data.id, orderDetail.data.status, orderDetail.data.size_filled, sell_target_price);
+                        await db.setPendingSellOrder(orderDetail.data, sell_target_price);
                         break;
                     case "canceled":
                         if(parseFloat(orderDetail.data.size_filled) < parseFloat(orderDetail.data.size)){
@@ -295,7 +295,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                                 myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                                 myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(resultCancelOrder.data.fee);
                             }
-                            await db.setPendingSellOrder(resultCancelOrder.data.id, orderDetail.data.status, resultCancelOrder.data.size_filled, sell_target_price);
+                            await db.setPendingSellOrder(orderDetail.data, sell_target_price);
                             break;
                         } else {
                             config.debug && console.log(new Date().toISOString()+" BID fulfilled CANCELED");
@@ -304,7 +304,7 @@ async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetai
                                 myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                                 myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
                             }
-                            await db.setPendingSellOrder(orderDetail.data.id, orderDetail.data.status, orderDetail.data.size_filled, sell_target_price);
+                            await db.setPendingSellOrder(orderDetail.data, sell_target_price);
                             break;
                         }
                     default:

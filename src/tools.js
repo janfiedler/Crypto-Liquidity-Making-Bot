@@ -56,9 +56,13 @@ exports.getProfitTargetPrice = function (price, percentage, digits){
 exports.convertPipsToPrice = function (pips, digits){
     return Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
 };
-
-exports.verifyDigits = function(price, digits){
-    return Math.round((price*Math.pow(10, digits))/Math.pow(10, digits))
+//precision
+exports.setPrecision = function(price, digits){
+    return Math.round(price*Math.pow(10, digits))/Math.pow(10, digits);
+};
+// Set precision with round a number upward to its nearest integer
+exports.setPrecisionUp = function(price, digits){
+    return Math.ceil(price*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
 exports.sleep = function (ms){

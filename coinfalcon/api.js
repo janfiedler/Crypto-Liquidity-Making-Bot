@@ -136,7 +136,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
                 size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
             case "sell":
-                size = pendingSellOrder.sell_size.toString();
+                size = tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize).toString();
                 break;
         }
         let body = { market: pair.name, operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
@@ -158,6 +158,26 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+            }
+
+        });
+    });
+};
+
+let getOrderTrades = function(id){
+    return new Promise(function (resolve) {
+        let request_path = "/api/v1/user/orders/"+id+"/trades";
+        let url = config.exchanges.coinfalcon.url + request_path;
+        request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                try {
+                    resolve(JSON.parse(body));
+                } catch (e) {
+                    console.error(body);
+                    console.error(e);
+                }
+            } else {
+                console.error(error);
             }
 
         });
@@ -202,6 +222,7 @@ module.exports = {
     getOrder: getOrder,
     cancelOrder: cancelOrder,
     createOrder: createOrder,
+    getOrderTrades: getOrderTrades,
     parseTicker: parseTicker
 };
 
