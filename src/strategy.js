@@ -6,9 +6,6 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     let targetAsk = 0;
     // Need take my size order from market for found real target ask price
     for(let i=0;i<keysCount;i++){
-        if(ticker.ask[i].price === tools.setPrecision(pendingOrder.sell_price, pair.digitsPrice)){
-            ticker.ask[i].size -= tools.setPrecision(pendingOrder.sell_size, pair.digitsSize);
-        }
         if ((i+2) >= keysCount){
             break;
         }
@@ -39,11 +36,6 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
         targetBid = ticker.bid[0].price;
     } else {
         for(let i=0;i<keysCount;i++){
-            console.log("ticker.bid[i].price: " + ticker.bid[i].price);
-            console.log("tools.setPrecision(buyOrder.buy_price, pair.digitsPrice): " + tools.setPrecision(buyOrder.buy_price, pair.digitsPrice));
-            if(ticker.bid[i].price === tools.setPrecision(buyOrder.buy_price, pair.digitsPrice)){
-                ticker.bid[i].size -= tools.setPrecision(buyOrder.buy_size, pair.digitsSize);
-            }
             if ((i+2) >= keysCount){
                 break
             }

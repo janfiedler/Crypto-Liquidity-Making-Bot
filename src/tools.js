@@ -23,12 +23,6 @@ exports.getBitfinexTickers = function(){
     });
 };
 
-exports.getCoinfalconTicker = function(){
-    return new Promise(async function (resolve) {
-
-    });
-};
-
 exports.parseBalance = function(funds, myAccount){
     for (const fund of funds.data) {
         let currencyCode = fund.currency_code.toLocaleUpperCase();

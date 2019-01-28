@@ -57,11 +57,6 @@ async function start() {
             //let sellingForCurrency = pair.name.split('-')[1];
             //let sellingCurrency = pair.name.split('-')[0];
 
-            //Fetch actual prices from coinfalcon exchange
-            const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
-            apiCounterUsage++;
-            //Parse fetched data to json object.
-            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker(resultCoinfalconTicker, pair);
             //Get lowest pending sell order
             const pendingSellOrder = await db.getLowestFilledBuyOrder(config.exchanges.coinfalcon.name, pair.name);
             //console.log(pendingSellOrder);
@@ -70,16 +65,23 @@ async function start() {
                 //Nothing to sell, skip the loop.
                 continue;
             }
-            let targetAsk = await strategy.findSpotForAskOrder(pendingSellOrder, tickersCoinfalcon[pair.name] , pair);
-
             // Check for actual opened sell order
             const resultOpenedSellOrder = await db.getOpenedSellOrder(config.exchanges.coinfalcon.name, pair.name);
+            //Fetch actual prices from coinfalcon exchange
+            const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
+            apiCounterUsage++;
+            //Parse fetched data to json object.
+            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("ask", resultCoinfalconTicker, pair, resultOpenedSellOrder);
+
+            let targetAsk = await strategy.findSpotForAskOrder(pendingSellOrder, tickersCoinfalcon[pair.name] , pair);
+
             if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
                 config.debug && console.log(new Date().toISOString()+" ### Found opened sell order " + resultOpenedSellOrder.sell_id);
-                if(targetAsk === tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
+                if(targetAsk !== tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
                     //If founded opened sell order, lets check and process
-                    const openNewOrder = await validateOrder(resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
-                    if(openNewOrder){
+                    const canOpenAskOrder = await validateOrder(resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
+                    // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
+                    if(canOpenAskOrder){
                         await processAskOrder(pair, targetAsk, pendingSellOrder);
                     }
                 } else {
@@ -104,16 +106,16 @@ async function start() {
             //let buyForCurrency = pair.name.split('-')[1];
             //let buyCurrency = pair.name.split('-')[0];
 
-            //Fetch actual prices from coinfalcon exchange
-            const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
-            apiCounterUsage++;
-            //Parse fetched data to json object.
-            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker(resultCoinfalconTicker, pair);
             //Get lowest already filled buy order = pending sell order
             const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.exchanges.coinfalcon.name, pair.name);
             // Check for actual oepend buy order
             const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.exchanges.coinfalcon.name, pair.name);
             //console.log(resultOpenedBuyOrder);
+            //Fetch actual prices from coinfalcon exchange
+            const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
+            apiCounterUsage++;
+            //Parse fetched data to json object.
+            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("bid", resultCoinfalconTicker, pair, resultOpenedBuyOrder);
             let targetBid;
             if(lowestFilledBuyOrder){
                 targetBid = await strategy.findSpotForBidOrder(false, true, lowestFilledBuyOrder, tickersCoinfalcon[pair.name] , pair);
@@ -127,8 +129,9 @@ async function start() {
                 config.debug && console.log(new Date().toISOString()+" ### Found opened bid order " + resultOpenedBuyOrder.buy_id);
                 if(targetBid !== tools.setPrecision(resultOpenedBuyOrder.buy_price, pair.digitsPrice)) {
                     //If founded opened buy order, lets check and process
-                    const openNewOrder = await validateOrder(resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
-                    if(openNewOrder){
+                    const canOpenBidOrder = await validateOrder(resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
+                    // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
+                    if(canOpenBidOrder){
                         await processBidOrder(pair, targetBid);
                     }
                 } else {
@@ -194,7 +197,7 @@ async function validateOrder(id, pair, openedOrder){
                 break;
         }
         myAccount = await strategy.processFulfilledOrder(myAccount, pair, orderDetail);
-        return true;
+        return false;
     } else if(parseFloat(orderDetail.size_filled) < parseFloat(orderDetail.size)){
         // Order was partially_filled
         switch(orderDetail.order_type){
@@ -208,7 +211,7 @@ async function validateOrder(id, pair, openedOrder){
                 break;
         }
         myAccount = await strategy.processPartiallyFilled(myAccount, pair, orderDetail);
-        return true;
+        return false;
     } else {
         console.error("Something bad happened when validateOrder "+orderDetail.id+" !");
     }

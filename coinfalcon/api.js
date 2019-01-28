@@ -184,19 +184,30 @@ let getOrderTrades = function(id){
     });
 };
 
-let parseTicker = function(orders, pair){
-    let ticks = {bid:{},bidBorder: 0, ask:{}, askBorder:0}
+let parseTicker = function(type, orders, pair, order){
+    let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
     for(let i=0;i<orders.data.asks.length;i++){
         if(i===0){
             ticks.askBorder = parseFloat(orders.data.asks[i].price);
         }
-        if( parseFloat(orders.data.asks[i].size) > pair.ignoreOrderSize){
-            ticks.ask[ii] = {price: parseFloat(orders.data.asks[i].price), size: parseFloat(orders.data.asks[i].size)};
-            ii++;
+        if(type === "ask"){
+            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(orders.data.asks[i].price) === tools.setPrecision(order.sell_price, pair.digitsPrice)){
+                const askSizeDiff = (parseFloat(orders.data.asks[i].size)-tools.setPrecision(order.sell_size, pair.digitsSize));
+                console.log("askSizeDiff: " + askSizeDiff);
+                if( askSizeDiff > pair.ignoreOrderSize){
+                    ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
+                    ii++;
+                }
+            } else if( parseFloat(orders.data.asks[i].size) > pair.ignoreOrderSize){
+                ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: parseFloat(orders.data.asks[i].size)});
+                ii++;
+            }
             if (ii === 10){
                 break;
             }
+        } else {
+            break;
         }
     }
     ii=0;
@@ -204,12 +215,25 @@ let parseTicker = function(orders, pair){
         if(i === 0){
             ticks.bidBorder = parseFloat(orders.data.bids[i].price);
         }
-        if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
-            ticks.bid[ii] = {price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)};
-            ii++;
+        if(type === "bid"){
+            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(orders.data.bids[i].price) === tools.setPrecision(order.buy_price, pair.digitsPrice)){
+                const bidSizeDiff = (parseFloat(orders.data.bids[i].size)-tools.setPrecision(order.buy_size, pair.digitsSize));
+                console.log("bidSizeDiff: " + bidSizeDiff + " pair.ignoreOrderSize: "+pair.ignoreOrderSize);
+                if( bidSizeDiff > pair.ignoreOrderSize){
+                    ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
+                    ii++;
+                } else {
+                    console.log("My position "+orders.data.bids[i].price+" was alone (not counted ignored), removed from ticks.");
+                }
+            } else if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
+                ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)});
+                ii++;
+            }
             if (ii === 10){
                 break;
             }
+        } else {
+            break;
         }
     }
     return ticks;
