@@ -95,10 +95,10 @@ dbApi.setPendingSellOrder = function(data, sell_target_price){
     });
 };
 
-dbApi.setCompletedSellOrder = function(data){
+dbApi.setCompletedSellOrder = function(orderDetail){
 
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ?, sell_fee = ?, completed_at = ? WHERE sell_id = ?;`, "completed", data.status, data.size_filled, data.fee, new Date().toISOString(), data.id, function(err) {
+        db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ?, sell_fee = ?, completed_at = ? WHERE sell_id = ?;`, "completed", orderDetail.status, orderDetail.size_filled, orderDetail.fee, new Date().toISOString(), orderDetail.id, function(err) {
             if (err) {
                 return config.debug && console.log(err.message);
             }

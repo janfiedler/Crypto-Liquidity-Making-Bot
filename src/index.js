@@ -49,14 +49,13 @@ async function begin(){
 }
 
 async function start() {
-    //await tools.sleep(999999);
     if(doOrder === "ask"){
         // Parse all currency pair in config and check if is available balance for sell trade
         for(let i=0;i<config.exchanges.coinfalcon.pairs.length;i++){
             let pair = config.exchanges.coinfalcon.pairs[i];
             config.debug && console.log(new Date().toISOString()+" ### Lets process ask for "+ pair.name+" in the loop.");
-            let sellingForCurrency = pair.name.split('-')[1];
-            let sellingCurrency = pair.name.split('-')[0];
+            //let sellingForCurrency = pair.name.split('-')[1];
+            //let sellingCurrency = pair.name.split('-')[0];
 
             //Fetch actual prices from coinfalcon exchange
             const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
@@ -75,52 +74,35 @@ async function start() {
 
             // Check for actual opened sell order
             const resultOpenedSellOrder = await db.getOpenedSellOrder(config.exchanges.coinfalcon.name, pair.name);
-            let orderDetail;
-            if(resultOpenedSellOrder){
+            if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
                 config.debug && console.log(new Date().toISOString()+" ### Found opened sell order " + resultOpenedSellOrder.sell_id);
-                //If founded opened sell order, lets check and process
-                orderDetail = await coinfalcon.getOrder(resultOpenedSellOrder.sell_id);
-                await checkOrder(pair,"ask", targetAsk, resultOpenedSellOrder, orderDetail);
+                if(targetAsk === tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
+                    //If founded opened sell order, lets check and process
+                    const openNewOrder = await validateOrder(resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
+                    if(openNewOrder){
+                        await processAskOrder(pair, targetAsk, pendingSellOrder);
+                    }
+                } else {
+                    config.debug && console.log(new Date().toISOString()+" ### We already have opened ask order at " + targetAsk + " skipping validateOrder");
+                }
+            } else {
+                config.debug && console.log(new Date().toISOString()+" !!! This will be first opened sell order!");
+                await processAskOrder(pair, targetAsk, pendingSellOrder);
             }
 
-            // Continue with open new trade
-            if(targetAsk === 0){
-                //skipping
-            } else if(typeof resultOpenedSellOrder === 'undefined' && !resultOpenedSellOrder){
-                config.debug && console.log(new Date().toISOString()+" !!! This will be first opened sell order!");
-                if(tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk){
-                    await processAskOrder(pair, targetAsk, pendingSellOrder);
-                } else {
-                    config.debug && console.error(new Date().toISOString() + " !!! No first sell order for this ask price!");
-                }
-            } else if(orderDetail.data.size_filled > 0){
-                config.debug && console.log(new Date().toISOString()+" $$$ Filled ask order "+orderDetail.data.id+" processed!");
-            } else if( targetAsk === tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
-                //Skipping because we already have opened bid order at this price
-                config.debug && console.log(new Date().toISOString()+" ### We already have opened ask order at " + targetAsk);
-            } else if (myAccount.coinfalcon.available[sellingCurrency] < tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize)) {
-                config.debug && console.error(new Date().toISOString() + " !!! No available " + sellingCurrency + " funds!");
-            } else if (tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk) {
-                await processAskOrder(pair, targetAsk, pendingSellOrder);
-            } else {
-                config.debug && console.error(new Date().toISOString() + " !!! No sell order for this ask price!");
-                //console.log(pendingSellOrder);
-            }
             config.debug && console.log(new Date().toISOString()+" ### Success finished "+pair.name+" ASK task, wait: "+(config.exchanges.coinfalcon.sleepPause * apiCounterUsage)+" ms");
             await tools.sleep(config.exchanges.coinfalcon.sleepPause * apiCounterUsage);
             apiCounterUsage = 0;
         }
         doOrder = "bid";
         return true;
-    }
-
-    if(doOrder === "bid"){
+    }else if(doOrder === "bid"){
         // Parse all currency pair in config and check if is available balance for sell trade
         for(let i=0;i<config.exchanges.coinfalcon.pairs.length;i++){
             let pair = config.exchanges.coinfalcon.pairs[i];
             config.debug && console.log(new Date().toISOString()+" ### Lets process bid for "+ pair.name+" in the loop.");
-            let buyForCurrency = pair.name.split('-')[1];
-            let buyCurrency = pair.name.split('-')[0];
+            //let buyForCurrency = pair.name.split('-')[1];
+            //let buyCurrency = pair.name.split('-')[0];
 
             //Fetch actual prices from coinfalcon exchange
             const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
@@ -141,29 +123,19 @@ async function start() {
                 targetBid = await strategy.findSpotForBidOrder(true,  false, null, tickersCoinfalcon[pair.name] , pair);
             }
 
-            let orderDetail;
-            if(resultOpenedBuyOrder){
+            if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
                 config.debug && console.log(new Date().toISOString()+" ### Found opened bid order " + resultOpenedBuyOrder.buy_id);
-                //If founded opened sell order, lets check and process
-                orderDetail = await coinfalcon.getOrder(resultOpenedBuyOrder.buy_id);
-                await checkOrder(pair,"bid", targetBid, resultOpenedBuyOrder, orderDetail);
-            }
-            //await console.log(lowestFilledBuyOrder);
-            //await console.log(resultOpenedBuyOrder);
-            // Continue with open new trade
-            if(targetBid === 0){
-                //Skipping because target was in danger zone
-            } else if(typeof resultOpenedBuyOrder === 'undefined' && !resultOpenedBuyOrder ){
-                config.debug && console.log(new Date().toISOString()+" !!! This will be first opened buy order!");
-                await processBidOrder(pair, targetBid);
-            } else if(orderDetail.data.size_filled > 0){
-                config.debug && console.log(new Date().toISOString()+" $$$ Filled bid order "+orderDetail.data.id+" processed!");
-            } else if( targetBid === tools.setPrecision(resultOpenedBuyOrder.buy_price, pair.digitsPrice)){
-                //Skipping because we already have opened bid order at this price
-                config.debug && console.log(new Date().toISOString()+" ### We already have opened bid order at " + targetBid);
-            } else if (myAccount.coinfalcon.available[buyForCurrency] < tools.setPrecisionUp((pair.buyForAmount/targetBid), pair.digitsPrice)){
-                config.debug && console.error(new Date().toISOString()+" !!! No available "+buyForCurrency+" funds!");
+                if(targetBid !== tools.setPrecision(resultOpenedBuyOrder.buy_price, pair.digitsPrice)) {
+                    //If founded opened buy order, lets check and process
+                    const openNewOrder = await validateOrder(resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
+                    if(openNewOrder){
+                        await processBidOrder(pair, targetBid);
+                    }
+                } else {
+                    config.debug && console.log(new Date().toISOString()+" ### We already have opened bid order at " + targetBid + " skipping validateOrder");
+                }
             } else {
+                config.debug && console.log(new Date().toISOString()+" !!! This will be first opened buy order!");
                 await processBidOrder(pair, targetBid);
             }
 
@@ -176,182 +148,105 @@ async function start() {
     }
 }
 
-async function checkOrder(pair, type, targetPrice, resultOpenedOrder, orderDetail){
-    switch(type){
-        case "ask":
-            //config.debug && console.log(orderDetail);
-            if(orderDetail.data.size_filled > 0){
-                switch(orderDetail.data.status) {
-                    case "partially_filled":
-                        config.debug && console.log(new Date().toISOString()+" ASK partially_filled");
-                        //need cancel order on exchange
-                        const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.sell_id);
-                        apiCounterUsage++;
-                        // After cancel order, add funds to available.
-                        myAccount.coinfalcon.available[pair.name.split('-')[0]] += (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled));
-                        if(parseFloat(orderDetail.data.fee) > 0){
-                            myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                            myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                        }
-                        await db.setCompletedSellOrder(resultCancelOrder.data);
-                        await db.reOpenPartFilledSellOrder(config.exchanges.coinfalcon.name, pair, resultOpenedOrder, (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled)));
-                        break;
-                    case "fulfilled":
-                        config.debug && console.log(new Date().toISOString()+" ASK fulfilled");
-                        // do not need close order on exchange, just update info to local db
-                        if(parseFloat(orderDetail.data.fee) > 0){
-                            myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                            myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                        }
-                        await db.setCompletedSellOrder(orderDetail.data);
-                        break;
-                    case "canceled":
-                        if(parseFloat(orderDetail.data.size_filled) < parseFloat(orderDetail.data.size)){
-                            config.debug && console.log(new Date().toISOString()+" ASK partially_filled from CANCELED");
-                            //need cancel order on exchange
-                            const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.sell_id);
-                            apiCounterUsage++;
-                            // After cancel order, add funds to available.
-                            myAccount.coinfalcon.available[pair.name.split('-')[0]] += (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled));
-                            if(parseFloat(orderDetail.data.fee) > 0){
-                                myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                                myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                            }
-                            await db.setCompletedSellOrder(resultCancelOrder.data);
-                            await db.reOpenPartFilledSellOrder(config.exchanges.coinfalcon.name, pair, resultOpenedOrder, (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled)));
-                            break;
-                        } else {
-                            config.debug && console.log(new Date().toISOString()+" ASK fulfilled from CANCELED");
-                            // do not need close order on exchange, just update info to local db
-                            if(parseFloat(orderDetail.data.fee) > 0){
-                                myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                                myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.data.fee);
-                            }
-                            await db.setCompletedSellOrder(orderDetail.data);
-                            break;
-                        }
-                    default:
-                        console.error("Something wrong with orderDetail.data");
-                        await tools.sleep(999999);
-                        break;
-                }
-            } else {
-                if(targetPrice !== resultOpenedOrder.sell_price) {
-                    switch (orderDetail.data.status) {
-                        case "open":
-                            config.debug && console.log(new Date().toISOString() + " ### We have new price, need close old sell order and delete db record");
-                            const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.sell_id);
-                            apiCounterUsage++;
-                            // After cancel order, add funds to available.
-                            myAccount.coinfalcon.available[pair.name.split('-')[0]] += parseFloat(resultCancelOrder.data.size);
-                            if (resultCancelOrder.s) {
-                                await db.deleteOpenedSellOrder(resultCancelOrder.data.id);
-                            }
-                            break;
-                        case "canceled":
-                            console.error("Database is unsynced!");
-                            await tools.sleep(999999);
-                            break;
-                    }
-                }
-            }
-            break;
-        case "bid":
-            //config.debug && console.log(orderDetail);
-            if(orderDetail.data.size_filled > 0){
-                const sell_target_price = tools.getProfitTargetPrice(parseFloat(orderDetail.data.price), pair.percentageProfitTarget, pair.digitsPrice);
-                switch(orderDetail.data.status) {
-                    case "partially_filled":
-                        config.debug && console.log(new Date().toISOString()+" BID partially_filled");
-                        //need cancel order on exchange
-                        const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.buy_id);
-                        apiCounterUsage++;
-                        // After cancel order, add funds to available.
-                        myAccount.coinfalcon.available[pair.name.split('-')[1]] += (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled));
-                        if(parseFloat(resultCancelOrder.data.fee) > 0){
-                            myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(resultCancelOrder.data.fee);
-                        }
-                        await db.setPendingSellOrder(orderDetail.data, sell_target_price);
-                        break;
-                    case "fulfilled":
-                        config.debug && console.log(new Date().toISOString()+" BID fulfilled");
-                        // do not need close order on exchange, just update info to local db
-                        if(parseFloat(orderDetail.data.fee) > 0){
-                            myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                        }
-                        await db.setPendingSellOrder(orderDetail.data, sell_target_price);
-                        break;
-                    case "canceled":
-                        if(parseFloat(orderDetail.data.size_filled) < parseFloat(orderDetail.data.size)){
-                            config.debug && console.log(new Date().toISOString()+" BID partially_filled CANCELED");
-                            //need cancel order on exchange
-                            const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.buy_id);
-                            apiCounterUsage++;
-                            // After cancel order, add funds to available.
-                            myAccount.coinfalcon.available[pair.name.split('-')[1]] += (parseFloat(resultCancelOrder.data.size)-parseFloat(resultCancelOrder.data.size_filled));
-                            if(parseFloat(resultCancelOrder.data.fee) > 0){
-                                myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                                myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(resultCancelOrder.data.fee);
-                            }
-                            await db.setPendingSellOrder(orderDetail.data, sell_target_price);
-                            break;
-                        } else {
-                            config.debug && console.log(new Date().toISOString()+" BID fulfilled CANCELED");
-                            // do not need close order on exchange, just update info to local db
-                            if(parseFloat(orderDetail.data.fee) > 0){
-                                myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                                myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.data.fee);
-                            }
-                            await db.setPendingSellOrder(orderDetail.data, sell_target_price);
-                            break;
-                        }
-                    default:
-                        console.error("Something wrong with orderDetail.data");
-                        await tools.sleep(99999000);
-                        break;
-                }
-            } else {
-                if(targetPrice !== resultOpenedOrder.buy_price) {
-                    switch (orderDetail.data.status) {
-                        case "open":
-                            config.debug && console.log(new Date().toISOString() + " ### We have new price, need close old buy order and delete db record");
-                            const resultCancelOrder = await coinfalcon.cancelOrder(resultOpenedOrder.buy_id);
-                            apiCounterUsage++;
-                            myAccount.coinfalcon.available[pair.name.split('-')[1]] += parseFloat(resultCancelOrder.data.size);
-                            config.debug && console.log(resultCancelOrder);
-                            if (resultCancelOrder.s) {
-                                await db.deleteOpenedBuyOrder(resultCancelOrder.data.id);
-                            }
-                            break;
-                        case "canceled":
-                            console.error("Database is unsynced!");
-                            await tools.sleep(999999);
-                            break;
-                    }
-                }
-            }
-
-            break;
+async function validateOrder(id, pair, openedOrder){
+    let orderDetail;
+    //Before validate order, first we need cancel opened order to avoid changes in data while validating.
+    const canceledOrder = await coinfalcon.cancelOrder(id);
+    apiCounterUsage++;
+    if (canceledOrder.s){
+        config.debug && console.log(new Date().toISOString() + " ### orderDetail = coinfalcon.cancelOrder(id)");
+        orderDetail = canceledOrder.data;
+    } else {
+        //Order was probably canceled manually, sync local DB
+        const detailOrder = await coinfalcon.getOrder(id);
+        if(detailOrder.s){
+            config.debug && console.log(new Date().toISOString() + " ### orderDetail = coinfalcon.getOrder(id)");
+            orderDetail = detailOrder.data;
+        } else {
+            console.error("Something bad happened when validate canceled order "+id+" !");
+        }
     }
-    return true;
+    //Check if order was partially_filled or fulfilled.
+    if(parseFloat(orderDetail.size_filled) === 0){
+        // Order was not filled
+        switch(orderDetail.order_type){
+            case "buy":
+                config.debug && console.log(new Date().toISOString() + " ### We have new price, old buy order was canceled");
+                myAccount.coinfalcon.available[pair.name.split('-')[1]] += parseFloat(orderDetail.funds);
+                config.debug && console.log(orderDetail);
+                await db.deleteOpenedBuyOrder(orderDetail.id);
+                break;
+            case "sell":
+                config.debug && console.log(new Date().toISOString() + " ### We have new price, old sell order was canceled");
+                myAccount.coinfalcon.available[pair.name.split('-')[0]] += parseFloat(orderDetail.size);
+                await db.deleteOpenedSellOrder(orderDetail.id);
+                break;
+        }
+        return true;
+    } else if(parseFloat(orderDetail.size_filled) === parseFloat(orderDetail.size)){
+        // Order was fulfilled
+        switch(orderDetail.order_type){
+            case "buy":
+                await db.deleteOpenedBuyOrder(orderDetail.id);
+                break;
+            case "sell":
+                await db.setCompletedSellOrder(orderDetail);
+                break;
+        }
+        myAccount = await strategy.processFulfilledOrder(myAccount, pair, orderDetail);
+        return true;
+    } else if(parseFloat(orderDetail.size_filled) < parseFloat(orderDetail.size)){
+        // Order was partially_filled
+        switch(orderDetail.order_type){
+            case "buy":
+                const sell_target_price = tools.getProfitTargetPrice(parseFloat(orderDetail.price), pair.percentageProfitTarget, pair.digitsPrice);
+                await db.setPendingSellOrder(orderDetail, sell_target_price);
+                break;
+            case "sell":
+                await db.setCompletedSellOrder(orderDetail);
+                await db.reOpenPartFilledSellOrder(config.exchanges.coinfalcon.name, pair, openedOrder, (parseFloat(orderDetail.size)-parseFloat(orderDetail.size_filled)));
+                break;
+        }
+        myAccount = await strategy.processPartiallyFilled(myAccount, pair, orderDetail);
+        return true;
+    } else {
+        console.error("Something bad happened when validateOrder "+orderDetail.id+" !");
+    }
 }
 
 async function processAskOrder(pair, targetAsk, pendingSellOrder){
+    if(targetAsk === 0){
+        config.debug && console.error(new Date().toISOString()+" !!! Skipping process ask order because targetAsk === 0!");
+        return false;
+    } else if (myAccount.coinfalcon.available[pair.name.split('-')[0]] < tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize)) {
+        config.debug && console.error(new Date().toISOString() + " !!! No available " + pair.name.split('-')[0] + " funds!");
+        return false;
+    } else if (tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk) {
         config.debug && console.log(new Date().toISOString()+" ### Let´go open new sell order!");
         const createdOrder = await coinfalcon.createOrder(pair, 'sell', pendingSellOrder, targetAsk);
         apiCounterUsage++;
         myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(createdOrder.data.size);
         await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
-    return true;
+        return true;
+    } else {
+        config.debug && console.log(new Date().toISOString() + " !!! No sell order for this ask price!");
+        return false;
+    }
 }
 
 async function processBidOrder(pair, targetBid){
-    config.debug && console.log(new Date().toISOString()+" ### Let´go open new buy order!");
-    const createdOrder = await coinfalcon.createOrder(pair,'buy',null, targetBid);
-    apiCounterUsage++;
-    myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.size);
-    await db.saveOpenedBuyOrder(config.exchanges.coinfalcon.name, pair, createdOrder);
-    return true;
+    if(targetBid === 0){
+        config.debug && console.error(new Date().toISOString()+" !!! Skipping process bid order because targetBid === 0!");
+        return false;
+    } else if (myAccount.coinfalcon.available[pair.name.split('-')[1]] < tools.setPrecisionUp((pair.buyForAmount/targetBid), pair.digitsPrice)){
+        config.debug && console.error(new Date().toISOString()+" !!! No available "+pair.name.split('-')[1]+" funds!");
+        return false;
+    } else {
+        config.debug && console.log(new Date().toISOString()+" ### Let´go open new buy order!");
+        const createdOrder = await coinfalcon.createOrder(pair,'buy',null, targetBid);
+        apiCounterUsage++;
+        myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.size);
+        await db.saveOpenedBuyOrder(config.exchanges.coinfalcon.name, pair, createdOrder);
+        return true;
+    }
 }

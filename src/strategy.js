@@ -1,16 +1,16 @@
 let config = require('../config');
 const tools = require('../src/tools');
 
-exports.findSpotForAskOrder = async function (pendingOrder, ticker, pair){
+let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     const keysCount = Object.keys(ticker.ask).length;
     let targetAsk = 0;
     // Need take my size order from market for found real target ask price
     for(let i=0;i<keysCount;i++){
-        if(ticker.ask[i].price === pendingOrder.sell_price){
-            ticker.ask[i].size -= pendingOrder.sell_size;
+        if(ticker.ask[i].price === tools.setPrecision(pendingOrder.sell_price, pair.digitsPrice)){
+            ticker.ask[i].size -= tools.setPrecision(pendingOrder.sell_size, pair.digitsSize);
         }
         if ((i+2) >= keysCount){
-            break
+            break;
         }
         if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
             console.log(ticker.ask);
@@ -31,7 +31,7 @@ exports.findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     return targetAsk;
 };
 
-exports.findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
+let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
     const keysCount = Object.keys(ticker.bid).length;
     let targetBid = 0;
     // Need take my size order from market for found real target ask price
@@ -39,8 +39,10 @@ exports.findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder,
         targetBid = ticker.bid[0].price;
     } else {
         for(let i=0;i<keysCount;i++){
-            if(ticker.bid[i].price === buyOrder.buy_price){
-                ticker.bid[i].size -= buyOrder.buy_size;
+            console.log("ticker.bid[i].price: " + ticker.bid[i].price);
+            console.log("tools.setPrecision(buyOrder.buy_price, pair.digitsPrice): " + tools.setPrecision(buyOrder.buy_price, pair.digitsPrice));
+            if(ticker.bid[i].price === tools.setPrecision(buyOrder.buy_price, pair.digitsPrice)){
+                ticker.bid[i].size -= tools.setPrecision(buyOrder.buy_size, pair.digitsSize);
             }
             if ((i+2) >= keysCount){
                 break
@@ -57,7 +59,6 @@ exports.findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder,
 
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sell with profit)
     if(lowestOrder){
-        console.log("buyOrder.buy_price: " + buyOrder.buy_price);
         const bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.pipsBuySpread, pair.digitsPrice);
         if(targetBid > bidWithSpread){
             console.error(new Date().toISOString()+ " ### Target bid " +targetBid+" is higher than previous filled buy order with spread "+bidWithSpread+" included!");
@@ -74,4 +75,73 @@ exports.findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder,
         config.debug && console.log(new Date().toISOString()+" targetBid: " + targetBid);
     }
     return targetBid;
+};
+
+let processFulfilledOrder = function(myAccount, pair, orderDetail){
+    switch(orderDetail.order_type){
+        case "buy":
+            config.debug && console.log(new Date().toISOString()+" BID fulfilled");
+            if(parseFloat(orderDetail.fee) > 0){
+                myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.fee);
+                myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.fee);
+            }
+            //We bought, need add new size to balance and available
+            myAccount.coinfalcon.balance[pair.name.split('-')[0]] += parseFloat(orderDetail.size);
+            myAccount.coinfalcon.available[pair.name.split('-')[0]] += parseFloat(orderDetail.size);
+            //We bought, need take size from balance. Available was taken when opening buy order
+            myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.funds);
+            break;
+        case "sell":
+            config.debug && console.log(new Date().toISOString()+" ### ASK fulfilled");
+            if(parseFloat(orderDetail.fee) > 0){
+                myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.fee);
+                myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.fee);
+            }
+            //We sold, need take size from balance. Available was taken when opening sell order
+            myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.size);
+            //We sold, need add new size to balance and available
+            myAccount.coinfalcon.balance[pair.name.split('-')[1]] += parseFloat(orderDetail.funds);
+            myAccount.coinfalcon.available[pair.name.split('-')[1]] += parseFloat(orderDetail.funds);
+
+            break;
+    }
+    return myAccount;
+};
+
+let processPartiallyFilled = function (myAccount, pair, orderDetail){
+    switch(orderDetail.order_type){
+        case "buy":
+            config.debug && console.log(new Date().toISOString()+" BID partially_filled");
+            if(parseFloat(orderDetail.fee) > 0){
+                myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.fee);
+                myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(orderDetail.fee);
+            }
+            //We bought, need add new size to balance and available
+            myAccount.coinfalcon.balance[pair.name.split('-')[0]] += parseFloat(orderDetail.size_filled);
+            myAccount.coinfalcon.available[pair.name.split('-')[0]] += parseFloat(orderDetail.size_filled);
+            //We bought, need take size from balance. Available was taken when opening buy order
+            myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= (parseFloat(orderDetail.size_filled)*parseFloat(orderDetail.price));
+            break;
+        case "sell":
+            config.debug && console.log(new Date().toISOString()+" ### ASK partially_filled");
+            if(parseFloat(orderDetail.fee) > 0){
+                myAccount.coinfalcon.balance[pair.name.split('-')[1]] -= parseFloat(orderDetail.fee);
+                myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(orderDetail.fee);
+            }
+            //We sold, need take size from balance. Available was taken when opening sell order
+            myAccount.coinfalcon.balance[pair.name.split('-')[0]] -= parseFloat(orderDetail.size_filled);
+            //We sold, need add new size to balance and available
+            myAccount.coinfalcon.balance[pair.name.split('-')[1]] += (parseFloat(orderDetail.size_filled)*parseFloat(orderDetail.price));
+            myAccount.coinfalcon.available[pair.name.split('-')[1]] += (parseFloat(orderDetail.size_filled)*parseFloat(orderDetail.price));
+
+            break;
+    }
+    return myAccount;
+};
+
+module.exports = {
+    findSpotForAskOrder: findSpotForAskOrder,
+    findSpotForBidOrder: findSpotForBidOrder,
+    processFulfilledOrder: processFulfilledOrder,
+    processPartiallyFilled: processPartiallyFilled
 };
