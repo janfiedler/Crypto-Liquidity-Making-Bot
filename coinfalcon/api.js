@@ -162,7 +162,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 201) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result.data});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
