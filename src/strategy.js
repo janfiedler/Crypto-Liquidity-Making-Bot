@@ -94,7 +94,6 @@ let processFulfilledOrder = function(myAccount, pair, orderDetail){
             //We sold, need add new size to balance and available
             myAccount.coinfalcon.balance[pair.name.split('-')[1]] += parseFloat(orderDetail.funds);
             myAccount.coinfalcon.available[pair.name.split('-')[1]] += parseFloat(orderDetail.funds);
-
             break;
     }
     return myAccount;

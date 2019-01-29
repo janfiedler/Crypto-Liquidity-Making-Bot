@@ -30,8 +30,8 @@ function startRetrieveRates() {
     proxyStatsWorker.send({});
     proxyStatsWorker.on('message', async function (result) {
         //console.log(result);
-        if(result.balanceCoinfalcon){
-            myAccount = await tools.parseBalance(result.balanceCoinfalcon, myAccount);
+        if(result.balanceCoinfalcon.s){
+            myAccount = await tools.parseBalance(result.balanceCoinfalcon.data, myAccount);
             if(firstInit){
                 firstInit = false;
                 begin();
@@ -71,7 +71,12 @@ async function start() {
             const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
             apiCounterUsage++;
             //Parse fetched data to json object.
-            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("ask", resultCoinfalconTicker, pair, resultOpenedSellOrder);
+            if(resultCoinfalconTicker.s){
+                tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("ask", resultCoinfalconTicker.data, pair, resultOpenedSellOrder);
+            } else {
+                //Return false will start ask process again
+                return false;
+            }
 
             let targetAsk = await strategy.findSpotForAskOrder(pendingSellOrder, tickersCoinfalcon[pair.name] , pair);
 
@@ -115,7 +120,13 @@ async function start() {
             const resultCoinfalconTicker = await coinfalcon.getTicker(pair.name,2);
             apiCounterUsage++;
             //Parse fetched data to json object.
-            tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("bid", resultCoinfalconTicker, pair, resultOpenedBuyOrder);
+            if(resultCoinfalconTicker.s){
+                tickersCoinfalcon[pair.name] = await coinfalcon.parseTicker("bid", resultCoinfalconTicker.data, pair, resultOpenedBuyOrder);
+            } else {
+                //Return false will start ask process again
+                return false;
+            }
+
             let targetBid;
             if(lowestFilledBuyOrder){
                 targetBid = await strategy.findSpotForBidOrder(false, true, lowestFilledBuyOrder, tickersCoinfalcon[pair.name] , pair);
@@ -190,7 +201,8 @@ async function validateOrder(id, pair, openedOrder){
         // Order was fulfilled
         switch(orderDetail.order_type){
             case "buy":
-                await db.deleteOpenedBuyOrder(orderDetail.id);
+                const sell_target_price = tools.getProfitTargetPrice(parseFloat(orderDetail.price), pair.percentageProfitTarget, pair.digitsPrice);
+                await db.setPendingSellOrder(orderDetail, sell_target_price);
                 break;
             case "sell":
                 await db.setCompletedSellOrder(orderDetail);
@@ -228,9 +240,13 @@ async function processAskOrder(pair, targetAsk, pendingSellOrder){
         config.debug && console.log(new Date().toISOString()+" ### Let´go open new sell order!");
         const createdOrder = await coinfalcon.createOrder(pair, 'sell', pendingSellOrder, targetAsk);
         apiCounterUsage++;
-        myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(createdOrder.data.size);
-        await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
-        return true;
+        if(createdOrder.s){
+            myAccount.coinfalcon.available[pair.name.split('-')[0]] -= parseFloat(createdOrder.data.size);
+            await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
+            return true;
+        } else {
+            return false;
+        }
     } else {
         config.debug && console.log(new Date().toISOString() + " !!! No sell order for this ask price!");
         return false;
@@ -248,8 +264,12 @@ async function processBidOrder(pair, targetBid){
         config.debug && console.log(new Date().toISOString()+" ### Let´go open new buy order!");
         const createdOrder = await coinfalcon.createOrder(pair,'buy',null, targetBid);
         apiCounterUsage++;
-        myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.size);
-        await db.saveOpenedBuyOrder(config.exchanges.coinfalcon.name, pair, createdOrder);
-        return true;
+        if(createdOrder.s){
+            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.size);
+            await db.saveOpenedBuyOrder(config.exchanges.coinfalcon.name, pair, createdOrder);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

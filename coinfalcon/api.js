@@ -27,15 +27,17 @@ let getAccountsBalance = function(){
         let request_path = "/api/v1/user/accounts";
         let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                try {
-                    resolve(JSON.parse(body));
-                } catch (e) {
-                    //console.error(body);
-                    //console.error(e);
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result});
+                } else {
+                    console.error(body);
+                    resolve({s:0, data: result});
                 }
-            } else {
+            } catch (e) {
                 console.error(body);
+                console.error(e);
             }
         });
     });
@@ -58,9 +60,17 @@ let getTicker = function(pair, level) {
             String	asks[].size
         */
         request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair+"/orders", qs: { level: level.toString() }}, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                let info = JSON.parse(body);
-                resolve(info);
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result});
+                } else {
+                    console.error(body);
+                    resolve({s:0, data: result});
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
             }
         });
     });
@@ -71,17 +81,17 @@ let getOrders = function(pair, status){
         let request_path = "/api/v1/user/orders?market="+pair+"&status="+status;
         let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                try {
-                    resolve(JSON.parse(body));
-                } catch (e) {
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result});
+                } else {
                     console.error(body);
-                    console.error(e);
+                    resolve({s:0, data: result});
                 }
-            } else {
-                //throw 'Error';
-                console.error(error);
-                //config.debug && console.log('Error getProxyTotalHashes');
+            } catch (e) {
+                console.error(body);
+                console.error(e);
             }
         });
     });
@@ -95,8 +105,9 @@ let getOrder = function(id){
                     try {
                         const result = JSON.parse(body);
                         if (!error && response.statusCode === 200) {
-                            resolve({s: 1, data: result.data});
+                            resolve({s:1, data: result.data});
                         } else {
+                            console.error(body);
                             resolve({s:0, data: result});
                         }
                     } catch (e) {
@@ -115,8 +126,9 @@ let cancelOrder = function(id){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s: 1, data: result.data});
+                    resolve({s:1, data: result.data});
                 } else {
+                    console.error(body);
                     resolve({s:0, data: result});
                 }
             } catch (e) {
@@ -148,18 +160,17 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
         let headers = Object.assign(o1, sign("POST", request_path, body));
         request.post({url: url, headers: headers, form: body}, function(error, response, body) {
             try {
+                const result = JSON.parse(body);
                 if (!error && response.statusCode === 201) {
-                    const result = JSON.parse(body);
-                    resolve(result);
-                    //config.debug && console.log(result.data);
+                    resolve({s:1, data: result});
                 } else {
                     console.error(body);
+                    resolve({s:0, data: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
             }
-
         });
     });
 };
@@ -169,17 +180,18 @@ let getOrderTrades = function(id){
         let request_path = "/api/v1/user/orders/"+id+"/trades";
         let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                try {
-                    resolve(JSON.parse(body));
-                } catch (e) {
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result});
+                } else {
                     console.error(body);
-                    console.error(e);
+                    resolve({s:0, data: result});
                 }
-            } else {
-                console.error(error);
+            } catch (e) {
+                console.error(body);
+                console.error(e);
             }
-
         });
     });
 };
@@ -194,7 +206,6 @@ let parseTicker = function(type, orders, pair, order){
         if(type === "ask"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(orders.data.asks[i].price) === tools.setPrecision(order.sell_price, pair.digitsPrice)){
                 const askSizeDiff = (parseFloat(orders.data.asks[i].size)-tools.setPrecision(order.sell_size, pair.digitsSize));
-                console.log("askSizeDiff: " + askSizeDiff);
                 if( askSizeDiff > pair.ignoreOrderSize){
                     ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
@@ -218,12 +229,11 @@ let parseTicker = function(type, orders, pair, order){
         if(type === "bid"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(orders.data.bids[i].price) === tools.setPrecision(order.buy_price, pair.digitsPrice)){
                 const bidSizeDiff = (parseFloat(orders.data.bids[i].size)-tools.setPrecision(order.buy_size, pair.digitsSize));
-                console.log("bidSizeDiff: " + bidSizeDiff + " pair.ignoreOrderSize: "+pair.ignoreOrderSize);
                 if( bidSizeDiff > pair.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
-                    console.log("My position "+orders.data.bids[i].price+" was alone (not counted ignored), removed from ticks.");
+                    console.log("My position "+orders.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
             } else if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)});
