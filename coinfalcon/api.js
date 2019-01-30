@@ -84,7 +84,7 @@ let getOrders = function(pair, status){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result.data});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
@@ -214,9 +214,6 @@ let parseTicker = function(type, orders, pair, order){
                 ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: parseFloat(orders.data.asks[i].size)});
                 ii++;
             }
-            if (ii === 10){
-                break;
-            }
         } else {
             break;
         }
@@ -238,9 +235,6 @@ let parseTicker = function(type, orders, pair, order){
             } else if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)});
                 ii++;
-            }
-            if (ii === 10){
-                break;
             }
         } else {
             break;

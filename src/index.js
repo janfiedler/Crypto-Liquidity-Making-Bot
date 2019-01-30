@@ -265,7 +265,7 @@ async function processBidOrder(pair, targetBid){
         const createdOrder = await coinfalcon.createOrder(pair,'buy',null, targetBid);
         apiCounterUsage++;
         if(createdOrder.s){
-            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.size);
+            myAccount.coinfalcon.available[pair.name.split('-')[1]] -= parseFloat(createdOrder.data.funds);
             await db.saveOpenedBuyOrder(config.exchanges.coinfalcon.name, pair, createdOrder);
             return true;
         } else {

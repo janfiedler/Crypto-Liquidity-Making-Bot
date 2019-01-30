@@ -3,14 +3,14 @@ const tools = require('../src/tools');
 
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     const keysCount = Object.keys(ticker.ask).length;
-    let targetAsk = 0;
+    let targetAsk = 99999999;
     // Need take my size order from market for found real target ask price
     for(let i=0;i<keysCount;i++){
         if ((i+2) >= keysCount){
             break;
         }
         if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
-            console.log(ticker.ask);
+            //console.log(ticker.ask);
             console.log(new Date().toISOString()+ " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size);
             targetAsk = ticker.ask[i].price;
             break;
@@ -40,7 +40,7 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
                 break
             }
             if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
-                console.log(ticker.bid);
+                //console.log(ticker.bid);
                 console.log(new Date().toISOString()+ " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size);
                 targetBid = ticker.bid[i].price;
                 break;
