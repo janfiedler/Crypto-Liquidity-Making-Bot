@@ -38,6 +38,7 @@ let getAccountsBalance = function(){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
     });
@@ -71,6 +72,7 @@ let getTicker = function(pair, level) {
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
     });
@@ -92,6 +94,7 @@ let getOrders = function(pair, status){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
     });
@@ -113,6 +116,7 @@ let getOrder = function(id){
                     } catch (e) {
                         console.error(body);
                         console.error(e);
+                        resolve({s:0});
                     }
         });
     });
@@ -134,6 +138,7 @@ let cancelOrder = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
 
@@ -170,6 +175,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
     });
@@ -191,6 +197,7 @@ let getOrderTrades = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
+                resolve({s:0});
             }
         });
     });
