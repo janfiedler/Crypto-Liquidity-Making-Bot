@@ -170,9 +170,12 @@ async function validateOrder(id, pair, openedOrder){
     if (canceledOrder.s){
         config.debug && console.log(new Date().toISOString() + " ### orderDetail = coinfalcon.cancelOrder(id)");
         orderDetail = canceledOrder.data;
-    } else if(canceledOrder.data.error.includes('has wrong status.')) {
+    } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')) {
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
         console.error("Catched cancelOrder has wrong status");
+        return false;
+    } else if(!canceledOrder.s){
+        console.error("Catched cancelOrder error!");
         return false;
     } else {
         //Order was probably canceled manually, sync local DB
