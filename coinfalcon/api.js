@@ -40,7 +40,7 @@ let getAccountsBalance = function(){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getAccountsBalance"}});
             }
         });
     });
@@ -74,7 +74,7 @@ let getTicker = function(pair, level) {
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getTicker"}});
             }
         });
     });
@@ -96,7 +96,7 @@ let getOrders = function(pair, status){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getOrders"}});
             }
         });
     });
@@ -107,19 +107,19 @@ let getOrder = function(id){
         let request_path = "/api/v1/user/orders/"+id;
         let url = config.exchanges.coinfalcon.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
-                    try {
-                        const result = JSON.parse(body);
-                        if (!error && response.statusCode === 200) {
-                            resolve({s:1, data: result.data});
-                        } else {
-                            console.error(body);
-                            resolve({s:0, data: result});
-                        }
-                    } catch (e) {
-                        console.error(body);
-                        console.error(e);
-                        resolve({s:0});
-                    }
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result.data});
+                } else {
+                    console.error(body);
+                    resolve({s:0, data: result});
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+                resolve({s:0, data: {error: "getOrder"}});
+            }
         });
     });
 };
@@ -140,7 +140,7 @@ let cancelOrder = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "cancelOrder"}});
             }
         });
 
@@ -177,7 +177,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "createOrder"}});
             }
         });
     });
@@ -199,7 +199,7 @@ let getOrderTrades = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getOrderTrades"}});
             }
         });
     });
@@ -262,6 +262,5 @@ module.exports = {
     getOrderTrades: getOrderTrades,
     parseTicker: parseTicker
 };
-
 
 
