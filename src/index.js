@@ -170,14 +170,7 @@ async function validateOrder(id, pair, openedOrder){
     if (canceledOrder.s){
         config.debug && console.log(new Date().toISOString() + " ### orderDetail = coinfalcon.cancelOrder(id)");
         orderDetail = canceledOrder.data;
-    } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')) {
-        //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
-        console.error("Catched cancelOrder has wrong status");
-        return false;
-    } else if(!canceledOrder.s){
-        console.error("Catched cancelOrder error!");
-        return false;
-    } else {
+    } else if(!canceledOrder.s && canceledOrder.data.error.includes('not found.')){
         //Order was probably canceled manually, sync local DB
         const detailOrder = await coinfalcon.getOrder(id);
         if(detailOrder.s){
@@ -186,6 +179,13 @@ async function validateOrder(id, pair, openedOrder){
         } else {
             console.error("Something bad happened when validate canceled order "+id+" !");
         }
+    } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
+        //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
+        console.error("Catched cancelOrder has wrong status");
+        return false;
+    } else {
+        console.error("Catched cancelOrder error!");
+        return false;
     }
     //Check if order was partially_filled or fulfilled.
     if(parseFloat(orderDetail.size_filled) === 0){
