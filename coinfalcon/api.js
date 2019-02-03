@@ -38,7 +38,7 @@ let getAccountsBalance = function(){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getAccountsBalance"}});
             }
         });
     });
@@ -72,7 +72,7 @@ let getTicker = function(pair, level) {
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getTicker"}});
             }
         });
     });
@@ -94,7 +94,7 @@ let getOrders = function(pair, status){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getOrders"}});
             }
         });
     });
@@ -116,7 +116,7 @@ let getOrder = function(id){
                     } catch (e) {
                         console.error(body);
                         console.error(e);
-                        resolve({s:0});
+                        resolve({s:0, data: {error: "getOrder"}});
                     }
         });
     });
@@ -138,7 +138,7 @@ let cancelOrder = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "cancelOrder"}});
             }
         });
 
@@ -175,7 +175,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "createOrder"}});
             }
         });
     });
@@ -197,7 +197,7 @@ let getOrderTrades = function(id){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: "getOrderTrades"}});
             }
         });
     });
