@@ -23,13 +23,27 @@ exports.getBitfinexTickers = function(){
     });
 };
 
-exports.parseBalance = function(funds, myAccount){
-    for (const fund of funds.data) {
-        let currencyCode = fund.currency_code.toLocaleUpperCase();
-        if(config.exchanges.coinfalcon.accounts.some(currency => currency.name.toLocaleUpperCase() === currencyCode)){
-            myAccount.coinfalcon.balance[currencyCode] = parseFloat(fund.balance);
-            myAccount.coinfalcon.available[currencyCode] = parseFloat(fund.available_balance);
-        }
+exports.parseBalance = function(config, funds){
+    let myAccount = {[config.name]: {balance: {},available: {}}};
+    switch (config.name) {
+        case "coinfalcon":
+            for (const fund of funds.data) {
+                let currencyCode = fund.currency_code.toLocaleUpperCase();
+                if(config.accounts.some(currency => currency.name.toLocaleUpperCase() === currencyCode)){
+                    myAccount[config.name].balance[currencyCode] = parseFloat(fund.balance);
+                    myAccount[config.name].available[currencyCode] = parseFloat(fund.available_balance);
+                }
+            }
+            break;
+        case "coinmate":
+            for (const account of config.accounts) {
+                let currencyCode = account.name.toLocaleUpperCase();
+                if(funds.data[currencyCode]){
+                    myAccount[config.name].balance[currencyCode] = parseFloat(funds.data[currencyCode].balance);
+                    myAccount[config.name].available[currencyCode] = parseFloat(funds.data[currencyCode].available);
+                }
+            }
+            break;
     }
     return myAccount;
 };

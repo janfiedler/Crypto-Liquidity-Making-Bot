@@ -1,10 +1,12 @@
-let config = require('../config');
 
-const sleepPause = config.exchanges.coinfalcon.sleepPause;
+
+let config = require('../config');
+const sleepPause = this.config.sleepPause;
 
 const crypto = require('crypto');
 const tools = require('../src/tools');
 var request = require('request');
+
 
 let sign = function(method, request_path, body = undefined) {
     let timestamp = Date.now().toString();
@@ -260,5 +262,6 @@ module.exports = {
     getOrderTrades: getOrderTrades,
     parseTicker: parseTicker
 };
+
 
 

@@ -1,15 +1,18 @@
-let config = require('../config');
-
 const crypto = require('crypto');
 var request = require('request');
+let config;
+
+let setConfig = function(data){
+    config = data;
+};
 
 let sign = function() {
-    let clientId = config.exchanges.coinmate.clientId;
-    let publicApiKey = config.exchanges.coinmate.publicKey;
+    let clientId = config.clientId;
+    let publicApiKey = config.publicKey;
     let nonce = Date.now().toString();
     let signatureInput =  nonce + clientId + publicApiKey;
 
-    const hmac = crypto.createHmac('sha256', config.exchanges.coinmate.privateKey);
+    const hmac = crypto.createHmac('sha256', config.privateKey);
     hmac.update(signatureInput);
     let signature = hmac.digest('hex').toUpperCase();
     return "clientId="+clientId+"&publicKey="+publicApiKey+"&nonce="+nonce+"&signature="+signature;
@@ -118,6 +121,7 @@ let buyLimitOrder = function (callback, currencyPair, amount, price){
 };
 
 module.exports = {
+    setConfig: setConfig,
     getBalance: getBalance,
     getOpenOrders: getOpenOrders,
     getTransactionHistory: getTransactionHistory,

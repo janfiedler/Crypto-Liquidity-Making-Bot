@@ -1,7 +1,8 @@
 let config = require('../config');
 let request = require('request');
 let crypto = require('crypto');
-var coinfalcon = require('../coinfalcon/api');
+//var coinfalcon = require('../coinfalcon/api');
+const coinmate = require('../coinmate/');
 let db = require('../db/sqlite3');
 const tools = require('../src/tools');
 const strategy = require('../src/strategy');
@@ -12,14 +13,32 @@ var cp = require('child_process');
 let doOrder = "ask";
 let apiCounterUsage = 0;
 
-let myAccount = {coinfalcon: {balance: {},available: {}}};
+let myAccount = {coinfalcon: {balance: {},available: {}}, coinmate: {balance: {},available: {}}};
 let tickersCoinfalcon = {};
 
 // Async Init
 (async function () {
     // Promise not compatible with config.debug && console.log, async is?
     await db.connect();
-    startRetrieveRates();
+
+    for(let i=0;i<config.exchanges.length;i++){
+        if(config.exchanges[i].active) {
+            switch (config.exchanges[i].name) {
+                case "coinfalcon":
+                    /*
+                    const balanceCoinfalcon = await coinfalcon.getAccountsBalance();
+                    console.log(balanceCoinfalcon);
+                    myAccount = await tools.parseBalance(balanceCoinfalcon.data, myAccount);
+                    console.log(myAccount)
+                    */
+                    break;
+                case "coinmate":
+                    coinmate.init(config.exchanges[i], db);
+                    break;
+            }
+        }
+    }
+    //startRetrieveRates();
 })();
 
 function startRetrieveRates() {
@@ -31,10 +50,11 @@ function startRetrieveRates() {
     proxyStatsWorker.on('message', async function (result) {
         //console.log(result);
         if(result.balanceCoinfalcon.s){
-            myAccount = await tools.parseBalance(result.balanceCoinfalcon.data, myAccount);
+
             if(firstInit){
                 firstInit = false;
                 begin();
+
             }
         }
     });
@@ -45,6 +65,7 @@ async function begin(){
     await start();
     config.debug && console.log(new Date().toISOString()+" $$$ start() finished, start again. ");
     await tools.sleep(2500);
+    console.log(myAccount.coinfalcon);
     begin();
 }
 
@@ -184,6 +205,7 @@ async function validateOrder(id, pair, openedOrder){
             console.error("Something bad happened when validate canceled order "+id+" !");
         }
     }
+    console.log(orderDetail);
     //Check if order was partially_filled or fulfilled.
     if(parseFloat(orderDetail.size_filled) === 0){
         // Order was not filled

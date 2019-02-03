@@ -10,7 +10,7 @@ dbApi.connect = function(){
                 console.error(err.message);
                 resolve(false);
             }
-            config.debug && console.log("Connected to database!");
+            console.log("Connected to database!");
             resolve(true);
         });
     });
