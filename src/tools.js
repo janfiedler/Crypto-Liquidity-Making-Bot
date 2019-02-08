@@ -75,7 +75,6 @@ exports.setPrecisionUp = function(price, digits){
 
 exports.sleep = function (ms){
     return new Promise(resolve=>{
-        config.debug && console.log("############# PAUSE");
         setTimeout(resolve,ms)
     })
 };

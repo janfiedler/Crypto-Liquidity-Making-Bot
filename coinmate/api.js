@@ -69,7 +69,6 @@ let getTicker = function (pair){
 let parseTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
-    //console.log(book.data.asks.length);
     for(let i=0;i<book.data.asks.length;i++){
         if(i===0){
             ticks.askBorder = parseFloat(book.data.asks[i].price);
@@ -101,7 +100,7 @@ let parseTicker = function(type, book, pair, order){
                     ticks.bid.push({price: parseFloat(book.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
-                    console.log("My position "+book.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
+                    //console.log("My position "+book.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
             } else if(parseFloat(book.data.bids[i].amount) > pair.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(book.data.bids[i].price), size: parseFloat(book.data.bids[i].amount)});

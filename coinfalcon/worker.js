@@ -26,7 +26,6 @@ process.on('message', async function(data) {
 let init = async function(){
     await db.connect();
     myAccount = await getBalance();
-    console.log(myAccount[config.name]);
     await strategy.init(config,myAccount[config.name], db, coinfalcon);
     begin();
 };
@@ -39,7 +38,6 @@ let getBalance = async function(){
 async function begin(){
     await start();
     if(!stop){
-        console.log(myAccount[config.name]);
         begin();
     } else {
         await db.close();

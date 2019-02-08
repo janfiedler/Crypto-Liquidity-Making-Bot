@@ -260,7 +260,7 @@ let parseTicker = function(type, orders, pair, order){
                     ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
-                    console.log("My position "+orders.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
+                    //console.log("My position "+orders.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
             } else if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)});
