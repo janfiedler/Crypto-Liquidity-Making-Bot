@@ -79,3 +79,6 @@ exports.sleep = function (ms){
         setTimeout(resolve,ms)
     })
 };
+
+exports.orderDetailForm = {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0};
+exports.orderCreatedForm = {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};

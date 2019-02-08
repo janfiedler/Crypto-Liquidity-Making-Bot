@@ -1,12 +1,11 @@
-
-
-let config = require('../config');
-const sleepPause = this.config.sleepPause;
-
+var request = require('request');
 const crypto = require('crypto');
 const tools = require('../src/tools');
-var request = require('request');
+let config;
 
+let setConfig = function(data){
+    config = data;
+};
 
 let sign = function(method, request_path, body = undefined) {
     let timestamp = Date.now().toString();
@@ -16,23 +15,22 @@ let sign = function(method, request_path, body = undefined) {
         payload += '|' + JSON.stringify(body);
     }
     //config.debug && console.log(payload);
-    const hmac = crypto.createHmac('sha256', config.exchanges.coinfalcon.CD_API_SECRET_KEY);
+    const hmac = crypto.createHmac('sha256', config.CD_API_SECRET_KEY);
     hmac.update(payload);
     let signature = hmac.digest('hex');
-    return {"CF-API-KEY": config.exchanges.coinfalcon.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
+    return {"CF-API-KEY": config.CF_API_KEY, "CF-API-TIMESTAMP": timestamp, "CF-API-SIGNATURE": signature};
 };
 
-let getAccountsBalance = function(){
+let getBalance = function(){
     return new Promise(async function (resolve) {
         //Waiting function to prevent reach api limit
-        await tools.sleep(sleepPause);
         let request_path = "/api/v1/user/accounts";
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result.data});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
@@ -40,13 +38,13 @@ let getAccountsBalance = function(){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getAccountsBalance"}});
+                resolve({s:0, data: {error: "getBalance"}});
             }
         });
     });
 };
 
-let getTicker = function(pair, level) {
+let getTicker = function(pair) {
     return new Promise(async function (resolve) {
         /*
             Response schema type: object
@@ -62,7 +60,7 @@ let getTicker = function(pair, level) {
             String	asks[].price
             String	asks[].size
         */
-        request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair+"/orders", qs: { level: level.toString() }}, function(error, response, body) {
+        request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair+"/orders", qs: { "level": "2" }}, function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
@@ -83,7 +81,7 @@ let getTicker = function(pair, level) {
 let getOrders = function(pair, status){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders?market="+pair+"&status="+status;
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
@@ -102,15 +100,24 @@ let getOrders = function(pair, status){
     });
 };
 
-let getOrder = function(id){
+let getOrder = function(id, type, openedOrder){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result.data});
+                    let detailOrder = tools.orderDetailForm;
+                    detailOrder.id = result.data.id;
+                    detailOrder.pair = result.data.market;
+                    detailOrder.type = type;
+                    detailOrder.price = parseFloat(result.data.price);
+                    detailOrder.size = parseFloat(result.data.size);
+                    detailOrder.funds = parseFloat(result.data.funds);
+                    detailOrder.size_filled = parseFloat(result.data.size_filled);
+                    detailOrder.fee = parseFloat(result.data.fee);
+                    resolve({s:1, data: detailOrder});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
@@ -124,15 +131,24 @@ let getOrder = function(id){
     });
 };
 
-let cancelOrder = function(id){
+let cancelOrder = function(id, type, openedOrder){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         request.delete({url: url, headers : sign("DELETE", request_path, {})}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result.data});
+                    let detailOrder = tools.orderDetailForm;
+                    detailOrder.id = result.data.id;
+                    detailOrder.pair = result.data.market;
+                    detailOrder.type = type;
+                    detailOrder.price = parseFloat(result.data.price);
+                    detailOrder.size = parseFloat(result.data.size);
+                    detailOrder.funds = parseFloat(result.data.funds);
+                    detailOrder.size_filled = parseFloat(result.data.size_filled);
+                    detailOrder.fee = parseFloat(result.data.fee);
+                    resolve({s:1, data: detailOrder});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
@@ -147,29 +163,34 @@ let cancelOrder = function(id){
     });
 };
 
-let createOrder = function(pair, order_type, pendingSellOrder, price){
+let createOrder = function(pair, type, pendingSellOrder, price){
     return new Promise(async function (resolve) {
         let size = "";
-        switch(order_type){
-            case "buy":
+        switch(type){
+            case "BUY":
                 size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
-            case "sell":
+            case "SELL":
                 size = tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize).toString();
                 break;
         }
-        let body = { market: pair.name, operation_type: 'limit_order', order_type: order_type, price: price.toString(), size: size, post_only: "false" };
+        let body = { market: pair.name, operation_type: 'limit_order', order_type: type.toLowerCase(), price: price.toString(), size: size, post_only: "false" };
         let request_path = "/api/v1/user/orders";
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         let o1 = { 'content-type': 'application/x-www-form-urlencoded',
             accept: 'application/json' };
 
         let headers = Object.assign(o1, sign("POST", request_path, body));
-        request.post({url: url, headers: headers, form: body}, function(error, response, body) {
+        request.post({url: url, headers: headers, form: body}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 201) {
-                    resolve({s:1, data: result.data});
+                    let createdOrder = tools.orderCreatedForm;
+                    createdOrder.id = result.data.id;
+                    createdOrder.price = parseFloat(result.data.price);
+                    createdOrder.size = parseFloat(result.data.size);
+                    createdOrder.funds = parseFloat(result.data.funds);
+                    resolve({s:1, data: createdOrder});
                 } else {
                     console.error(body);
                     resolve({s:0, data: result});
@@ -186,7 +207,7 @@ let createOrder = function(pair, order_type, pendingSellOrder, price){
 let getOrderTrades = function(id){
     return new Promise(function (resolve) {
         let request_path = "/api/v1/user/orders/"+id+"/trades";
-        let url = config.exchanges.coinfalcon.url + request_path;
+        let url = config.url + request_path;
         request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
@@ -253,14 +274,13 @@ let parseTicker = function(type, orders, pair, order){
 };
 
 module.exports = {
-    getAccountsBalance: getAccountsBalance,
+    setConfig: setConfig,
+    getBalance: getBalance,
     getTicker: getTicker,
-    getOrders: getOrders,
+    parseTicker: parseTicker,
     getOrder: getOrder,
     cancelOrder: cancelOrder,
     createOrder: createOrder,
-    getOrderTrades: getOrderTrades,
-    parseTicker: parseTicker
 };
 
 

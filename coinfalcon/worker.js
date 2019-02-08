@@ -1,4 +1,4 @@
-const coinmate = require('./api');
+const coinfalcon = require('./api');
 const strategy = require('../src/strategy');
 const tools = require('../src/tools');
 let db = require('../db/sqlite3');
@@ -9,11 +9,12 @@ let stop = false;
 // Start with ask order because need check for sold out orders
 let doOrder = "ask";
 
+
 process.on('message', async function(data) {
     switch (data.type) {
         case "init":
             config = data.config;
-            coinmate.setConfig(data.config);
+            coinfalcon.setConfig(data.config);
             init();
             break;
         case "stop":
@@ -26,12 +27,12 @@ let init = async function(){
     await db.connect();
     myAccount = await getBalance();
     console.log(myAccount[config.name]);
-    await strategy.init(config,myAccount[config.name], db, coinmate);
+    await strategy.init(config,myAccount[config.name], db, coinfalcon);
     begin();
 };
 
 let getBalance = async function(){
-    const rawBalance = await coinmate.getBalance();
+    const rawBalance = await coinfalcon.getBalance();
     return await tools.parseBalance(config, rawBalance);
 };
 
