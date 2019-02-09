@@ -1,5 +1,5 @@
 let config = require('../config');
-let bitfinex = require('../bitfinex');
+let bitfinex = require('./exchanges/bitfinex');
 
 let getBitfinexTickers = function(){
     return new Promise(async function (resolve) {

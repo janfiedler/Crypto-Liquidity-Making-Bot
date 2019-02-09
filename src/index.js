@@ -19,7 +19,7 @@ async function handleWorkers(type){
             config.exchanges[i].debug && console.log(config.exchanges[i].name+" "+type+" request");
             switch (config.exchanges[i].name) {
                 case "coinfalcon":
-                    const coinfalcon = require('../coinfalcon/');
+                    const coinfalcon = require('./exchanges/coinfalcon/');
                     if(type === "START"){
                         coinfalcon.start(config.exchanges[i]);
                     } else if(type === "STOP") {
@@ -27,7 +27,7 @@ async function handleWorkers(type){
                     }
                     break;
                 case "coinmate":
-                    const coinmate = require('../coinmate/');
+                    const coinmate = require('./exchanges/coinmate/');
                     if(type === "START"){
                         coinmate.start(config.exchanges[i]);
                     } else if(type === "STOP") {
@@ -38,8 +38,8 @@ async function handleWorkers(type){
         }
     }
     if(type === "STOP") {
+        console.log('All child process finished. Let´s exit.');
         await db.close();
-        console.log('All workers finished, lets kill self');
         process.exit();
     }
 }

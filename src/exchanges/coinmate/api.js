@@ -1,6 +1,6 @@
 let request = require('request');
 const crypto = require('crypto');
-const tools = require('../src/tools');
+const tools = require('../../tools');
 let config;
 
 let setConfig = function(data){

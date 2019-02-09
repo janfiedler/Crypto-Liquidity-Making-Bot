@@ -1,7 +1,7 @@
 const coinmate = require('./api');
-const strategy = require('../src/strategy');
-const tools = require('../src/tools');
-let db = require('../db/sqlite3');
+const strategy = require('../../strategy');
+const tools = require('../../tools');
+let db = require('../../../db/sqlite3');
 
 let config;
 let myAccount;
@@ -20,6 +20,10 @@ process.on('message', async function(data) {
             stop = true;
             break
     }
+});
+
+process.on('SIGINT', () => {
+    //Block kill process until parent request
 });
 
 let init = async function(){

@@ -1,33 +1,32 @@
 let cp = require('child_process');
-let coinmateWorker = cp.fork('coinmate/worker.js', [], {detached:true});
+let coinfalconWorker = cp.fork('src/exchanges/coinfalcon/worker.js');
 
 let config;
 
 let start = function(configuration){
     config = configuration;
-    coinmateWorker.send({"type": "init", "config": config});
+    coinfalconWorker.send({"type": "init", "config": config});
 };
 
 let stop = function(){
     return new Promise(function (resolve) {
-        coinmateWorker.send({"type": "stop"});
-        coinmateWorker.on('exit', (code, signal) => {
+        coinfalconWorker.send({"type": "stop"});
+        coinfalconWorker.on('exit', (code, signal) => {
             //console.log('Exit', code, signal);
             resolve(true);
         });
     });
 };
 
-coinmateWorker.on('message', async function (data) {
+coinfalconWorker.on('message', async function (data) {
     switch (data.type) {
         case "init":
             if(data.success){
-
             }
             break;
         case "stopped":
-            console.log("coinmateWorker stopped");
-            coinmateWorker.kill('SIGINT');
+            console.log("coinfalconWorker stopped");
+            coinfalconWorker.kill();
             break;
     }
 });
