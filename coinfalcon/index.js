@@ -1,7 +1,5 @@
 let cp = require('child_process');
-let coinfalconWorker = cp.fork('coinfalcon/worker.js', {
-    detached : true
-});
+let coinfalconWorker = cp.fork('coinfalcon/worker.js', [], {detached:true});
 
 let config;
 
@@ -29,7 +27,7 @@ coinfalconWorker.on('message', async function (data) {
             break;
         case "stopped":
             console.log("coinfalconWorker stopped");
-            coinfalconWorker.kill();
+            coinfalconWorker.kill('SIGINT');
             break;
     }
 });

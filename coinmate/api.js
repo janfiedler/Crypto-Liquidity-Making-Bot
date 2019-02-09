@@ -115,7 +115,7 @@ let parseTicker = function(type, book, pair, order){
 
 let getOrder = async function (id, type, openedOrder){
     const rTH = await getTransactionHistory(id);
-    let orderDetail = tools.orderDetailForm;
+    let orderDetail = new tools.orderDetailForm;
     orderDetail.id = id;
     orderDetail.pair = openedOrder.pair;
     orderDetail.type = type;
@@ -197,7 +197,7 @@ let buyLimitOrder = function (currencyPair, amount, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let createdOrder = tools.orderCreatedForm;
+                    let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.data;
                     createdOrder.price = price;
                     createdOrder.size = amount;
@@ -229,7 +229,7 @@ let sellLimitOrder = function (currencyPair, amount, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let createdOrder = tools.orderCreatedForm;
+                    let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.data;
                     createdOrder.price = price;
                     createdOrder.size = amount;

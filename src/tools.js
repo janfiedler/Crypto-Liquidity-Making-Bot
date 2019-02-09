@@ -1,7 +1,7 @@
 let config = require('../config');
 let bitfinex = require('../bitfinex');
 
-exports.getBitfinexTickers = function(){
+let getBitfinexTickers = function(){
     return new Promise(async function (resolve) {
         let tickersBitfinex = {};
         let tickersList = "";
@@ -23,7 +23,7 @@ exports.getBitfinexTickers = function(){
     });
 };
 
-exports.parseBalance = function(config, funds){
+let parseBalance = function(config, funds){
     let myAccount = {[config.name]: {balance: {},available: {}}};
     switch (config.name) {
         case "coinfalcon":
@@ -48,36 +48,52 @@ exports.parseBalance = function(config, funds){
     return myAccount;
 };
 
-exports.addPipsToPrice = function(price, pips, digits){
+let addPipsToPrice = function(price, pips, digits){
     return Math.round((price+(pips/Math.pow(10, digits)))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
-exports.takePipsFromPrice = function(price, pips, digits){
+let takePipsFromPrice = function(price, pips, digits){
     return Math.round((price-(pips/Math.pow(10, digits)))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
-exports.getProfitTargetPrice = function (price, percentage, digits){
+let getProfitTargetPrice = function (price, percentage, digits){
     //Round a number upward
     return price+(Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
 };
 
-exports.convertPipsToPrice = function (pips, digits){
+let convertPipsToPrice = function (pips, digits){
     return Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 //precision
-exports.setPrecision = function(price, digits){
+let setPrecision = function(price, digits){
     return Math.round(price*Math.pow(10, digits))/Math.pow(10, digits);
 };
 // Set precision with round a number upward to its nearest integer
-exports.setPrecisionUp = function(price, digits){
+let setPrecisionUp = function(price, digits){
     return Math.ceil(price*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
-exports.sleep = function (ms){
+let sleep = function (ms){
     return new Promise(resolve=>{
         setTimeout(resolve,ms)
     })
 };
+let orderDetailForm  = function(){
+   return {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0};
+};
+let orderCreatedForm = function(){
+    return {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};
+};
 
-exports.orderDetailForm = {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0};
-exports.orderCreatedForm = {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};
+module.exports = {
+    parseBalance: parseBalance,
+    addPipsToPrice: addPipsToPrice,
+    takePipsFromPrice: takePipsFromPrice,
+    getProfitTargetPrice: getProfitTargetPrice,
+    convertPipsToPrice: convertPipsToPrice,
+    setPrecision: setPrecision,
+    setPrecisionUp: setPrecisionUp,
+    sleep: sleep,
+    orderDetailForm: orderDetailForm,
+    orderCreatedForm: orderCreatedForm
+};

@@ -15,6 +15,26 @@ dbApi.connect = function(){
     });
 };
 
+dbApi.createTables = function(){
+    return new Promise(async function (resolve) {
+        await createTableOrders();
+        resolve(true);
+    });
+};
+
+function createTableOrders(){
+    return new Promise(function (resolve) {
+        // seed = private iota seed, keyIndex = actual keyIndex of seed, balance = actual seed balance, bundle = bundle from transaction, value = value in transaction
+        db.run(`CREATE TABLE IF NOT EXISTS orders (exchange TEXT, pair TEXT, status TEXT, buy_status TEXT, buy_id TEXT, buy_price INTEGER, buy_size REAL, buy_created TEXT, buy_filled REAL, buy_fee REAL, sell_status TEXT, sell_id TEXT, sell_price REAL, sell_target_price REAL, sell_size REAL, sell_created TEXT, sell_filled REAL, sell_fee REAL, profit REAL, completed_at TEXT);`, function(err) {
+            if (err) {
+                return console.log(err.message);
+            }
+            console.log("Table orders OK!");
+            resolve(true);
+        });
+    });
+}
+
 dbApi.getOpenedBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair, "open", (err, row) => {

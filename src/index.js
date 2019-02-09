@@ -1,22 +1,22 @@
 let config = require('../config');
 let db = require('../db/sqlite3');
 
-
-process.on('SIGINT', async function () {
+process.on('SIGINT', () => {
     handleWorkers("STOP");
 });
 
 // Init
-(function () {
+(async function () {
     // Promise not compatible with config.debug && console.log, async is?
-    //await db.connect();
+    await db.connect();
+    await db.createTables();
     handleWorkers("START");
 })();
 
 async function handleWorkers(type){
     for(let i=0;i<config.exchanges.length;i++){
         if(config.exchanges[i].active) {
-            config.exchanges[i].debug && console.log(config.exchanges[i].name+" "+type);
+            config.exchanges[i].debug && console.log(config.exchanges[i].name+" "+type+" request");
             switch (config.exchanges[i].name) {
                 case "coinfalcon":
                     const coinfalcon = require('../coinfalcon/');
@@ -38,6 +38,7 @@ async function handleWorkers(type){
         }
     }
     if(type === "STOP") {
+        await db.close();
         console.log('All workers finished, lets kill self');
         process.exit();
     }

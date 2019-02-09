@@ -108,7 +108,7 @@ let getOrder = function(id, type, openedOrder){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let detailOrder = tools.orderDetailForm;
+                    let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.data.id;
                     detailOrder.pair = result.data.market;
                     detailOrder.type = type;
@@ -139,7 +139,7 @@ let cancelOrder = function(id, type, openedOrder){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let detailOrder = tools.orderDetailForm;
+                    let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.data.id;
                     detailOrder.pair = result.data.market;
                     detailOrder.type = type;
@@ -185,7 +185,7 @@ let createOrder = function(pair, type, pendingSellOrder, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 201) {
-                    let createdOrder = tools.orderCreatedForm;
+                    let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.data.id;
                     createdOrder.price = parseFloat(result.data.price);
                     createdOrder.size = parseFloat(result.data.size);

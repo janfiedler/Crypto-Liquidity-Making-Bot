@@ -224,6 +224,8 @@ async function validateOrder(type, id, pair, openedOrder){
         logMessage += new Date().toISOString() + " !!! Catched cancelOrder error\n";
         return false;
     }
+    orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, pair.digitsSize);
+    orderDetail.fee = tools.setPrecision(orderDetail.fee, pair.digitsPrice);
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
     if(orderDetail.size_filled === 0){
@@ -269,7 +271,7 @@ async function validateOrder(type, id, pair, openedOrder){
         await processPartiallyFilled(pair, orderDetail);
         return false;
     } else {
-        logMessage += new Date().toISOString()+"Something bad happened when validateOrder "+orderDetail.id+" !\n";
+        logMessage += new Date().toISOString()+" !!! Something bad happened when validateOrder "+orderDetail.id+" !\n";
     }
 }
 

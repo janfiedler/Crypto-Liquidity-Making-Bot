@@ -1,7 +1,5 @@
 let cp = require('child_process');
-let coinmateWorker = cp.fork('coinmate/worker.js', {
-    detached : true
-});
+let coinmateWorker = cp.fork('coinmate/worker.js', [], {detached:true});
 
 let config;
 
@@ -29,7 +27,7 @@ coinmateWorker.on('message', async function (data) {
             break;
         case "stopped":
             console.log("coinmateWorker stopped");
-            coinmateWorker.kill();
+            coinmateWorker.kill('SIGINT');
             break;
     }
 });

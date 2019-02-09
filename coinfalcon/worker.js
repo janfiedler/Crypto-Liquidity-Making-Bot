@@ -9,7 +9,6 @@ let stop = false;
 // Start with ask order because need check for sold out orders
 let doOrder = "ask";
 
-
 process.on('message', async function(data) {
     switch (data.type) {
         case "init":
