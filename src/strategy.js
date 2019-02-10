@@ -135,15 +135,18 @@ let doBidOrder = async function (){
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     const keysCount = Object.keys(ticker.ask).length;
     let targetAsk = 99999999;
-    // Need take my size order from market for found real target ask price
-    for(let i=0;i<keysCount;i++){
-        if ((i+2) >= keysCount){
-            break;
-        }
-        if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
-            logMessage += new Date().toISOString()+ " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
-            targetAsk = ticker.ask[i].price;
-            break;
+    if(!config.stickToBigOrders){
+        targetAsk = ticker.ask[0].price;
+    } else {
+        for(let i=0;i<keysCount;i++){
+            if ((i+2) >= keysCount){
+                break;
+            }
+            if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
+                logMessage += new Date().toISOString()+ " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
+                targetAsk = ticker.ask[i].price;
+                break;
+            }
         }
     }
     targetAsk = tools.takePipsFromPrice(targetAsk, 1, pair.digitsPrice);
@@ -161,8 +164,7 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
 let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
     const keysCount = Object.keys(ticker.bid).length;
     let targetBid = 0;
-    // Need take my size order from market for found real target ask price
-    if(firstOrder){
+    if(firstOrder || !config.stickToBigOrders){
         targetBid = ticker.bid[0].price;
     } else {
         for(let i=0;i<keysCount;i++){
