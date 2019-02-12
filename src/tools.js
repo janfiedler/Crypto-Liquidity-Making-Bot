@@ -79,7 +79,7 @@ let sleep = function (ms){
     })
 };
 let orderDetailForm  = function(){
-   return {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0};
+   return {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0, "status": ""};
 };
 let orderCreatedForm = function(){
     return {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};

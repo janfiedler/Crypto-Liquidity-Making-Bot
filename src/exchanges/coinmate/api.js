@@ -136,6 +136,13 @@ let getOrder = async function (id, type, openedOrder){
             orderDetail.size_filled += rTH.data[i].amount;
             orderDetail.fee += rTH.data[i].fee;
         }
+        if(orderDetail.size === orderDetail.size_filled){
+            orderDetail.status = "fulfilled";
+        } else {
+            orderDetail.status = "partially_filled";
+        }
+    } else {
+        orderDetail.status = "canceled";
     }
     return {"s": true, "data": orderDetail};
 };

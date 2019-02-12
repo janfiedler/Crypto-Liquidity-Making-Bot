@@ -117,6 +117,7 @@ let getOrder = function(id, type, openedOrder){
                     detailOrder.funds = parseFloat(result.data.funds);
                     detailOrder.size_filled = parseFloat(result.data.size_filled);
                     detailOrder.fee = parseFloat(result.data.fee);
+                    detailOrder.status = result.data.status;
                     resolve({s:1, data: detailOrder});
                 } else {
                     console.error(body);
@@ -148,6 +149,7 @@ let cancelOrder = function(id, type, openedOrder){
                     detailOrder.funds = parseFloat(result.data.funds);
                     detailOrder.size_filled = parseFloat(result.data.size_filled);
                     detailOrder.fee = parseFloat(result.data.fee);
+                    detailOrder.status = result.data.status;
                     resolve({s:1, data: detailOrder});
                 } else {
                     console.error(body);
