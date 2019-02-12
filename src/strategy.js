@@ -121,7 +121,7 @@ let doBidOrder = async function (){
                 logMessage += new Date().toISOString()+" ### We already have opened bid order at " + targetBid + " skipping validateOrder\n";
             }
         } else {
-            logMessage += new Date().toISOString()+" !!! This will be first opened buy order!";
+            logMessage += new Date().toISOString()+" !!! This will be first opened buy order!\n";
             await processBidOrder(pair, targetBid);
         }
         logMessage += new Date().toISOString()+" ### Success finished "+pair.name+" BID task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
@@ -192,7 +192,7 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
     //Validate if new target ask is not close to bid order or taking bid order.
     const askBorderPipsSpreadFromBid = tools.takePipsFromPrice(ticker.askBorder, pair.pipsAskBidSpread, pair.digitsPrice);
     if(targetBid > askBorderPipsSpreadFromBid) {
-        logMessage += new Date().toISOString()+ "### New target bid "+targetBid+" is in danger zone of ask border "+ticker.askBorder+". Target bid = askBorderPipsSpreadFromBid: "+ askBorderPipsSpreadFromBid+"\n";
+        logMessage += new Date().toISOString()+ " ### New target bid "+targetBid+" is in danger zone of ask border "+ticker.askBorder+". Target bid = askBorderPipsSpreadFromBid: "+ askBorderPipsSpreadFromBid+"\n";
         targetBid = askBorderPipsSpreadFromBid;
     }else {
         logMessage += new Date().toISOString()+" targetBid: " + targetBid+"\n";
