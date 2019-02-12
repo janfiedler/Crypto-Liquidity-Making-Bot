@@ -227,7 +227,8 @@ async function validateOrder(type, id, pair, openedOrder){
         return false;
     }
     orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, pair.digitsSize);
-    orderDetail.fee = tools.setPrecision(orderDetail.fee, pair.digitsPrice);
+    //Set precision for fee with low size will always be 0
+    //orderDetail.fee = tools.setPrecision(orderDetail.fee, pair.digitsPrice);
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
     if(orderDetail.size_filled === 0){
