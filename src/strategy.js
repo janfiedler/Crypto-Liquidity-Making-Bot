@@ -329,6 +329,8 @@ let processPartiallyFilled = function (pair, orderDetail){
             myAccount.available[pair.name.split(pair.separator)[0]] += orderDetail.size_filled;
             //We bought, need take size from balance. Available was taken when opening buy order
             myAccount.balance[pair.name.split(pair.separator)[1]] -= (orderDetail.size_filled*orderDetail.price);
+            //Return rest part of size to available
+            myAccount.available[pair.name.split(pair.separator)[1]] += ((orderDetail.size-orderDetail.size_filled)*orderDetail.price);
             break;
         case "SELL":
             logMessage += new Date().toISOString()+" ### ASK partially_filled\n";
@@ -336,11 +338,13 @@ let processPartiallyFilled = function (pair, orderDetail){
                 myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                 myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
             }
-            //We sold, need take size from balance. Available was taken when opening sell order
-            myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.size_filled;
             //We sold, need add new size to balance and available
             myAccount.balance[pair.name.split(pair.separator)[1]] += (orderDetail.size_filled*orderDetail.price);
             myAccount.available[pair.name.split(pair.separator)[1]] += (orderDetail.size_filled*orderDetail.price);
+            //We sold, need take size from balance. Available was taken when opening sell order
+            myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.size_filled;
+            //Return rest part of size to available
+            myAccount.available[pair.name.split(pair.separator)[0]] += (orderDetail.size-orderDetail.size_filled);
 
             break;
     }
