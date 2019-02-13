@@ -27,14 +27,14 @@ let doAskOrder = async function(){
         //let sellingCurrency = pair.name.split('-')[0];
 
         //Get lowest pending sell order
-        const pendingSellOrder = await db.getLowestFilledBuyOrder(config.name, pair.name);
+        const pendingSellOrder = await db.getLowestFilledBuyOrder(config.name, pair);
         if(!pendingSellOrder){
             logMessage += new Date().toISOString()+" ### PendingSellOrder not found, skipp the loop.\n";
             //Nothing to sell, skip the loop.
             continue;
         }
         // Check for actual opened sell order
-        const resultOpenedSellOrder = await db.getOpenedSellOrder(config.name, pair.name);
+        const resultOpenedSellOrder = await db.getOpenedSellOrder(config.name, pair);
         //Fetch actual prices from coinfalcon exchange
         const resultTicker = await api.getTicker(pair.name);
         apiCounter++;
@@ -50,7 +50,7 @@ let doAskOrder = async function(){
 
         if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
             logMessage += new Date().toISOString()+" ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
-            if(targetAsk !== tools.setPrecision(resultOpenedSellOrder.sell_price, pair.digitsPrice)){
+            if(targetAsk !== resultOpenedSellOrder.sell_price){
                 //If founded opened sell order, lets check and process
                 const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -84,9 +84,9 @@ let doBidOrder = async function (){
         //let buyCurrency = pair.name.split(pair.separator)[0];
 
         //Get lowest already filled buy order = pending sell order
-        const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.name, pair.name);
+        const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.name, pair);
         // Check for actual oepend buy order
-        const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair.name);
+        const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair);
         //Fetch actual prices from coinfalcon exchange
         const resultTicker = await api.getTicker(pair.name);
 
@@ -110,7 +110,7 @@ let doBidOrder = async function (){
 
         if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
             logMessage += new Date().toISOString()+" ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
-            if(targetBid !== tools.setPrecision(resultOpenedBuyOrder.buy_price, pair.digitsPrice)) {
+            if(targetBid !== resultOpenedBuyOrder.buy_price) {
                 //If founded opened buy order, lets check and process
                 const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -226,9 +226,6 @@ async function validateOrder(type, id, pair, openedOrder){
         logMessage += new Date().toISOString() + " !!! Catched cancelOrder error\n";
         return false;
     }
-    orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, pair.digitsSize);
-    //Set precision for fee with low size will always be 0
-    //orderDetail.fee = tools.setPrecision(orderDetail.fee, pair.digitsPrice);
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
     if(orderDetail.size_filled === 0){
@@ -355,10 +352,10 @@ async function processAskOrder(pair, targetAsk, pendingSellOrder){
     if(targetAsk === 0){
         logMessage += new Date().toISOString()+" !!! Skipping process ask order because targetAsk === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[0]] < tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize)) {
+    } else if (myAccount.available[pair.name.split(pair.separator)[0]] < pendingSellOrder.sell_size) {
         logMessage += new Date().toISOString() + " !!! No available " + pair.name.split(pair.separator)[0] + " funds!\n";
         return false;
-    } else if (tools.setPrecision(pendingSellOrder.sell_target_price, pair.digitsPrice) <= targetAsk) {
+    } else if (pendingSellOrder.sell_target_price <= targetAsk) {
         logMessage += new Date().toISOString()+" ### Let´go open new sell order!\n";
         const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
         apiCounter++;

@@ -173,7 +173,7 @@ let createOrder = function(pair, type, pendingSellOrder, price){
                 size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
                 break;
             case "SELL":
-                size = tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize).toString();
+                size = pendingSellOrder.sell_size.toString();
                 break;
         }
         let body = { market: pair.name, operation_type: 'limit_order', order_type: type.toLowerCase(), price: price.toString(), size: size, post_only: "false" };
@@ -236,8 +236,8 @@ let parseTicker = function(type, orders, pair, order){
             ticks.askBorder = parseFloat(orders.data.asks[i].price);
         }
         if(type === "ask"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(orders.data.asks[i].price) === tools.setPrecision(order.sell_price, pair.digitsPrice)){
-                const askSizeDiff = (parseFloat(orders.data.asks[i].size)-tools.setPrecision(order.sell_size, pair.digitsSize));
+            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(orders.data.asks[i].price) === order.sell_price){
+                const askSizeDiff = (parseFloat(orders.data.asks[i].size)-order.sell_size);
                 if( askSizeDiff > pair.ignoreOrderSize){
                     ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
@@ -256,8 +256,8 @@ let parseTicker = function(type, orders, pair, order){
             ticks.bidBorder = parseFloat(orders.data.bids[i].price);
         }
         if(type === "bid"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(orders.data.bids[i].price) === tools.setPrecision(order.buy_price, pair.digitsPrice)){
-                const bidSizeDiff = (parseFloat(orders.data.bids[i].size)-tools.setPrecision(order.buy_size, pair.digitsSize));
+            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(orders.data.bids[i].price) === order.buy_price){
+                const bidSizeDiff = (parseFloat(orders.data.bids[i].size)-order.buy_size);
                 if( bidSizeDiff > pair.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;

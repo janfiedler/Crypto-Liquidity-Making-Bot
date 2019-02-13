@@ -1,3 +1,4 @@
+const tools = require('../src/tools');
 const sqlite3 = require('sqlite3').verbose();
 let db = {};
 let dbApi = {};
@@ -41,10 +42,17 @@ function createTableOrders(){
 
 dbApi.getOpenedBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair, "open", (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair.name, "open", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
+                if(typeof row !== 'undefined' && row) {
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
                 resolve(row);
             }
         });
@@ -55,10 +63,17 @@ dbApi.getOpenedBuyOrder = function(exchange, pair){
 
 dbApi.getOpenedSellOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND sell_status = ? AND sell_id IS NOT NULL`, exchange, pair, "open", (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND sell_status = ? AND sell_id IS NOT NULL`, exchange, pair.name, "open", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
+                if(typeof row !== 'undefined' && row){
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
                 resolve(row);
             }
         });
@@ -91,10 +106,17 @@ dbApi.deleteOpenedBuyOrder = function(id){
 
 dbApi.getLowestFilledBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
+                if(typeof row !== 'undefined' && row) {
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
                 resolve(row);
             }
         });

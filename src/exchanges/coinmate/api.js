@@ -74,8 +74,8 @@ let parseTicker = function(type, book, pair, order){
             ticks.askBorder = parseFloat(book.data.asks[i].price);
         }
         if(type === "ask"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.data.asks[i].price) === tools.setPrecision(order.sell_price, pair.digitsPrice)){
-                const askSizeDiff = (parseFloat(book.data.asks[i].amount)-tools.setPrecision(order.sell_size, pair.digitsSize));
+            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.data.asks[i].price) === order.sell_price){
+                const askSizeDiff = (parseFloat(book.data.asks[i].amount)-order.sell_size);
                 if( askSizeDiff > pair.ignoreOrderSize){
                     ticks.ask.push({price: parseFloat(book.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
@@ -94,8 +94,8 @@ let parseTicker = function(type, book, pair, order){
             ticks.bidBorder = parseFloat(book.data.bids[i].price);
         }
         if(type === "bid"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.data.bids[i].price) === tools.setPrecision(order.buy_price, pair.digitsPrice)){
-                const bidSizeDiff = (parseFloat(book.data.bids[i].amount)-tools.setPrecision(order.buy_size, pair.digitsSize));
+            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.data.bids[i].price) === order.buy_price){
+                const bidSizeDiff = (parseFloat(book.data.bids[i].amount)-order.buy_size);
                 if( bidSizeDiff > pair.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(book.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
@@ -186,9 +186,8 @@ let createOrder = async function (pair, type, pendingSellOrder, price){
             size = (Math.floor((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize));
             return await buyLimitOrder(pair.name, size, price);
         case "SELL":
-            size = tools.setPrecision(pendingSellOrder.sell_size, pair.digitsSize).toString();
+            size = pendingSellOrder.sell_size.toString();
             return await sellLimitOrder(pair.name, size, price);
-            break;
     }
 };
 let buyLimitOrder = function (currencyPair, amount, price){
