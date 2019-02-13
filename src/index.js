@@ -10,7 +10,15 @@ process.on('SIGINT', () => {
     // Promise not compatible with config.debug && console.log, async is?
     await db.connect();
     await db.createTables();
-    handleWorkers("START");
+    const condition = await db.getCondition("safe_shutdown");
+    if(condition.value){
+        await db.updateCondition("safe_shutdown", 0);
+        handleWorkers("START");
+    } else {
+        console.error("The application did not close properly, first verify your orders and then do SET safe_shutdown = 1 in the status table!");
+        await db.close();
+        process.exit(0);
+    }
 })();
 
 async function handleWorkers(type){
@@ -39,6 +47,7 @@ async function handleWorkers(type){
     }
     if(type === "STOP") {
         console.log('All child process finished. Let´s exit.');
+        await db.updateCondition("safe_shutdown", 1);
         await db.close();
         process.exit();
     }

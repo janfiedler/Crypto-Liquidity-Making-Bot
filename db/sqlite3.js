@@ -22,16 +22,16 @@ dbApi.connect = function(){
 dbApi.createTables = function(){
     return new Promise(async function (resolve) {
         await createTableOrders();
+        await createTableCondition();
         resolve(true);
     });
 };
 
 function createTableOrders(){
     return new Promise(function (resolve) {
-        // seed = private iota seed, keyIndex = actual keyIndex of seed, balance = actual seed balance, bundle = bundle from transaction, value = value in transaction
         db.run(`CREATE TABLE IF NOT EXISTS orders (exchange TEXT, pair TEXT, status TEXT, buy_status TEXT, buy_id TEXT, buy_price INTEGER, buy_size REAL, buy_created TEXT, buy_filled REAL, buy_fee REAL, sell_status TEXT, sell_id TEXT, sell_price REAL, sell_target_price REAL, sell_size REAL, sell_created TEXT, sell_filled REAL, sell_fee REAL, profit REAL, completed_at TEXT);`, function(err) {
             if (err) {
-                console.log(err.message);
+                console.error(err.message);
             } else {
                 console.log("Table orders OK!");
                 resolve(true);
@@ -39,6 +39,49 @@ function createTableOrders(){
         });
     });
 }
+
+function createTableCondition(){
+    return new Promise(function (resolve) {
+        db.run(`CREATE TABLE IF NOT EXISTS condition (key TEXT, value INTEGER, PRIMARY KEY(key));`, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                db.run(`insert or ignore INTO condition (key, value) VALUES ("safe_shutdown", 1);`, function(err) {
+                    if (err) {
+                        console.error(err.message);
+                    } else {
+                        console.log("Table condition OK!");
+                        resolve(true);
+                    }
+                });
+            }
+        });
+    });
+}
+
+dbApi.getCondition = function(condition){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM condition WHERE key = ?`, condition, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+};
+
+dbApi.updateCondition = function(key, value){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE condition SET value = ? WHERE key = ?; `, value, key, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
 
 dbApi.getOpenedBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
@@ -58,8 +101,6 @@ dbApi.getOpenedBuyOrder = function(exchange, pair){
         });
     });
 };
-
-
 
 dbApi.getOpenedSellOrder = function(exchange, pair){
     return new Promise(function (resolve) {
