@@ -78,6 +78,28 @@ let getTicker = function(pair) {
     });
 };
 
+let getOpenOrders = function(){
+    return new Promise(async function (resolve) {
+        let request_path = "/api/v1/user/orders?status=open";
+        let url = config.url + request_path;
+        request.get({url: url, headers : sign("GET", request_path)}, async function (error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result.data});
+                } else {
+                    console.error(body);
+                    resolve({s:0, data: result});
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+                resolve({s:0, data: {error: "getOpenOrders"}});
+            }
+        });
+    });
+};
+
 let getOrders = function(pair, status){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders?market="+pair+"&status="+status;
