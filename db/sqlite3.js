@@ -188,8 +188,19 @@ dbApi.setPendingSellOrder = function(data, sell_target_price){
     });
 };
 
-dbApi.setCompletedSellOrder = function(orderDetail){
+dbApi.setFailedSellOrder = function(failedOrder){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET status = ?, sell_status = ?, completed_at = ? WHERE buy_id = ? AND sell_id IS NULL;`, "failed", failedOrder.status, new Date().toISOString(), failedOrder.id, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
 
+dbApi.setCompletedSellOrder = function(orderDetail){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ?, sell_fee = ?, completed_at = ? WHERE sell_id = ?;`, "completed", orderDetail.status, orderDetail.size_filled, orderDetail.fee, new Date().toISOString(), orderDetail.id, function(err) {
             if (err) {

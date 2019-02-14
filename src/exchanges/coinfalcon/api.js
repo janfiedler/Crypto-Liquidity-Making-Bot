@@ -195,12 +195,12 @@ let createOrder = function(pair, type, pendingSellOrder, price){
                     resolve({s:1, data: createdOrder});
                 } else {
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, errorMessage: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "createOrder"}});
+                resolve({s:0, errorMessage: "createOrder"});
             }
         });
     });

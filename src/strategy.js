@@ -364,6 +364,11 @@ async function processAskOrder(pair, targetAsk, pendingSellOrder){
             await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
             return false;
         } else {
+            if(createdOrder.errorMessage.includes("insufficient size")){
+                const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
+                await db.setFailedSellOrder(failedSellOrder);
+                logMessage += new Date().toISOString() + " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
+            }
             return false;
         }
     } else {

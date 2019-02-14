@@ -203,20 +203,28 @@ let buyLimitOrder = function (currencyPair, amount, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let createdOrder = new tools.orderCreatedForm;
-                    createdOrder.id = result.data;
-                    createdOrder.price = price;
-                    createdOrder.size = amount;
-                    createdOrder.funds = amount*price;
-                    resolve({s:1, data: createdOrder});
+                    if(result.error){
+                        if(result.errorMessage.includes("Minimum Order Size")){
+                            resolve({s:0, errorMessage: "insufficient size"});
+                        } else {
+                            resolve({s:0, errorMessage: result.errorMessage});
+                        }
+                    } else {
+                        let createdOrder = new tools.orderCreatedForm;
+                        createdOrder.id = result.data;
+                        createdOrder.price = price;
+                        createdOrder.size = amount;
+                        createdOrder.funds = amount * price;
+                        resolve({s: 1, data: createdOrder});
+                    }
                 } else {
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, errorMessage: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "buyLimitOrder"}});
+                resolve({s:0, errorMessage: "buyLimitOrder"});
             }
         });
     });
@@ -235,20 +243,28 @@ let sellLimitOrder = function (currencyPair, amount, price){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    let createdOrder = new tools.orderCreatedForm;
-                    createdOrder.id = result.data;
-                    createdOrder.price = price;
-                    createdOrder.size = amount;
-                    createdOrder.funds = amount*price;
-                    resolve({s:1, data: createdOrder});
+                    if(result.error){
+                        if(result.errorMessage.includes("Minimum Order Size")){
+                            resolve({s:0, errorMessage: "insufficient size"});
+                        } else {
+                            resolve({s:0, errorMessage: result.errorMessage});
+                        }
+                    } else {
+                        let createdOrder = new tools.orderCreatedForm;
+                        createdOrder.id = result.data;
+                        createdOrder.price = price;
+                        createdOrder.size = amount;
+                        createdOrder.funds = amount*price;
+                        resolve({s:1, data: createdOrder});
+                    }
                 } else {
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, errorMessage: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "sellLimitOrder"}});
+                resolve({s:0, errorMessage: "sellLimitOrder"});
             }
         });
     });
