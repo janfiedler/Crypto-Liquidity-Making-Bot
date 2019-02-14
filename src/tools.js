@@ -72,6 +72,9 @@ let setPrecision = function(price, digits){
 let setPrecisionUp = function(price, digits){
     return Math.ceil(price*Math.pow(10, digits))/Math.pow(10, digits);
 };
+let setPrecisionDown = function(price, digits){
+    return Math.floor(price*Math.pow(10, digits))/Math.pow(10, digits);
+};
 
 let sleep = function (ms){
     return new Promise(resolve=>{
@@ -93,6 +96,7 @@ module.exports = {
     convertPipsToPrice: convertPipsToPrice,
     setPrecision: setPrecision,
     setPrecisionUp: setPrecisionUp,
+    setPrecisionDown: setPrecisionDown,
     sleep: sleep,
     orderDetailForm: orderDetailForm,
     orderCreatedForm: orderCreatedForm

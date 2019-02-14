@@ -170,7 +170,7 @@ let createOrder = function(pair, type, pendingSellOrder, price){
         let size = "";
         switch(type){
             case "BUY":
-                size = (Math.ceil((pair.buyForAmount/price)*Math.pow(10, pair.digitsSize))/Math.pow(10, pair.digitsSize)).toString();
+                size = tools.setPrecisionDown((pair.buyForAmount/price), pair.digitsSize).toString();
                 break;
             case "SELL":
                 size = pendingSellOrder.sell_size.toString();
@@ -280,6 +280,7 @@ module.exports = {
     getBalance: getBalance,
     getTicker: getTicker,
     parseTicker: parseTicker,
+    getOpenOrders: getOpenOrders,
     getOrder: getOrder,
     cancelOrder: cancelOrder,
     createOrder: createOrder,
