@@ -301,8 +301,16 @@ let processFulfilledOrder = function(pair, orderDetail){
         case "SELL":
             logMessage += new Date().toISOString()+" ### ASK fulfilled\n";
             if(orderDetail.fee > 0){
-                myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
-                myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                switch (config.name) {
+                    case "coinfalcon":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
             }
             //We sold, need take size from balance. Available was taken when opening sell order
             myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.size;
@@ -319,8 +327,16 @@ let processPartiallyFilled = function (pair, orderDetail){
         case "BUY":
             logMessage += new Date().toISOString()+" BID partially_filled\n";
             if(orderDetail.fee > 0){
-                myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
-                myAccount.available[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
+                switch (config.name) {
+                    case "coinfalcon":
+                        myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
+                        break;
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
             }
             //We bought, need add new size to balance and available
             myAccount.balance[pair.name.split(pair.separator)[0]] += orderDetail.size_filled;
@@ -333,8 +349,16 @@ let processPartiallyFilled = function (pair, orderDetail){
         case "SELL":
             logMessage += new Date().toISOString()+" ### ASK partially_filled\n";
             if(orderDetail.fee > 0){
-                myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
-                myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                switch (config.name) {
+                    case "coinfalcon":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
             }
             //We sold, need add new size to balance and available
             myAccount.balance[pair.name.split(pair.separator)[1]] += (orderDetail.size_filled*orderDetail.price);
