@@ -69,6 +69,7 @@ let doAskOrder = async function(){
         config.debug && console.log(logMessage);
         await tools.sleep(config.sleepPause * apiCounter);
     }
+    return true;
 };
 
 let doBidOrder = async function (){
@@ -129,7 +130,7 @@ let doBidOrder = async function (){
         config.debug && console.log(logMessage);
         await tools.sleep(config.sleepPause * apiCounter);
     }
-
+    return true
 };
 
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
