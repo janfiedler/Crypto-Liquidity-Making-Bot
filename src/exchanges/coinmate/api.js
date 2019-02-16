@@ -183,7 +183,7 @@ let createOrder = async function (pair, type, pendingSellOrder, price){
     let size = "";
     switch(type){
         case "BUY":
-            size = tools.setPrecisionDown((pair.buyForAmount/price), pair.digitsSize);
+            size = tools.getBuyOrderSize(pair, price);
             return await buyLimitOrder(pair.name, size, price);
         case "SELL":
             size = pendingSellOrder.sell_size.toString();

@@ -76,6 +76,14 @@ let setPrecisionDown = function(price, digits){
     return Math.floor(price*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
+let getBuyOrderSize = function(pair, price){
+    let size = pair.buySize;
+    if(size === 0){
+        size = setPrecisionDown((pair.buyForAmount/price), pair.digitsSize);
+    }
+    return size;
+};
+
 let sleep = function (ms){
     return new Promise(resolve=>{
         setTimeout(resolve,ms)
@@ -93,6 +101,7 @@ module.exports = {
     addPipsToPrice: addPipsToPrice,
     takePipsFromPrice: takePipsFromPrice,
     getProfitTargetPrice: getProfitTargetPrice,
+    getBuyOrderSize: getBuyOrderSize,
     convertPipsToPrice: convertPipsToPrice,
     setPrecision: setPrecision,
     setPrecisionUp: setPrecisionUp,

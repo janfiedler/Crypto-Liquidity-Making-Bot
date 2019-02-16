@@ -192,7 +192,7 @@ let createOrder = function(pair, type, pendingSellOrder, price){
         let size = "";
         switch(type){
             case "BUY":
-                size = tools.setPrecisionDown((pair.buyForAmount/price), pair.digitsSize).toString();
+                size = tools.getBuyOrderSize(pair, price).toString();
                 break;
             case "SELL":
                 size = pendingSellOrder.sell_size.toString();
