@@ -59,3 +59,11 @@ typings/
 
 # next.js build output
 .next
+# IDEA
+.idea/*
+#config.js
+config.js
+package-lock.json
+#ignore filedb tables
+/db/*.json
+/db/*.sqlite3
