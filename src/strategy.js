@@ -406,7 +406,7 @@ async function processBidOrder(pair, targetBid){
     if(targetBid === 0){
         logMessage += new Date().toISOString()+" !!! Skipping process bid order because targetBid === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < tools.setPrecisionUp((pair.buyForAmount/targetBid), pair.digitsPrice)){
+    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < tools.setPrecisionUp((tools.getBuyOrderSize(pair, targetBid)*targetBid), pair.digitsPrice)){
         logMessage += new Date().toISOString()+" !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {
@@ -418,6 +418,7 @@ async function processBidOrder(pair, targetBid){
             await db.saveOpenedBuyOrder(config.name, pair, createdOrder);
             return true;
         } else {
+            logMessage += new Date().toISOString()+" !!! Order not opened!\n";
             return false;
         }
     }
