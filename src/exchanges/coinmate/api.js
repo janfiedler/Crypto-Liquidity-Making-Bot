@@ -128,7 +128,7 @@ let getOrder = async function (id, type, openedOrder){
         case "SELL":
             orderDetail.price = openedOrder.sell_price;
             orderDetail.size = openedOrder.sell_size;
-            orderDetail.funds = openedOrder.sell_price*openedOrder.sell_size;
+            orderDetail.funds = openedOrder.sell_size;
             break;
     }
     if(rTH.data.length > 0){

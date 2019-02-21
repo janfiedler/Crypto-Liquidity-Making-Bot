@@ -18,7 +18,21 @@ For example if target price is selected by strategy as:
  * ASK: 3441.39 BTC/EUR. Bot will offer 3441.38 BTC/EUR
  * BID: 3438.12 BTC/EUR. Bot will offer 3438.13 BTC/EUR
  
+### Rules
+1. Only one buy limit order at the time.
+    1. Size is equal to the parameter "buySize" or "buyForAmount".
+    2. Buy only for a lower price than previous filled order.
+    3. Following strategy rule with parameter "pipsBuySpread".
 
+2. If buy limit order is partially filled or fulfilled then is in local database switched to pending sell order with that bought size and target price calculated from defined by parameter "percentageProfitTarget".
+
+3. The pending sell order is opened as sell limit order on the exchange if actual cheapest (lowest) ask price in orders book is higher than our selling target price.
+    1. Then bot will start to offer this specific order at cheaper price followed by strategy defined by parameters "ignoreOrderSize" and "pipsAskBidSpread". 
+    2. Only one sell limit order on exchange at the time. Even if the target price meet more pending sell orders. They must sell one by one. For case, if the price still going up, we do not worry about we sell something for the lower price. And bot can sell rest of currency for a better price.
+    
+4. If sell limit order is partially filled, actual local order is marked as completed and the rest of the resources are reopened as a new pending sell order. Now we have all the data needed to calculate the profit.
+
+5. If sell limit order is fulfilled then order is marked as completed. Now we have all the data needed to calculate the profit. New cycle begins.
  
 ### Lifecycle
 For every exchange setting is defined own worker (child process). So bot can handle multiple exchanges without blocking.
