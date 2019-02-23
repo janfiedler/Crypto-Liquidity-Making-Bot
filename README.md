@@ -5,12 +5,17 @@ Liquidity Making Bot for CryptoCurrency Exchanges
 
 *Use crypto liquidity making bot at your own risk.*
 
+- ***Dangers of Scalping:***
+    - Price drastically increases
+    - Price drastically decreases
+    - Fees eat entire profit
+
 >*Bot trading core is working, but still in alpha stage with a missing a lot of additional functions for better user experience. The documentation contains only basics, this will be improved in the future. You are welcome to contact me via issues section.*
 
 ## Strategy
-This bot follows simple liquidity strategy buy low, sell high and does not sell at a loss.*.Focusing on small profits (scalping strategy) with a lot of trades without leverage.
+This bot follows simple scalping strategy buy low, sell high and does not sell at a loss.* Focusing on very small profits with a lot of trades without leverage.
 
->**Keeping currency until selling target price will be reach. Recommended only with currency you trust there will be exist in future. Until then you are HODLER.*
+>** Optional option keeping currency until selling target price will be reach. Recommended only with currency you trust there will be exist in future. Until then you are HODLER.*
 
 Bot looking for ask/bid price to tickers (orders on exchange) based on strategy. In the config file, you have the option to make small changes in strategy for every trading pair. Strategy goal is always offer better price for bid (buy) and cheaper price for ask (sell) than marked orders.
 
