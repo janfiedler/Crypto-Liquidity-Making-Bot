@@ -65,15 +65,15 @@ let convertPipsToPrice = function (pips, digits){
     return Math.round((pips/Math.pow(10, digits))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 //precision
-let setPrecision = function(price, digits){
-    return Math.round(price*Math.pow(10, digits))/Math.pow(10, digits);
+let setPrecision = function(value, digits){
+    return Math.round(value*Math.pow(10, digits))/Math.pow(10, digits);
 };
 // Set precision with round a number upward to its nearest integer
-let setPrecisionUp = function(price, digits){
-    return Math.ceil(price*Math.pow(10, digits))/Math.pow(10, digits);
+let setPrecisionUp = function(value, digits){
+    return Math.ceil(value*Math.pow(10, digits))/Math.pow(10, digits);
 };
-let setPrecisionDown = function(price, digits){
-    return Math.floor(price*Math.pow(10, digits))/Math.pow(10, digits);
+let setPrecisionDown = function(value, digits){
+    return Math.floor(value*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
 let getBuyOrderSize = function(pair, price){
