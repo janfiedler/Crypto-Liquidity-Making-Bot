@@ -136,6 +136,12 @@ let getOrder = async function (id, type, openedOrder){
             orderDetail.size_filled += rTH.data[i].amount;
             orderDetail.fee += rTH.data[i].fee;
         }
+        /*
+            Convert to 64 bits (8 bytes) (16 decimal digits)
+            When sum 0.0001 and 0.0002 we can get this result: 0.00030000000000000003
+        */
+        orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, 16);
+        orderDetail.fee = tools.setPrecision(orderDetail.fee, 16);
         if(orderDetail.size === orderDetail.size_filled){
             orderDetail.status = "fulfilled";
         } else {
