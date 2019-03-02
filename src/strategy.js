@@ -42,7 +42,7 @@ let doAskOrder = async function(){
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
         } else {
-            //Return false will start ask process again
+            //Return false will skip ask process and start bid process.
             return false;
         }
 
@@ -96,7 +96,7 @@ let doBidOrder = async function (){
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
         } else {
-            //Return false will start ask process again
+            //Return false will skip bid process and start ask process.
             return false;
         }
 
