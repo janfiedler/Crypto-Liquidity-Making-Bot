@@ -222,7 +222,11 @@ let createOrder = async function (pair, type, pendingSellOrder, price){
     switch(type){
         case "BUY":
             size = tools.getBuyOrderSize(pair, price);
-            return await buyLimitOrder(pair.name, size, price);
+            if(size > 0){
+                return await buyLimitOrder(pair.name, size, price);
+            } else {
+                return {s:0, errorMessage: "insufficient size"};
+            }
         case "SELL":
             size = pendingSellOrder.sell_size.toString();
             return await sellLimitOrder(pair.name, size, price);

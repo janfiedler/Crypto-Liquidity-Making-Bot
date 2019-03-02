@@ -187,18 +187,25 @@ let cancelOrder = function(id, type, openedOrder){
     });
 };
 
-let createOrder = function(pair, type, pendingSellOrder, price){
-    return new Promise(async function (resolve) {
+let createOrder = async function(pair, type, pendingSellOrder, price){
         let size = "";
         switch(type){
             case "BUY":
                 size = tools.getBuyOrderSize(pair, price).toString();
-                break;
+                if(size > 0){
+                    return await limitOrder(type, pair.name, size, price);
+                } else {
+                    return {s:0, errorMessage: "insufficient size"};
+                }
             case "SELL":
                 size = pendingSellOrder.sell_size.toString();
-                break;
+                return await limitOrder(type, pair.name, size, price);
         }
-        let body = { market: pair.name, operation_type: 'limit_order', order_type: type.toLowerCase(), price: price.toString(), size: size, post_only: "false" };
+};
+
+let limitOrder = function(type, currencyPair, size, price){
+    return new Promise(async function (resolve) {
+        let body = { market: currencyPair, operation_type: 'limit_order', order_type: type.toLowerCase(), price: price.toString(), size: size, post_only: "false" };
         let request_path = "/api/v1/user/orders";
         let url = config.url + request_path;
         let o1 = { 'content-type': 'application/x-www-form-urlencoded',
