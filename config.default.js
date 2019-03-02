@@ -39,7 +39,7 @@ let config =
             "privateKey": "",
             "publicKey": "",
             "clientId": "",
-            "sleepPause": 625,
+            "sleepPause": 650,
             "stickToBigOrders": false,
             "accounts": [{"name":"BTC"},{"name":"CZK"}],
             "pairs": [
