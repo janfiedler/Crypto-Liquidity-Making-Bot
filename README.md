@@ -318,7 +318,7 @@ If the drop is so big for example from 19000 USD to 3200 USD, why still hodl old
 ```
 
 ### Known bugs
-Due to API request limits, accounts balance/available is requested only on start. Than is maintained locally based on open, close, filled state. After some time bot will stop trading due to negative available funds (false statement). You need to restart the application.
+
 
 #### License
 Released under the [MIT License](LICENSE).
