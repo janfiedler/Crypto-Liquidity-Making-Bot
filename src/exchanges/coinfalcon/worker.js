@@ -53,7 +53,7 @@ async function start() {
         await strategy.doAskOrder();
         doOrder = "bid";
         return true;
-    }else if(doOrder === "bid"){
+    } else if(doOrder === "bid"){
         await strategy.doBidOrder();
         doOrder = "ask";
         return true;

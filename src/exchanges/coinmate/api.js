@@ -2,6 +2,29 @@ let request = require('request');
 const crypto = require('crypto');
 const tools = require('../../tools');
 let config;
+let Pusher = require('pusher-js');
+let order_book = [];
+
+let setGetOrdersListByPusher = function(){
+    return new Promise(function (resolve) {
+        let pusher_order_book = [];
+        let pusherCounter = 0;
+
+        const coinmatePusher = new Pusher('af76597b6b928970fbb0', {
+            encrypted: true
+        });
+
+        for(let i=0;i<config.pairs.length;i++){
+            const pair = config.pairs[i].name;
+            pusher_order_book[pair] = coinmatePusher.subscribe('order_book-' + pair);
+            pusher_order_book[pair].bind('order_book', function(data) {
+                order_book[pair] = data;
+                pusherCounter++;
+            });
+        }
+        resolve(true);
+    });
+};
 
 let setConfig = function(data){
     config = data;
@@ -46,42 +69,51 @@ let getBalance = function(){
     });
 };
 /* Get actual order book with buys and sells */
-let getTicker = function (pair){
+let getTicker = async function (pair){
+    if(typeof order_book[pair] === 'undefined'){
+        console.log(pair + " waiting on order book!");
+        await tools.sleep(1000);
+        return {s:0, data: null, counter: 0};
+    } else {
+        return {s:1, data: order_book[pair], counter: 0};
+    }
+    /*
     return new Promise(function (resolve) {
         request('https://coinmate.io/api/orderBook?currencyPair='+pair+'&groupByPriceLimit=false', function (error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result, counter: 1});
                 } else {
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, data: result, counter: 1});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getTicker"}});
+                resolve({s:0, data: {error: "getTicker"}, counter: 1});
             }
         });
     });
+    */
 };
 
 let parseTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
-    for(let i=0;i<book.data.asks.length;i++){
+    for(let i=0;i<book.asks.length;i++){
         if(i===0){
-            ticks.askBorder = parseFloat(book.data.asks[i].price);
+            ticks.askBorder = parseFloat(book.asks[i].price);
         }
         if(type === "ask"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.data.asks[i].price) === order.sell_price){
-                const askSizeDiff = (parseFloat(book.data.asks[i].amount)-order.sell_size);
+            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.asks[i].price) === order.sell_price){
+                const askSizeDiff = (parseFloat(book.asks[i].amount)-order.sell_size);
                 if( askSizeDiff > pair.ignoreOrderSize){
-                    ticks.ask.push({price: parseFloat(book.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
+                    ticks.ask.push({price: parseFloat(book.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
                 }
-            } else if( parseFloat(book.data.asks[i].amount) > pair.ignoreOrderSize){
-                ticks.ask.push({price: parseFloat(book.data.asks[i].price), size: parseFloat(book.data.asks[i].amount)});
+            } else if( parseFloat(book.asks[i].amount) > pair.ignoreOrderSize){
+                ticks.ask.push({price: parseFloat(book.asks[i].price), size: parseFloat(book.asks[i].amount)});
                 ii++;
             }
         } else {
@@ -89,21 +121,21 @@ let parseTicker = function(type, book, pair, order){
         }
     }
     ii=0;
-    for(let i=0;i<book.data.bids.length;i++){
+    for(let i=0;i<book.bids.length;i++){
         if(i === 0){
-            ticks.bidBorder = parseFloat(book.data.bids[i].price);
+            ticks.bidBorder = parseFloat(book.bids[i].price);
         }
         if(type === "bid"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.data.bids[i].price) === order.buy_price){
-                const bidSizeDiff = (parseFloat(book.data.bids[i].amount)-order.buy_size);
+            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i].price) === order.buy_price){
+                const bidSizeDiff = (parseFloat(book.bids[i].amount)-order.buy_size);
                 if( bidSizeDiff > pair.ignoreOrderSize){
-                    ticks.bid.push({price: parseFloat(book.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
+                    ticks.bid.push({price: parseFloat(book.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
-                    //console.log("My position "+book.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
+                    //console.log("My position "+book.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
-            } else if(parseFloat(book.data.bids[i].amount) > pair.ignoreOrderSize){
-                ticks.bid.push({price: parseFloat(book.data.bids[i].price), size: parseFloat(book.data.bids[i].amount)});
+            } else if(parseFloat(book.bids[i].amount) > pair.ignoreOrderSize){
+                ticks.bid.push({price: parseFloat(book.bids[i].price), size: parseFloat(book.bids[i].amount)});
                 ii++;
             }
         } else {
@@ -352,6 +384,7 @@ let getOrderHistory = function (currencyPair, limit){
 
 module.exports = {
     setConfig: setConfig,
+    setGetOrdersListByPusher: setGetOrdersListByPusher,
     getBalance: getBalance,
     getTicker: getTicker,
     parseTicker: parseTicker,

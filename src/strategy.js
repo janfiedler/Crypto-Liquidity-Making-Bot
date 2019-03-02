@@ -15,10 +15,10 @@ let init = function (configuration, balance, database, apiExchange){
 };
 
 let doAskOrder = async function(){
-    apiCounter = 0;
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
+        apiCounter = 0;
         let pair = config.pairs[i];
         logMessage = "///////////////////////////// doAskOrder "+pair.name+" ////////////////////////////\n";
         logMessage += JSON.stringify(myAccount)+"\n";
@@ -37,7 +37,9 @@ let doAskOrder = async function(){
         const resultOpenedSellOrder = await db.getOpenedSellOrder(config.name, pair);
         //Fetch actual prices from coinfalcon exchange
         const resultTicker = await api.getTicker(pair.name);
-        apiCounter++;
+        if(resultTicker.counter){
+            apiCounter++;
+        }
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
@@ -73,10 +75,10 @@ let doAskOrder = async function(){
 };
 
 let doBidOrder = async function (){
-    apiCounter = 0;
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
+        apiCounter = 0;
         let pair = config.pairs[i];
         logMessage = "///////////////////////////// doBidOrder "+pair.name+" ////////////////////////////\n";
         logMessage += JSON.stringify(myAccount)+"\n";
@@ -90,8 +92,9 @@ let doBidOrder = async function (){
         const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair);
         //Fetch actual prices from coinfalcon exchange
         const resultTicker = await api.getTicker(pair.name);
-
-        apiCounter++;
+        if(resultTicker.counter){
+            apiCounter++;
+        }
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);

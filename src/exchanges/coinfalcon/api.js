@@ -64,15 +64,15 @@ let getTicker = function(pair) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result, counter: 1});
                 } else {
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, data: result, counter: 1});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getTicker"}});
+                resolve({s:0, data: {error: "getTicker"}, counter: 1});
             }
         });
     });
