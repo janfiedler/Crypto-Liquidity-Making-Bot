@@ -438,6 +438,7 @@ async function processBidOrder(pair, targetBid){
             return true;
         } else {
             logMessage += " !!! Order not opened!\n";
+            logMessage += " !!! " + createdOrder.errorMessage +"\n";
             return false;
         }
     }
