@@ -164,6 +164,25 @@ dbApi.getLowestFilledBuyOrder = function(exchange, pair){
     });
 };
 
+dbApi.getLowestSellTargetPrice = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                if(typeof row !== 'undefined' && row) {
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
+                resolve(row);
+            }
+        });
+    });
+};
+
 dbApi.deleteOpenedSellOrder = function(id){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", "", id, function(err) {

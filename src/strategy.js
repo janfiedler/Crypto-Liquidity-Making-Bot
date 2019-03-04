@@ -33,7 +33,7 @@ let doAskOrder = async function(){
         //let sellingCurrency = pair.name.split('-')[0];
 
         //Get lowest pending sell order
-        const pendingSellOrder = await db.getLowestFilledBuyOrder(config.name, pair);
+        const pendingSellOrder = await db.getLowestSellTargetPrice(config.name, pair);
         if(!pendingSellOrder){
             logMessage += " ### PendingSellOrder not found, skipp the loop.\n";
             //Nothing to sell, skip the loop.
