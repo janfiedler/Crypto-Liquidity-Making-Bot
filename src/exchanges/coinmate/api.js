@@ -147,42 +147,47 @@ let parseTicker = function(type, book, pair, order){
 
 let getOrder = async function (id, type, openedOrder){
     const rTH = await getTransactionHistory(id);
-    let orderDetail = new tools.orderDetailForm;
-    orderDetail.id = id;
-    orderDetail.pair = openedOrder.pair;
-    orderDetail.type = type;
-    switch(type){
-        case "BUY":
-            orderDetail.price = openedOrder.buy_price;
-            orderDetail.size = openedOrder.buy_size;
-            orderDetail.funds = openedOrder.buy_price*openedOrder.buy_size;
-            break;
-        case "SELL":
-            orderDetail.price = openedOrder.sell_price;
-            orderDetail.size = openedOrder.sell_size;
-            orderDetail.funds = openedOrder.sell_size;
-            break;
-    }
-    if(rTH.data.length > 0){
-        for(let i=0;i<rTH.data.length;i++){
-            orderDetail.size_filled += rTH.data[i].amount;
-            orderDetail.fee += rTH.data[i].fee;
+    if(rTH.s){
+        let orderDetail = new tools.orderDetailForm;
+        orderDetail.id = id;
+        orderDetail.pair = openedOrder.pair;
+        orderDetail.type = type;
+        switch(type){
+            case "BUY":
+                orderDetail.price = openedOrder.buy_price;
+                orderDetail.size = openedOrder.buy_size;
+                orderDetail.funds = openedOrder.buy_price*openedOrder.buy_size;
+                break;
+            case "SELL":
+                orderDetail.price = openedOrder.sell_price;
+                orderDetail.size = openedOrder.sell_size;
+                orderDetail.funds = openedOrder.sell_size;
+                break;
         }
-        /*
-            Convert to 64 bits (8 bytes) (16 decimal digits)
-            When sum 0.0001 and 0.0002 we can get this result: 0.00030000000000000003
-        */
-        orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, 16);
-        orderDetail.fee = tools.setPrecision(orderDetail.fee, 16);
-        if(orderDetail.size === orderDetail.size_filled){
-            orderDetail.status = "fulfilled";
+        if(rTH.data.length > 0){
+            for(let i=0;i<rTH.data.length;i++){
+                orderDetail.size_filled += rTH.data[i].amount;
+                orderDetail.fee += rTH.data[i].fee;
+            }
+            /*
+                Convert to 64 bits (8 bytes) (16 decimal digits)
+                When sum 0.0001 and 0.0002 we can get this result: 0.00030000000000000003
+            */
+            orderDetail.size_filled = tools.setPrecision(orderDetail.size_filled, 16);
+            orderDetail.fee = tools.setPrecision(orderDetail.fee, 16);
+            if(orderDetail.size === orderDetail.size_filled){
+                orderDetail.status = "fulfilled";
+            } else {
+                orderDetail.status = "partially_filled";
+            }
         } else {
-            orderDetail.status = "partially_filled";
+            orderDetail.status = "canceled";
         }
+        return {"s": true, "data": orderDetail};
     } else {
-        orderDetail.status = "canceled";
+        // getTransactionHistory error, repeat call
+        getOrder(id, type, openedOrder);
     }
-    return {"s": true, "data": orderDetail};
 };
 
 let cancelOrder = function (id, type, openedOrder){
@@ -334,7 +339,7 @@ let getTransactionHistory = function (orderId ){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getTransactionHistory"}});
+                resolve({s:0});
             }
         });
     });
