@@ -1,5 +1,4 @@
 const tools = require('../src/tools');
-var crypto = require('crypto');
 
 let config;
 let myAccount;
@@ -75,10 +74,9 @@ let doAskOrder = async function(){
         logMessage += " ### Success finished "+pair.name+" ASK task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
         logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
-        const hasLogMessage = crypto.createHash('md5').update(logMessage).digest('hex');
-        if(lastLogMessage[pair.name].ask !== hasLogMessage){
-            config.debug && console.log(new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
-            lastLogMessage[pair.name].ask = hasLogMessage;
+        if(config.debug && lastLogMessage[pair.name].ask !== logMessage){
+            config.debug && console.log("\r\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+            lastLogMessage[pair.name].ask = logMessage;
         }
         if(apiCounter > 0){
             await tools.sleep(config.sleepPause * apiCounter);
@@ -143,10 +141,9 @@ let doBidOrder = async function (){
         logMessage += " ### Success finished "+pair.name+" BID task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
         logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
-        const hasLogMessage = crypto.createHash('md5').update(logMessage).digest('hex');
-        if(lastLogMessage[pair.name].bid !== hasLogMessage){
-            config.debug && console.log(new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
-            lastLogMessage[pair.name].bid = hasLogMessage;
+        if(config.debug && lastLogMessage[pair.name].bid !== logMessage){
+            config.debug && console.log("\r\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+            lastLogMessage[pair.name].bid = logMessage;
         }
         if(apiCounter > 0){
             await tools.sleep(config.sleepPause * apiCounter);
