@@ -26,8 +26,7 @@ let doAskOrder = async function(){
     for(let i=0;i<config.pairs.length;i++){
         apiCounter = 0;
         let pair = config.pairs[i];
-        logMessage = "///////////////////////////// doAskOrder "+pair.name+" ////////////////////////////\n";
-        logMessage += " ### Lets process ask for "+ pair.name+" in the loop.\n";
+        logMessage = " ### Lets process ask for "+ pair.name+" in the loop.\n";
         //let sellingForCurrency = pair.name.split('-')[1];
         //let sellingCurrency = pair.name.split('-')[0];
 
@@ -75,7 +74,7 @@ let doAskOrder = async function(){
         logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
         if(config.debug && lastLogMessage[pair.name].ask !== logMessage){
-            config.debug && console.log("\r\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+            config.debug && console.log("\r\n"+"///////////////////////////// doAskOrder "+pair.name+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
             lastLogMessage[pair.name].ask = logMessage;
         }
         if(apiCounter > 0){
@@ -91,8 +90,7 @@ let doBidOrder = async function (){
     for(let i=0;i<config.pairs.length;i++){
         apiCounter = 0;
         let pair = config.pairs[i];
-        logMessage = "///////////////////////////// doBidOrder "+pair.name+" ////////////////////////////\n";
-        logMessage += " ### Lets process bid for "+ pair.name+" in the loop.\n";
+        logMessage = " ### Lets process bid for "+ pair.name+" in the loop.\n";
         //let buyForCurrency = pair.name.split(pair.separator)[1];
         //let buyCurrency = pair.name.split(pair.separator)[0];
 
@@ -142,7 +140,7 @@ let doBidOrder = async function (){
         logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
         if(config.debug && lastLogMessage[pair.name].bid !== logMessage){
-            config.debug && console.log("\r\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+            console.log("\r\n"+"///////////////////////////// doBidOrder "+pair.name+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
             lastLogMessage[pair.name].bid = logMessage;
         }
         if(apiCounter > 0){
