@@ -96,23 +96,24 @@ let orderCreatedForm = function(){
     return {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};
 };
 
-let calculateProfit = function(exchange, size, buy_price, buy_fee, sell_price, sell_fee){
-    if(buy_fee > 0){
+let calculateProfit = function(exchange, completedOrder){
+    if(completedOrder.buy_fee > 0){
         switch (exchange) {
             case "coinfalcon":
-                buy_fee = buy_fee * buy_price;
+                completedOrder.buy_fee = completedOrder.buy_fee * completedOrder.buy_price;
                 break;
         }
     } else {
-        buy_fee = 0;
+        completedOrder.buy_fee = 0;
     }
-    if(sell_fee < 0){
-        sell_fee = 0;
+    if(completedOrder.sell_fee < 0){
+        completedOrder.sell_fee = 0;
     }
 
-    let sellTotalPrice = (size*sell_price)-(sell_fee);
+    let sellTotalPrice = (completedOrder.sell_filled*completedOrder.sell_price)-(completedOrder.sell_fee);
     sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
-    let buyTotalPrice = (size*buy_price)+(buy_fee);
+    let buyFee = (completedOrder.buy_fee / completedOrder.buy_filled) * completedOrder.sell_filled;
+    let buyTotalPrice = (completedOrder.sell_filled*completedOrder.buy_price)+(buyFee);
     buyTotalPrice = setPrecisionDown(buyTotalPrice, 8);
     let profit = sellTotalPrice - buyTotalPrice;
     profit = setPrecisionDown(profit, 8);

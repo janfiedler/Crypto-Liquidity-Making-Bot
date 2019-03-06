@@ -298,7 +298,7 @@ async function validateOrder(type, id, pair, openedOrder){
 
 let processCalculateProfit = async function(orderDetail){
     const completedOrder = await db.getCompletedOrder(orderDetail.id);
-    const profit = tools.calculateProfit(config.name, completedOrder.sell_filled, completedOrder.buy_price, completedOrder.buy_fee, completedOrder.sell_price, completedOrder.sell_fee);
+    const profit = tools.calculateProfit(config.name, completedOrder);
     await db.updateProfit(profit, completedOrder.sell_id);
 };
 
