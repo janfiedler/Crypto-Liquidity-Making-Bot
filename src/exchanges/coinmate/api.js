@@ -266,7 +266,7 @@ let buyLimitOrder = function (currencyPair, amount, price){
                     }
                 } else {
                     console.error(body);
-                    resolve({s:0, errorMessage: result});
+                    resolve({s:0, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);
@@ -306,7 +306,7 @@ let sellLimitOrder = function (currencyPair, amount, price){
                     }
                 } else {
                     console.error(body);
-                    resolve({s:0, errorMessage: result});
+                    resolve({s:0, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);

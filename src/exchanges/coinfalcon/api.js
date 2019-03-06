@@ -224,7 +224,7 @@ let limitOrder = function(type, currencyPair, size, price){
                     resolve({s:1, data: createdOrder});
                 } else {
                     console.error(body);
-                    resolve({s:0, errorMessage: result});
+                    resolve({s:0, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);
