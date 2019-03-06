@@ -61,14 +61,14 @@ let doAskOrder = async function(){
                 const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                 if(resultValidateOrder){
-                    await processAskOrder(pair, targetAsk, pendingSellOrder);
+                    await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
                 }
             } else {
                 logMessage += " ### We already have opened ask order at " + targetAsk + " skipping validateOrder\n";
             }
         } else {
             logMessage += " !!! This will be first opened sell order!\n";
-            await processAskOrder(pair, targetAsk, pendingSellOrder);
+            await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
         }
         logMessage += " ### Success finished "+pair.name+" ASK task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
         logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
@@ -399,7 +399,7 @@ let processPartiallyFilled = function (pair, orderDetail){
     return true;
 };
 
-async function processAskOrder(pair, targetAsk, pendingSellOrder){
+async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
     if(targetAsk === 0){
         logMessage += " !!! Skipping process ask order because targetAsk === 0!\n";
         return false;
@@ -424,6 +424,13 @@ async function processAskOrder(pair, targetAsk, pendingSellOrder){
         }
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
+        if(pair.sellOldestOrderWithLoss){
+            const fundsForNextBuy = tools.setPrecisionUp((tools.getBuyOrderSize(pair, ticker.bidBorder)*ticker.bidBorder), pair.digitsPrice);
+            if (myAccount.balance[pair.name.split(pair.separator)[1]] < fundsForNextBuy){
+                logMessage += " $$$ Sell the oldest order with a loss, if no funds ("+fundsForNextBuy+ " " + pair.name.split(pair.separator)[1] +") for an open new buy order.!\n";
+                await db.setOldestOrderWithLossForSell(config.name, pair, ticker.bidBorder);
+            }
+        }
         return false;
     }
 }

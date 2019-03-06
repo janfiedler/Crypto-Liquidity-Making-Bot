@@ -183,6 +183,32 @@ dbApi.getLowestSellTargetPrice = function(exchange, pair){
     });
 };
 
+dbApi.setOldestOrderWithLossForSell = function(exchange, pair, price){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
+            if (err) {
+                console.error(err.message);
+                resolve(false);
+            } else {
+                if(typeof row !== 'undefined' && row) {
+                    console.error(row);
+                    db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND status = ? AND sell_status = ?;`, price, row.buy_id, exchange, pair.name, "sell", "pending", function(err) {
+                        if (err) {
+                            console.error(err.message);
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                } else {
+                    console.error("setOldestOrderWithLossForSell typeof row === 'undefined'");
+                    resolve(false);
+                }
+            }
+        });
+    });
+};
+
 dbApi.deleteOpenedSellOrder = function(id){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", "", id, function(err) {
