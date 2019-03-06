@@ -267,6 +267,42 @@ dbApi.countOpenOrders = function(){
     });
 };
 
+dbApi.getAllCompletedOrders = function(){
+    return new Promise(function (resolve) {
+        db.all(`SELECT * FROM orders WHERE status = ?`, "completed", (err, rows) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
+
+dbApi.getCompletedOrder = function(sell_id){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE status = ? AND sell_id = ?`, "completed", sell_id, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+};
+
+dbApi.updateProfit = function(profit, sell_id){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET profit = ? WHERE sell_id = ?;`, profit, sell_id, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
+
 dbApi.close = function() {
     return new Promise(function (resolve) {
         db.close((err) => {

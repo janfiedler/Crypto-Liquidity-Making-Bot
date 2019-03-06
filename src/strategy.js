@@ -270,6 +270,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 break;
             case "SELL":
                 await db.setCompletedSellOrder(orderDetail);
+                await processCalculateProfit(orderDetail);
                 break;
         }
         await processFulfilledOrder(pair, orderDetail);
@@ -284,14 +285,22 @@ async function validateOrder(type, id, pair, openedOrder){
             case "SELL":
                 await db.setCompletedSellOrder(orderDetail);
                 await db.reOpenPartFilledSellOrder(config.name, pair, openedOrder, (orderDetail.size-orderDetail.size_filled));
+                await processCalculateProfit(orderDetail);
                 break;
         }
+
         await processPartiallyFilled(pair, orderDetail);
         return false;
     } else {
         logMessage += " !!! Something bad happened when validateOrder "+orderDetail.id+" !\n";
     }
 }
+
+let processCalculateProfit = async function(orderDetail){
+    const completedOrder = await db.getCompletedOrder(orderDetail.id);
+    const profit = tools.calculateProfit(config.name, completedOrder.sell_filled, completedOrder.buy_price, completedOrder.buy_fee, completedOrder.sell_price, completedOrder.sell_fee);
+    await db.updateProfit(profit, completedOrder.sell_id);
+};
 
 let processFulfilledOrder = function(pair, orderDetail){
     switch(orderDetail.type){

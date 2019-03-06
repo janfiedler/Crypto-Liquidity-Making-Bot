@@ -96,6 +96,29 @@ let orderCreatedForm = function(){
     return {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};
 };
 
+let calculateProfit = function(exchange, size, buy_price, buy_fee, sell_price, sell_fee){
+    if(buy_fee > 0){
+        switch (exchange) {
+            case "coinfalcon":
+                buy_fee = buy_fee * buy_price;
+                break;
+        }
+    } else {
+        buy_fee = 0;
+    }
+    if(sell_fee < 0){
+        sell_fee = 0;
+    }
+
+    let sellTotalPrice = (size*sell_price)-(sell_fee);
+    sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
+    let buyTotalPrice = (size*buy_price)+(buy_fee);
+    buyTotalPrice = setPrecisionDown(buyTotalPrice, 8);
+    let profit = sellTotalPrice - buyTotalPrice;
+    profit = setPrecisionDown(profit, 8);
+    return profit;
+};
+
 module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
@@ -108,5 +131,6 @@ module.exports = {
     setPrecisionDown: setPrecisionDown,
     sleep: sleep,
     orderDetailForm: orderDetailForm,
-    orderCreatedForm: orderCreatedForm
+    orderCreatedForm: orderCreatedForm,
+    calculateProfit: calculateProfit
 };
