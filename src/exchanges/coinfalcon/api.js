@@ -195,7 +195,7 @@ let createOrder = async function(pair, type, pendingSellOrder, price){
                 if(size > 0){
                     return await limitOrder(type, pair.name, size, price);
                 } else {
-                    return {s:0, errorMessage: "insufficient size"};
+                    return {s:0, errorMessage: "Size order not set in config."};
                 }
             case "SELL":
                 size = pendingSellOrder.sell_size.toString();

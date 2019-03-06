@@ -438,12 +438,15 @@ async function processBidOrder(pair, targetBid){
     } else {
         logMessage += " ### Let´go open new buy order!\n";
         const createdOrder = await api.createOrder(pair,"BUY",null, targetBid);
-        apiCounter++;
         if(createdOrder.s){
+            apiCounter++;
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;
             await db.saveOpenedBuyOrder(config.name, pair, createdOrder);
             return true;
         } else {
+            if(!createdOrder.errorMessage.includes("Size order not set in config.")){
+                apiCounter++;
+            }
             logMessage += " !!! Order not opened!\n";
             logMessage += " !!! " + createdOrder.errorMessage +"\n";
             return false;
