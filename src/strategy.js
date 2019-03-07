@@ -24,8 +24,14 @@ let doAskOrder = async function(){
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
-        apiCounter = 0;
+        if(!config.pairs[i].active){
+            logMessage = " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+            await tools.sleep(1);
+            continue;
+        }
         let pair = config.pairs[i];
+        apiCounter = 0;
         logMessage = " ### Lets process ask for "+ pair.name+" in the loop.\n";
         //let sellingForCurrency = pair.name.split('-')[1];
         //let sellingCurrency = pair.name.split('-')[0];
@@ -88,8 +94,14 @@ let doBidOrder = async function (){
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
-        apiCounter = 0;
+        if(!config.pairs[i].active){
+            logMessage = " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+            await tools.sleep(1);
+            continue;
+        }
         let pair = config.pairs[i];
+        apiCounter = 0;
         logMessage = " ### Lets process bid for "+ pair.name+" in the loop.\n";
         //let buyForCurrency = pair.name.split(pair.separator)[1];
         //let buyCurrency = pair.name.split(pair.separator)[0];

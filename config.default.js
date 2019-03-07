@@ -11,6 +11,7 @@ let config =
             "accounts": [{"name":"eur"},{"name":"btc"},{"name":"iot"}],
             "pairs": [
                 {"name": "IOT-EUR",
+                    "active": true,
                     "separator": "-",
                     "digitsPrice": 4,
                     "digitsSize": 5,
@@ -22,6 +23,7 @@ let config =
                     "pipsBuySpread": 10,
                     "sellOldestOrderWithLoss": false},
                 {"name": "BTC-EUR",
+                    "active": true,
                     "separator": "-",
                     "digitsPrice": 2,
                     "digitsSize": 8,
@@ -46,6 +48,7 @@ let config =
             "accounts": [{"name":"BTC"},{"name":"CZK"}],
             "pairs": [
                 {"name": "BTC_CZK",
+                    "active": true,
                     "separator": "_",
                     "digitsPrice": 2,
                     "digitsSize": 4,
@@ -57,6 +60,7 @@ let config =
                     "pipsBuySpread": 10000,
                     "sellOldestOrderWithLoss": false},
                 {"name": "BTC_EUR",
+                    "active": true,
                     "separator": "_",
                     "digitsPrice": 2,
                     "digitsSize": 4,
