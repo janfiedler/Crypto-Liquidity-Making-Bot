@@ -25,7 +25,13 @@ let doAskOrder = async function(){
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
         if(!config.pairs[i].active){
-            logMessage = " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            if(config.debug && lastLogMessage[config.pairs[i].name].ask !== logMessage){
+                config.debug && console.log("\r\n"+logMessage);
+                lastLogMessage[config.pairs[i].name].ask = logMessage;
+            }
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
@@ -95,7 +101,13 @@ let doBidOrder = async function (){
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
         if(!config.pairs[i].active){
-            logMessage = " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            if(config.debug && lastLogMessage[config.pairs[i].name].bid !== logMessage){
+                config.debug && console.log("\r\n"+logMessage);
+                lastLogMessage[config.pairs[i].name].bid = logMessage;
+            }
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
