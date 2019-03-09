@@ -191,7 +191,6 @@ dbApi.setOldestOrderWithLossForSell = function(exchange, pair, price){
                 resolve(false);
             } else {
                 if(typeof row !== 'undefined' && row) {
-                    console.error(row);
                     db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND status = ? AND sell_status = ?;`, price, row.buy_id, exchange, pair.name, "sell", "pending", function(err) {
                         if (err) {
                             console.error(err.message);
