@@ -11,6 +11,11 @@ let start = function(configuration){
 let stop = function(){
     return new Promise(function (resolve) {
         coinmateWorker.send({"type": "stop"});
+        setTimeout(function(){
+            //If worker cannot be stopped, mark him for skip
+            resolve(false);
+        }, 25000);
+
         coinmateWorker.on('exit', (code, signal) => {
             //console.log('Exit', code, signal);
             resolve(true);
