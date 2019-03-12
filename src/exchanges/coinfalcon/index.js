@@ -1,5 +1,6 @@
 let cp = require('child_process');
 let coinfalconWorker = cp.fork('src/exchanges/coinfalcon/worker.js');
+let ws = require('./../../websocket');
 
 let config;
 
@@ -32,6 +33,9 @@ coinfalconWorker.on('message', async function (data) {
         case "stopped":
             console.log("coinfalconWorker stopped");
             coinfalconWorker.kill();
+            break;
+        case "ticker":
+            ws.emitToAll("ticker", data);
             break;
     }
 });

@@ -59,6 +59,7 @@ let doAskOrder = async function(){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
+            process.send({"type": "ticker", "exchange": config.name, "pair": pair.name, "data": {"ask": tickers[pair.name].askBorder, "bid":tickers[pair.name].bidBorder}});
         } else {
             //Return false will skip ask process and start bid process.
             return false;
@@ -130,6 +131,7 @@ let doBidOrder = async function (){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
+            process.send({"type": "ticker", "exchange": config.name, "pair": pair.name, "data": {"ask": tickers[pair.name].askBorder, "bid":tickers[pair.name].bidBorder}});
         } else {
             //Return false will skip bid process and start ask process.
             return false;
@@ -171,7 +173,7 @@ let doBidOrder = async function (){
             await tools.sleep(config.sleepPause * apiCounter);
         }
     }
-    return true
+    return true;
 };
 
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){

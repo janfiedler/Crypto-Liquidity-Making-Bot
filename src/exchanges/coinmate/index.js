@@ -1,5 +1,6 @@
 let cp = require('child_process');
 let coinmateWorker = cp.fork('src/exchanges/coinmate/worker.js');
+let ws = require('./../../websocket');
 
 let config;
 
@@ -32,6 +33,9 @@ coinmateWorker.on('message', async function (data) {
         case "stopped":
             console.log("coinmateWorker stopped");
             coinmateWorker.kill();
+            break;
+        case "ticker":
+            ws.emitToAll("ticker", data);
             break;
     }
 });
