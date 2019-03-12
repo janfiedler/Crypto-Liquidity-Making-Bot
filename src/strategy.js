@@ -74,7 +74,7 @@ let doAskOrder = async function(){
                 }
                 lastTickers[pair.name].ask = tickers[pair.name];
             } else {
-                logMessage += " !!! Price don't change, skip the loop.\n";
+                logMessage += " !!! Price didn't change, skip the loop.\n";
                 await processFinishLoop(apiCounter, pair.name, "ask", lastLogMessage[pair.name].ask, logMessage);
                 continue;
             }
@@ -155,7 +155,7 @@ let doBidOrder = async function (){
                 }
                 lastTickers[pair.name].bid = tickers[pair.name];
             } else {
-                logMessage += " !!! Price don't change, skip the loop.\n";
+                logMessage += " !!! Price didn't change, skip the loop.\n";
                 await processFinishLoop(apiCounter, pair.name, "bid", lastLogMessage[pair.name].bid, logMessage);
                 await tools.sleep(1);
                 continue;
