@@ -7,6 +7,7 @@ let api;
 let apiCounter = 0;
 let logMessage;
 let lastLogMessage = [];
+let lastTickers = {};
 
 let init = function (configuration, balance, database, apiExchange){
     config = configuration;
@@ -17,6 +18,7 @@ let init = function (configuration, balance, database, apiExchange){
     for(let i=0;i<config.pairs.length;i++){
         let pair = config.pairs[i];
         lastLogMessage[pair.name] = {"ask": "", "bid": ""};
+        lastTickers[pair.name] = {"ask": "", "bid": ""};
     }
 };
 
@@ -59,7 +61,23 @@ let doAskOrder = async function(){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
-            process.send({"type": "ticker", "exchange": config.name, "pair": pair.name, "data": {"ask": tickers[pair.name].askBorder, "bid":tickers[pair.name].bidBorder}});
+            //Performance optimization, process only if orders book change
+            if (JSON.stringify(lastTickers[pair.name].ask) !== JSON.stringify(tickers[pair.name])) {
+                //Performance optimization, send ask/bid price only when is different
+                if (lastTickers[pair.name].ask.askBorder !== tickers[pair.name].askBorder) {
+                    process.send({
+                        "type": "ticker",
+                        "exchange": config.name,
+                        "pair": pair.name,
+                        "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
+                    });
+                }
+                lastTickers[pair.name].ask = tickers[pair.name];
+            } else {
+                logMessage += " !!! Price don't change, skip the loop.\n";
+                await processFinishLoop(apiCounter, pair.name, "ask", lastLogMessage[pair.name].ask, logMessage);
+                continue;
+            }
         } else {
             //Return false will skip ask process and start bid process.
             return false;
@@ -123,7 +141,25 @@ let doBidOrder = async function (){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
-            process.send({"type": "ticker", "exchange": config.name, "pair": pair.name, "data": {"ask": tickers[pair.name].askBorder, "bid":tickers[pair.name].bidBorder}});
+
+            //Performance optimization, process only if orders book change
+            if (JSON.stringify(lastTickers[pair.name].bid) !== JSON.stringify(tickers[pair.name])) {
+                //Performance optimization, send ask/bid price only when is different
+                if (lastTickers[pair.name].bid.bidBorder !== tickers[pair.name].bidBorder) {
+                    process.send({
+                        "type": "ticker",
+                        "exchange": config.name,
+                        "pair": pair.name,
+                        "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
+                    });
+                }
+                lastTickers[pair.name].bid = tickers[pair.name];
+            } else {
+                logMessage += " !!! Price don't change, skip the loop.\n";
+                await processFinishLoop(apiCounter, pair.name, "bid", lastLogMessage[pair.name].bid, logMessage);
+                await tools.sleep(1);
+                continue;
+            }
         } else {
             //Return false will skip bid process and start ask process.
             return false;
