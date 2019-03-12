@@ -83,16 +83,8 @@ let doAskOrder = async function(){
             logMessage += " !!! This will be first opened sell order!\n";
             await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
         }
-        logMessage += " ### Success finished "+pair.name+" ASK task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
-        logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
-        if(config.debug && lastLogMessage[pair.name].ask !== logMessage){
-            config.debug && console.log("\r\n"+"///////////////////////////// doAskOrder "+pair.name+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
-            lastLogMessage[pair.name].ask = logMessage;
-        }
-        if(apiCounter > 0){
-            await tools.sleep(config.sleepPause * apiCounter);
-        }
+        await processFinishLoop(apiCounter, pair.name, "ask", lastLogMessage[pair.name].ask, logMessage);
     }
     return true;
 };
@@ -162,16 +154,8 @@ let doBidOrder = async function (){
             logMessage += " !!! This will be first opened buy order!\n";
             await processBidOrder(pair, targetBid);
         }
-        logMessage += " ### Success finished "+pair.name+" BID task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
-        logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
-        if(config.debug && lastLogMessage[pair.name].bid !== logMessage){
-            console.log("\r\n"+"///////////////////////////// doBidOrder "+pair.name+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
-            lastLogMessage[pair.name].bid = logMessage;
-        }
-        if(apiCounter > 0){
-            await tools.sleep(config.sleepPause * apiCounter);
-        }
+        await processFinishLoop(apiCounter, pair.name, "bid", lastLogMessage[pair.name].bid, logMessage);
     }
     return true;
 };
@@ -484,6 +468,31 @@ async function processBidOrder(pair, targetBid){
             logMessage += " !!! " + createdOrder.errorMessage +"\n";
             return false;
         }
+    }
+}
+
+async function processFinishLoop(apiCounter, pair, type, prevLogMessage, logMessage){
+    logMessage += " ### Success finished "+pair+" "+type+" task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
+    logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
+
+    if(config.debug && prevLogMessage !== logMessage){
+
+        /*
+        console.log("Prev:\r\n"+prevLogMessage);
+        console.log("Actual:\r\n"+logMessage);
+        */
+        console.log("\r\n"+"///////////////////////////// "+type+" "+pair+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+        switch(type){
+            case "ask":
+                lastLogMessage[pair].ask = logMessage;
+                break;
+            case "bid":
+                lastLogMessage[pair].bid = logMessage;
+                break;
+        }
+    }
+    if(apiCounter > 0){
+        await tools.sleep(config.sleepPause * apiCounter);
     }
 }
 
