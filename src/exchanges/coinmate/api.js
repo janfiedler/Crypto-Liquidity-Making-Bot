@@ -57,6 +57,7 @@ let getBalance = function(){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
+                    console.error("coinmate getBalance");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -210,6 +211,7 @@ let cancelOrder = function (id, type, openedOrder){
                         resolve({"s":0, "data": {"error": "not found"}});
                     }
                 } else {
+                    console.error("coinmate cancelOrder");
                     console.error(body);
                     resolve({s:0, data: {"error": response.statusCode}});
                 }
@@ -265,6 +267,7 @@ let buyLimitOrder = function (currencyPair, amount, price){
                         resolve({s: 1, data: createdOrder});
                     }
                 } else {
+                    console.error("coinmate buyLimitOrder");
                     console.error(body);
                     resolve({s:0, errorMessage: body});
                 }
@@ -305,6 +308,7 @@ let sellLimitOrder = function (currencyPair, amount, price){
                         resolve({s:1, data: createdOrder});
                     }
                 } else {
+                    console.error("coinmate sellLimitOrder");
                     console.error(body);
                     resolve({s:0, errorMessage: body});
                 }
@@ -333,6 +337,7 @@ let getTransactionHistory = function (orderId ){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
+                    console.error("coinmate getTransactionHistory");
                     console.error(body);
                     resolve({s:0, data: result.errorMessage});
                 }
@@ -379,6 +384,7 @@ let getOrderHistory = function (currencyPair, limit){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result});
                 } else {
+                    console.error("coinmate getOrderHistory");
                     console.error(body);
                     resolve({s:0, data: result});
                 }

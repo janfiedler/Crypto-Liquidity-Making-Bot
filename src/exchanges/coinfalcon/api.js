@@ -32,6 +32,7 @@ let getBalance = function(){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
+                    console.error("coinfalcon getBalance");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -66,6 +67,7 @@ let getTicker = function(pair) {
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result, counter: 1});
                 } else {
+                    console.error("coinfalcon getTicker");
                     console.error(body);
                     resolve({s:0, data: result, counter: 1});
                 }
@@ -88,6 +90,7 @@ let getOpenOrders = function(){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
+                    console.error("coinfalcon getOpenOrders");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -110,6 +113,7 @@ let getOrders = function(pair, status){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
+                    console.error("coinfalcon getOrder");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -142,6 +146,7 @@ let getOrder = function(id, type, openedOrder){
                     detailOrder.status = result.data.status;
                     resolve({s:1, data: detailOrder});
                 } else {
+                    console.error("coinfalcon getOrder");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -174,6 +179,7 @@ let cancelOrder = function(id, type, openedOrder){
                     detailOrder.status = result.data.status;
                     resolve({s:1, data: detailOrder});
                 } else {
+                    console.error("coinfalcon cancelOrder");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
@@ -223,6 +229,7 @@ let limitOrder = function(type, currencyPair, size, price){
                     createdOrder.funds = parseFloat(result.data.funds);
                     resolve({s:1, data: createdOrder});
                 } else {
+                    console.error("coinfalcon limitOrder");
                     console.error(body);
                     resolve({s:0, errorMessage: body});
                 }
@@ -245,6 +252,7 @@ let getOrderTrades = function(id){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result});
                 } else {
+                    console.error("coinfalcon getOrderTrades");
                     console.error(body);
                     resolve({s:0, data: result});
                 }
