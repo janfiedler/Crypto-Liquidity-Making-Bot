@@ -165,7 +165,12 @@ let getOrder = async function (id, type, openedOrder){
                 orderDetail.funds = openedOrder.sell_size;
                 break;
         }
-        if(rTH.data.length > 0){
+        if(typeof rTH.data.length === 'undefined' || rTH.data.length === null){
+            console.error(rTH);
+            console.error("openedOrder:");
+            console.error(openedOrder);
+            console.error("id: " + id);
+        } else if(rTH.data.length > 0){
             for(let i=0;i<rTH.data.length;i++){
                 orderDetail.size_filled += rTH.data[i].amount;
                 orderDetail.fee += rTH.data[i].fee;
