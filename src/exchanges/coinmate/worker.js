@@ -18,6 +18,7 @@ process.on('message', async function(data) {
             init();
             break;
         case "stop":
+            await coinmate.cancelPusher();
             stop = true;
             break
     }

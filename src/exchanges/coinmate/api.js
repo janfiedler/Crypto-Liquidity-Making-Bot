@@ -3,27 +3,32 @@ const crypto = require('crypto');
 const tools = require('../../tools');
 let config;
 let Pusher = require('pusher-js');
+let coinmatePusher = new Pusher('af76597b6b928970fbb0', {
+    encrypted: true
+});
+let pusher_order_book = [];
 let order_book = [];
 
 let setGetOrdersListByPusher = function(){
     return new Promise(function (resolve) {
-        let pusher_order_book = [];
-        let pusherCounter = 0;
-
-        const coinmatePusher = new Pusher('af76597b6b928970fbb0', {
-            encrypted: true
-        });
-
         for(let i=0;i<config.pairs.length;i++){
             const pair = config.pairs[i].name;
             pusher_order_book[pair] = coinmatePusher.subscribe('order_book-' + pair);
             pusher_order_book[pair].bind('order_book', function(data) {
+                console.log("New data for " + pair);
                 order_book[pair] = data;
-                pusherCounter++;
             });
         }
         resolve(true);
     });
+};
+
+let cancelPusher = function(){
+    for(let i=0;i<config.pairs.length;i++){
+        const pair = config.pairs[i].name;
+        console.log("unsubscribe " + pair);
+        coinmatePusher.unsubscribe('order_book-' + pair);
+    }
 };
 
 let setConfig = function(data){
@@ -405,6 +410,7 @@ let getOrderHistory = function (currencyPair, limit){
 module.exports = {
     setConfig: setConfig,
     setGetOrdersListByPusher: setGetOrdersListByPusher,
+    cancelPusher: cancelPusher,
     getBalance: getBalance,
     getTicker: getTicker,
     parseTicker: parseTicker,
