@@ -31,9 +31,8 @@ server.on('listening', onListening);
 /**
  * Socket.io
  */
-let websocket = require('../src/websocket');
-let wsio = websocket.io;
-wsio.attach(server);
+let socket = require('../src/websocket');
+socket.io.attach(server);
 
 /**
  * Normalize a port into a number, string, or false.
