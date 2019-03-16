@@ -120,6 +120,30 @@ let calculateProfit = function(exchange, completedOrder){
     return profit;
 };
 
+let calculatePendingProfit = function(exchange, pendingOrder, sellPrice){
+    if(pendingOrder.buy_fee > 0){
+        switch (exchange) {
+            case "coinfalcon":
+                pendingOrder.buy_fee = pendingOrder.buy_fee * pendingOrder.buy_price;
+                break;
+        }
+    } else {
+        pendingOrder.buy_fee = 0;
+    }
+
+    let buyFee = ((pendingOrder.buy_fee / pendingOrder.buy_filled) * pendingOrder.sell_size);
+    let buyTotalPrice = ((pendingOrder.sell_size*pendingOrder.buy_price)+buyFee);
+    buyTotalPrice = setPrecisionDown(buyTotalPrice, 8);
+
+    //Because we do not know sellFee, we use same as was buyFee
+    let sellTotalPrice = ((pendingOrder.sell_size*sellPrice)-buyFee);
+    sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
+
+    let profit = sellTotalPrice - buyTotalPrice;
+    profit = setPrecisionDown(profit, 8);
+    return profit;
+};
+
 module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
@@ -133,5 +157,6 @@ module.exports = {
     sleep: sleep,
     orderDetailForm: orderDetailForm,
     orderCreatedForm: orderCreatedForm,
-    calculateProfit: calculateProfit
+    calculateProfit: calculateProfit,
+    calculatePendingProfit: calculatePendingProfit
 };

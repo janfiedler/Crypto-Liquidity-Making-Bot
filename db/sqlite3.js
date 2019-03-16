@@ -292,6 +292,30 @@ dbApi.countOpenOrders = function(){
     });
 };
 
+dbApi.sumProfit = function(exchange, pair, date){
+    return new Promise(function (resolve) {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND status = ? AND completed_at like ?`, exchange, pair, "completed", date, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+};
+
+dbApi.getAllPendingOrders = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? AND sell_status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, "sell", "pending", (err, rows) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
+
 dbApi.getAllCompletedOrders = function(){
     return new Promise(function (resolve) {
         db.all(`SELECT * FROM orders WHERE status = ?`, "completed", (err, rows) => {

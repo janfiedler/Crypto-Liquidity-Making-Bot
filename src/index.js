@@ -29,7 +29,7 @@ async function handleWorkers(type){
                 case "coinfalcon":
                     const coinfalcon = require('./exchanges/coinfalcon/');
                     if(type === "START"){
-                        coinfalcon.start(config.exchanges[i]);
+                        coinfalcon.start(config.exchanges[i], db);
                     } else if(type === "STOP") {
                         await coinfalcon.stop();
                     }
@@ -37,7 +37,7 @@ async function handleWorkers(type){
                 case "coinmate":
                     const coinmate = require('./exchanges/coinmate/');
                     if(type === "START"){
-                        coinmate.start(config.exchanges[i]);
+                        coinmate.start(config.exchanges[i], db);
                     } else if(type === "STOP") {
                         await coinmate.stop();
                     }
