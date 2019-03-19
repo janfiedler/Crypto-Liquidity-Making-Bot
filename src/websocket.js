@@ -27,7 +27,7 @@ websocket.emitPendingOrders = async function(data){
         }
         let pendingOrders = [];
         for(let i=0;i<po.length;i++){
-            const pl = tools.calculatePendingProfit(po[i].exchange, po[i], data.tick.bid);
+            const pl = tools.calculatePendingProfit(po[i].exchange, po[i], tools.takePipsFromPrice(data.tick.ask, 1, 16));
             pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": po[i].sell_size, "sell_target_price": po[i].sell_target_price, "pl": pl});
         }
         emitToAll("ticker", {"e": data.exchange, "p": data.pair, "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
