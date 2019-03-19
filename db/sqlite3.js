@@ -304,9 +304,9 @@ dbApi.sumProfit = function(exchange, pair, date){
     });
 };
 
-dbApi.getAllPendingOrders = function(exchange, pair){
+dbApi.getAllSellOrders = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? AND sell_status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, "sell", "pending", (err, rows) => {
+        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, "sell", (err, rows) => {
             if (err) {
                 console.error(err.message);
             } else {
