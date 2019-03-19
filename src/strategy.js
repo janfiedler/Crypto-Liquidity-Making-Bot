@@ -474,7 +474,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             const fundsForNextBuy = tools.setPrecisionUp((tools.getBuyOrderSize(pair, ticker.bidBorder)*ticker.bidBorder), pair.digitsPrice);
             if (myAccount.balance[pair.name.split(pair.separator)[1]] < fundsForNextBuy){
                 logMessage += " $$$ Sell the oldest order with a loss, if no funds ("+fundsForNextBuy+ " " + pair.name.split(pair.separator)[1] +") for an open new buy order.!\n";
-                await db.setOldestOrderWithLossForSell(config.name, pair, ticker.bidBorder);
+                await db.setOldestOrderWithLossForSell(config.name, pair);
             }
         }
         return false;
