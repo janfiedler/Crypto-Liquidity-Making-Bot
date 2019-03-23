@@ -305,7 +305,7 @@ For example, if the fee for market maker trade is 0,12% your profit target must 
 Don't forget count with the situation when your order will be for market taker fee. Cover this situation you can set your profit target as doubled market taker fee.
 ```
 
-* "pipsBuySpread": 1
+* "pipsBuySpread": 1,
 ```
 This parameter will help you handle money management. You need define spread for new buy order from price of already filled buy order.
 Example BTC-EUR, pipsBuySpread": 1:
@@ -315,6 +315,16 @@ This parameter combined with buySize/buyForAmount define how much orders with yo
 Then you have option add more funds to your exchange, or use (not existed yet) function for "close" oldest order in lose and funds used for a new order.
  
 If the drop is so big for example from 19000 USD to 3200 USD, why still hodl older order, when you can use those funds to make so many flips and make some profits back. This option will be manual. Or automated only if previous profits cover loose from closed lose order.
+```
+
+* sellOldestOrderWithLoss": false,
+```
+This will start selling (even with a loss) oldest pending sell orders if your bag holder limit is reached.
+```
+
+* "bagHolderLimit": 0
+```
+If is bigger than 0, than buy orders will stop opening when the bag holder limit is reached.
 ```
 
 ### Known bugs

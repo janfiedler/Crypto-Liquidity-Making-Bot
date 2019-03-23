@@ -304,6 +304,18 @@ dbApi.sumProfit = function(exchange, pair, date){
     });
 };
 
+dbApi.getTotalSellSize = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT SUM(sell_size) as total FROM orders WHERE exchange = ? AND pair = ? AND status = ?`, exchange, pair.name, "sell", (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(tools.setPrecision(row.total, pair.digitsSize));
+            }
+        });
+    });
+};
+
 dbApi.getAllSellOrders = function(exchange, pair){
     return new Promise(function (resolve) {
         db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, "sell", (err, rows) => {

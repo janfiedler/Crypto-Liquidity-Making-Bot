@@ -122,6 +122,17 @@ let doBidOrder = async function (){
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
+        } else if (config.pairs[i].bagHolderLimit > 0 && config.pairs[i].bagHolderLimit <= await db.getTotalSellSize(config.name, config.pairs[i]) ){
+            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" reached maximum bag holder limit. We do not need to buy more.\n";
+            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            if(config.debug && lastLogMessage[config.pairs[i].name].bid !== logMessage){
+                config.debug && console.log("\r\n"+logMessage);
+                lastLogMessage[config.pairs[i].name].bid = logMessage;
+            }
+            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+            await tools.sleep(1);
+            continue;
         }
         let pair = config.pairs[i];
         apiCounter = 0;
@@ -470,10 +481,10 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         }
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
-        if(pair.sellOldestOrderWithLoss){
-            const fundsForNextBuy = tools.setPrecisionUp((tools.getBuyOrderSize(pair, ticker.bidBorder)*ticker.bidBorder), pair.digitsPrice);
-            if (myAccount.balance[pair.name.split(pair.separator)[1]] < fundsForNextBuy){
-                logMessage += " $$$ Sell the oldest order with a loss, if no funds ("+fundsForNextBuy+ " " + pair.name.split(pair.separator)[1] +") for an open new buy order.!\n";
+        if(pair.sellOldestOrderWithLoss && pair.bagHolderLimit > 0){
+            const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
+            if(resultTotalSellSize >= pair.bagHolderLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the bag holder limit was reached!\n";
                 await db.setOldestOrderWithLossForSell(config.name, pair);
             }
         }

@@ -21,7 +21,8 @@ let config =
                     "pipsAskBidSpread": 10,
                     "percentageProfitTarget": 0.12,
                     "pipsBuySpread": 10,
-                    "sellOldestOrderWithLoss": false},
+                    "sellOldestOrderWithLoss": false,
+                    "bagHolderLimit": 0},
                 {"name": "BTC-EUR",
                     "active": true,
                     "separator": "-",
@@ -33,7 +34,8 @@ let config =
                     "pipsAskBidSpread": 100,
                     "percentageProfitTarget": 0.12,
                     "pipsBuySpread": 100,
-                    "sellOldestOrderWithLoss": false}
+                    "sellOldestOrderWithLoss": false,
+                    "bagHolderLimit": 0}
             ]
         },
         {"name": "coinmate",
@@ -58,7 +60,8 @@ let config =
                     "pipsAskBidSpread": 2500,
                     "percentageProfitTarget": 0.5,
                     "pipsBuySpread": 10000,
-                    "sellOldestOrderWithLoss": false},
+                    "sellOldestOrderWithLoss": false,
+                    "bagHolderLimit": 0},
                 {"name": "BTC_EUR",
                     "active": true,
                     "separator": "_",
@@ -70,7 +73,8 @@ let config =
                     "pipsAskBidSpread": 100,
                     "percentageProfitTarget": 0.5,
                     "pipsBuySpread": 500,
-                    "sellOldestOrderWithLoss": false}
+                    "sellOldestOrderWithLoss": false,
+                    "bagHolderLimit": 0}
             ]
         }
     ]};
