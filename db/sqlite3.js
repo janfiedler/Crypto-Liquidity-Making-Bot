@@ -208,6 +208,19 @@ dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
     });
 };
 
+dbApi.setSellTargetPrice = function(exchange, pair, buy_id, price){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND status = ? AND sell_status = ?;`, price, buy_id, exchange, pair.name, "sell", "pending", function(err) {
+            if (err) {
+                console.error(err.message);
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        })
+    });
+};
+
 dbApi.deleteOpenedSellOrder = function(id){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", "", id, function(err) {
