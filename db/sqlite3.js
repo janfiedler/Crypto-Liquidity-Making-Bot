@@ -29,7 +29,7 @@ dbApi.createTables = function(){
 
 function createTableOrders(){
     return new Promise(function (resolve) {
-        db.run(`CREATE TABLE IF NOT EXISTS orders (exchange TEXT, pair TEXT, status TEXT, buy_status TEXT, buy_id TEXT, buy_price INTEGER, buy_size REAL, buy_created TEXT, buy_filled REAL, buy_fee REAL, sell_status TEXT, sell_id TEXT, sell_price REAL, sell_target_price REAL, sell_size REAL, sell_created TEXT, sell_filled REAL, sell_fee REAL, profit REAL, completed_at TEXT);`, function(err) {
+        db.run(`CREATE TABLE IF NOT EXISTS orders (exchange TEXT, pair TEXT, pair_id INTEGER, status TEXT, buy_status TEXT, buy_id TEXT, buy_price REAL, buy_size REAL, buy_created TEXT, buy_filled REAL, buy_fee REAL, sell_status TEXT, sell_id TEXT, sell_price REAL, sell_target_price REAL, sell_size REAL, sell_created TEXT, sell_filled REAL, sell_fee REAL, profit REAL, completed_at TEXT);`, function(err) {
             if (err) {
                 console.error(err.message);
             } else {
@@ -85,7 +85,7 @@ dbApi.updateCondition = function(key, value){
 
 dbApi.getOpenedBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair.name, "open", (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair.name, pair.id, "open", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -104,7 +104,7 @@ dbApi.getOpenedBuyOrder = function(exchange, pair){
 
 dbApi.getOpenedSellOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND sell_status = ? AND sell_id IS NOT NULL`, exchange, pair.name, "open", (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND sell_status = ? AND sell_id IS NOT NULL`, exchange, pair.name, pair.id, "open", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -123,7 +123,7 @@ dbApi.getOpenedSellOrder = function(exchange, pair){
 
 dbApi.saveOpenedBuyOrder = function(exchange, pair, createdOrder){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.created_at, function(err) {
+        db.run(`insert INTO orders(exchange, pair, pair_id, status, buy_status, buy_id, buy_price, buy_size, buy_created) VALUES (?,?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.created_at, function(err) {
             if (err) {
                 console.error(err.message);
             } else {
@@ -147,7 +147,7 @@ dbApi.deleteOpenedBuyOrder = function(id){
 
 dbApi.getLowestFilledBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -166,7 +166,7 @@ dbApi.getLowestFilledBuyOrder = function(exchange, pair){
 
 dbApi.getLowestSellTargetPrice = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -185,13 +185,13 @@ dbApi.getLowestSellTargetPrice = function(exchange, pair){
 
 dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
                 resolve(false);
             } else {
                 if(typeof row !== 'undefined' && row) {
-                    db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND status = ? AND sell_status = ?;`, 0, row.buy_id, exchange, pair.name, "sell", "pending", function(err) {
+                    db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ?;`, 0, row.buy_id, exchange, pair.name, pair.id, "sell", "pending", function(err) {
                         if (err) {
                             console.error(err.message);
                             resolve(false);
@@ -210,7 +210,7 @@ dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
 
 dbApi.setSellTargetPrice = function(exchange, pair, buy_id, price){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND status = ? AND sell_status = ?;`, price, buy_id, exchange, pair.name, "sell", "pending", function(err) {
+        db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ?;`, price, buy_id, exchange, pair.name, pair.id, "sell", "pending", function(err) {
             if (err) {
                 console.error(err.message);
                 resolve(false);
@@ -271,7 +271,7 @@ dbApi.setCompletedSellOrder = function(orderDetail){
 
 dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, newSellSize){
     return new Promise(function (resolve) {
-        db.run(`insert INTO orders(exchange, pair, status, buy_status, buy_id, buy_price, buy_size, buy_created, buy_filled, buy_fee, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,exchange, pair.name, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_created, resultOpenedOrder.buy_filled, resultOpenedOrder.buy_fee, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
+        db.run(`insert INTO orders(exchange, pair, pair_id, status, buy_status, buy_id, buy_price, buy_size, buy_created, buy_filled, buy_fee, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_created, resultOpenedOrder.buy_filled, resultOpenedOrder.buy_fee, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
             if (err) {
                 console.error(err.message);
             } else {
@@ -305,9 +305,9 @@ dbApi.countOpenOrders = function(){
     });
 };
 
-dbApi.sumProfit = function(exchange, pair, date){
+dbApi.sumProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
-        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND status = ? AND completed_at like ?`, exchange, pair, "completed", date, (err, row) => {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND completed_at like ?`, exchange, pair, pairId, "completed", date, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -319,7 +319,7 @@ dbApi.sumProfit = function(exchange, pair, date){
 
 dbApi.getTotalSellSize = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT SUM(sell_size) as total FROM orders WHERE exchange = ? AND pair = ? AND status = ?`, exchange, pair.name, "sell", (err, row) => {
+        db.get(`SELECT SUM(sell_size) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ?`, exchange, pair.name, pair.id, "sell", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -329,9 +329,9 @@ dbApi.getTotalSellSize = function(exchange, pair){
     });
 };
 
-dbApi.getAllSellOrders = function(exchange, pair){
+dbApi.getAllSellOrders = function(exchange, pair, pairId){
     return new Promise(function (resolve) {
-        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, "sell", (err, rows) => {
+        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, pairId, "sell", (err, rows) => {
             if (err) {
                 console.error(err.message);
             } else {

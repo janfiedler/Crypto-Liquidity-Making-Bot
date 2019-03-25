@@ -11,31 +11,35 @@ let config =
             "accounts": [{"name":"eur"},{"name":"btc"},{"name":"iot"}],
             "pairs": [
                 {"name": "IOT-EUR",
+                    "id": 1,
                     "active": true,
                     "separator": "-",
                     "digitsPrice": 4,
                     "digitsSize": 5,
+                    "bagHolderLimit": 0,
                     "buySize": 0,
                     "buyForAmount": 10,
                     "ignoreOrderSize": 1,
                     "pipsAskBidSpread": 10,
                     "percentageProfitTarget": 0.12,
                     "pipsBuySpread": 10,
-                    "sellOldestOrderWithLoss": false,
-                    "bagHolderLimit": 0},
+                    "sellOldestOrderWithLoss": false
+                },
                 {"name": "BTC-EUR",
+                    "id": 2,
                     "active": true,
                     "separator": "-",
                     "digitsPrice": 2,
                     "digitsSize": 8,
+                    "bagHolderLimit": 0,
                     "buySize": 0,
                     "buyForAmount": 20,
                     "ignoreOrderSize": 0.0,
                     "pipsAskBidSpread": 100,
                     "percentageProfitTarget": 0.12,
                     "pipsBuySpread": 100,
-                    "sellOldestOrderWithLoss": false,
-                    "bagHolderLimit": 0}
+                    "sellOldestOrderWithLoss": false
+                }
             ]
         },
         {"name": "coinmate",
@@ -50,31 +54,35 @@ let config =
             "accounts": [{"name":"BTC"},{"name":"CZK"}],
             "pairs": [
                 {"name": "BTC_CZK",
+                    "id": 1,
                     "active": true,
                     "separator": "_",
                     "digitsPrice": 2,
                     "digitsSize": 4,
+                    "bagHolderLimit": 0,
                     "buySize": 0,
                     "buyForAmount": 50,
                     "ignoreOrderSize": 0.0001,
                     "pipsAskBidSpread": 2500,
                     "percentageProfitTarget": 0.5,
                     "pipsBuySpread": 10000,
-                    "sellOldestOrderWithLoss": false,
-                    "bagHolderLimit": 0},
+                    "sellOldestOrderWithLoss": false
+                },
                 {"name": "BTC_EUR",
+                    "id": 2,
                     "active": true,
                     "separator": "_",
                     "digitsPrice": 2,
                     "digitsSize": 4,
+                    "bagHolderLimit": 0,
                     "buySize": 0,
                     "buyForAmount": 5,
                     "ignoreOrderSize": 0.0001,
                     "pipsAskBidSpread": 100,
                     "percentageProfitTarget": 0.5,
                     "pipsBuySpread": 500,
-                    "sellOldestOrderWithLoss": false,
-                    "bagHolderLimit": 0}
+                    "sellOldestOrderWithLoss": false
+                }
             ]
         }
     ]};

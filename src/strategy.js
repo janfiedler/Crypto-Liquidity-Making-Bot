@@ -17,8 +17,8 @@ let init = function (configuration, balance, database, apiExchange){
 
     for(let i=0;i<config.pairs.length;i++){
         let pair = config.pairs[i];
-        lastLogMessage[pair.name] = {"ask": "", "bid": ""};
-        lastTickers[pair.name] = {"ask": "", "bid": ""};
+        lastLogMessage[pair.name+"_"+pair.id] = {"ask": "", "bid": ""};
+        lastTickers[pair.name+"_"+pair.id] = {"ask": "", "bid": ""};
     }
 };
 
@@ -30,9 +30,9 @@ let doAskOrder = async function(){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            if(config.debug && lastLogMessage[config.pairs[i].name].ask !== logMessage){
+            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
-                lastLogMessage[config.pairs[i].name].ask = logMessage;
+                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask = logMessage;
             }
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
@@ -62,20 +62,21 @@ let doAskOrder = async function(){
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
             //Performance optimization, process only if orders book change
-            if (JSON.stringify(lastTickers[pair.name].ask) !== JSON.stringify(tickers[pair.name])) {
+            if (JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name])) {
                 //Performance optimization, send ask/bid price only when is different
-                if (lastTickers[pair.name].ask.askBorder !== tickers[pair.name].askBorder) {
+                if (lastTickers[pair.name+"_"+pair.id].ask.askBorder !== tickers[pair.name].askBorder) {
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
                         "pair": pair.name,
+                        "pairId": pair.id,
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
-                lastTickers[pair.name].ask = tickers[pair.name];
+                lastTickers[pair.name+"_"+pair.id].ask = tickers[pair.name];
             } else {
                 logMessage += " !!! Price didn't change, skip the loop.\n";
-                await processFinishLoop(apiCounter, pair.name, "ask", lastLogMessage[pair.name].ask, logMessage);
+                await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
                 continue;
             }
         } else {
@@ -102,7 +103,7 @@ let doAskOrder = async function(){
             await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
         }
 
-        await processFinishLoop(apiCounter, pair.name, "ask", lastLogMessage[pair.name].ask, logMessage);
+        await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
     }
     return true;
 };
@@ -115,9 +116,9 @@ let doBidOrder = async function (){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            if(config.debug && lastLogMessage[config.pairs[i].name].bid !== logMessage){
+            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
-                lastLogMessage[config.pairs[i].name].bid = logMessage;
+                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
             }
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
@@ -126,9 +127,9 @@ let doBidOrder = async function (){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             logMessage += " ### Pair "+ config.pairs[i].name +" reached maximum bag holder limit. We do not need to buy more.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            if(config.debug && lastLogMessage[config.pairs[i].name].bid !== logMessage){
+            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
-                lastLogMessage[config.pairs[i].name].bid = logMessage;
+                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
             }
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
@@ -154,20 +155,21 @@ let doBidOrder = async function (){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
 
             //Performance optimization, process only if orders book change
-            if (JSON.stringify(lastTickers[pair.name].bid) !== JSON.stringify(tickers[pair.name])) {
+            if (JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name])) {
                 //Performance optimization, send ask/bid price only when is different
-                if (lastTickers[pair.name].bid.bidBorder !== tickers[pair.name].bidBorder) {
+                if (lastTickers[pair.name+"_"+pair.id].bid.bidBorder !== tickers[pair.name].bidBorder) {
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
                         "pair": pair.name,
+                        "pairId": pair.id,
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
-                lastTickers[pair.name].bid = tickers[pair.name];
+                lastTickers[pair.name+"_"+pair.id].bid = tickers[pair.name];
             } else {
                 logMessage += " !!! Price didn't change, skip the loop.\n";
-                await processFinishLoop(apiCounter, pair.name, "bid", lastLogMessage[pair.name].bid, logMessage);
+                await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
                 await tools.sleep(1);
                 continue;
             }
@@ -202,7 +204,7 @@ let doBidOrder = async function (){
             await processBidOrder(pair, targetBid);
         }
 
-        await processFinishLoop(apiCounter, pair.name, "bid", lastLogMessage[pair.name].bid, logMessage);
+        await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
     }
     return true;
 };
@@ -530,7 +532,7 @@ async function processBidOrder(pair, targetBid){
 }
 
 async function processFinishLoop(apiCounter, pair, type, prevLogMessage, logMessage){
-    logMessage += " ### Success finished "+pair+" "+type+" task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
+    logMessage += " ### Success finished "+pair.name+" "+pair.id+" "+type+" task, wait: "+(config.sleepPause * apiCounter)+" ms\n";
     logMessage += "//////////////////////////////////////////////////////////////////////////////\n";
 
     if(config.debug && prevLogMessage !== logMessage){
@@ -539,13 +541,13 @@ async function processFinishLoop(apiCounter, pair, type, prevLogMessage, logMess
         console.log("Prev:\r\n"+prevLogMessage);
         console.log("Actual:\r\n"+logMessage);
         */
-        console.log("\r\n"+"///////////////////////////// "+type+" "+pair+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
+        console.log("\r\n"+"///////////////////////////// "+type+" "+pair.name+" "+pair.id+" ////////////////////////////\n"+new Date().toISOString()+"\n"+JSON.stringify(myAccount)+"\n"+logMessage);
         switch(type){
             case "ask":
-                lastLogMessage[pair].ask = logMessage;
+                lastLogMessage[pair.name+"_"+pair.id].ask = logMessage;
                 break;
             case "bid":
-                lastLogMessage[pair].bid = logMessage;
+                lastLogMessage[pair.name+"_"+pair.id].bid = logMessage;
                 break;
         }
     }

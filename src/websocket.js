@@ -20,8 +20,8 @@ let removeSocket = function (socket){
 
 websocket.emitPendingOrders = async function(data){
     if(sockets.length > 0){
-        const po = await db.getAllSellOrders(data.exchange, data.pair);
-        const dailyProfit = await db.sumProfit(data.exchange, data.pair, new Date().toISOString().substr(0,10)+"%");
+        const po = await db.getAllSellOrders(data.exchange, data.pair, data.pairId);
+        const dailyProfit = await db.sumProfit(data.exchange, data.pair, data.pairId, new Date().toISOString().substr(0,10)+"%");
         if(dailyProfit.total === null){
             dailyProfit.total = 0;
         }
