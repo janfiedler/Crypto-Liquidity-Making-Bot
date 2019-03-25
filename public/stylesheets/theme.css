@@ -25,6 +25,10 @@ a {
     color: #71b6f9;
 }
 
+.table {
+    color:#98a6ad;
+}
+
 .navbar li > a {
     display: block;
     color: #98a6ad;
