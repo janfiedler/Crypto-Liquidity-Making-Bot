@@ -141,25 +141,35 @@ Each object in array "exchanges" represent setting for specific exchange
         "accounts": [{"name":"eur"},{"name":"btc"},{"name":"iot"}],
         "pairs": [
           {"name": "IOT-EUR",
+           "id": 1,
+           "active": true,
            "separator": "-", 
            "digitsPrice": 4, 
-           "digitsSize": 5, 
+           "digitsSize": 5,
+           "bagHolderLimit": 0, 
            "buySize": 0, 
            "buyForAmount": 10, 
            "ignoreOrderSize": 1, 
            "pipsAskBidSpread": 10, 
            "percentageProfitTarget": 0.12, 
-           "pipsBuySpread": 10}, 
-          {"name": "BTC-EUR", 
+           "pipsBuySpread": 101,
+           "sellOldestOrderWithLoss": false
+          }, 
+          {"name": "BTC-EUR",
+            "id": 2,
+            "active": true, 
             "separator": "-", 
             "digitsPrice": 2, 
-            "digitsSize": 8, 
+            "digitsSize": 8,
+            "bagHolderLimit": 0, 
             "buySize": 0, 
             "buyForAmount": 20, 
             "ignoreOrderSize": 0.0, 
             "pipsAskBidSpread": 100, 
             "percentageProfitTarget": 0.12, 
-            "pipsBuySpread": 100}
+            "pipsBuySpread": 100,
+            "sellOldestOrderWithLoss": false
+          }
         ]
     },
     {"name": "coinmate",
@@ -173,26 +183,36 @@ Each object in array "exchanges" represent setting for specific exchange
         "stickToBigOrders": false,
         "accounts": [{"name":"BTC"},{"name":"CZK"}],
         "pairs": [
-          {"name": "BTC_CZK", 
+          {"name": "BTC_CZK",
+            "id": 1,
+            "active": true, 
             "separator": "_", 
             "digitsPrice": 2, 
-            "digitsSize": 4, 
+            "digitsSize": 4,
+            "bagHolderLimit": 0, 
             "buySize": 0, 
             "buyForAmount": 50, 
             "ignoreOrderSize": 0.0001, 
             "pipsAskBidSpread": 2500, 
             "percentageProfitTarget": 0.5, 
-            "pipsBuySpread": 10000},
-          {"name": "BTC_EUR", 
+            "pipsBuySpread": 10000,
+            "sellOldestOrderWithLoss": false,
+          },
+          {"name": "BTC_EUR",
+            "id": 2,
+            "active": true, 
             "separator": "_", 
             "digitsPrice": 2, 
-            "digitsSize": 4, 
+            "digitsSize": 4,
+            "bagHolderLimit": 0, 
             "buySize": 0, 
             "buyForAmount": 5, 
             "ignoreOrderSize": 0.0001, 
             "pipsAskBidSpread": 100, 
             "percentageProfitTarget": 0.5, 
-            "pipsBuySpread": 500}
+            "pipsBuySpread": 500,
+            "sellOldestOrderWithLoss": false,
+          }
         ]
     }
 ]}
@@ -249,6 +269,18 @@ The object with setting for trading pair. Add a new object with your favorite pa
 Every object starts with the name of the pair defined by the exchange. You need to find how is called your favorite pair, or use predefined format and just exchange names and keep separator.
 ```
 
+* "id": 1
+```
+Set a unique ID for every pair. This option allows multiple strategies over the same pair on current exchange.
+```
+
+* "active": true
+```
+You can disable / active bot for this current pair
+true: active
+false: disabled
+```
+
 * "separator": "-"
 ```
 Every exchange uses a different separator for define trading pair. This setting is for a split function to fetch the right available/balance data from the account. You don't need to change this setting.
@@ -264,6 +296,11 @@ For example, if BTC-EUR  on coinfalcon exchange has the price for 3457.00 than d
 ```
 Define decimal precision of order size in orders book.
 For example, if BTC-EUR on coinfalcon exchange has 0.34681000 you need set 8 because of 8 decimal precision in order size.
+```
+
+* "bagHolderLimit": 0
+```
+If is bigger than 0, than buy orders will stop opening when the bag holder limit is reached.
 ```
 
 * "buySize": 0
@@ -322,10 +359,6 @@ If the drop is so big for example from 19000 USD to 3200 USD, why still hodl old
 This will start selling (even with a loss) oldest pending sell orders if your bag holder limit is reached.
 ```
 
-* "bagHolderLimit": 0
-```
-If is bigger than 0, than buy orders will stop opening when the bag holder limit is reached.
-```
 
 ### Known bugs
 
