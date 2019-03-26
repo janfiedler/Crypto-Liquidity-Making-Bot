@@ -6,6 +6,8 @@ $( document ).ready(function() {
         if (tbody){
             let dP = document.getElementById("dailyProfit_" + data.e + "_" + data.p + "_" + data.i);
             $(dP).text(data.dP.total.toFixed(4) + ' ' + data.p.substring(4));
+            let tS = document.getElementById("totalSize_" + data.e + "_" + data.p + "_" + data.i);
+            $(tS).text(data.tS + ' ' + data.p.substring(0, 3));
             let rB = document.getElementById("rateBid_" + data.e + "_" + data.p + "_" + data.i);
             $(rB).text('Bid: ' + data.t.bid + ' ' + data.p.substring(4));
             let rA = document.getElementById("rateAsk_" + data.e + "_" + data.p + "_" + data.i);

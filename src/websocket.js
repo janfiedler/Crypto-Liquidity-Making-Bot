@@ -21,6 +21,8 @@ let removeSocket = function (socket){
 websocket.emitPendingOrders = async function(data){
     if(sockets.length > 0){
         const po = await db.getAllSellOrders(data.exchange, data.pair, data.pairId);
+        const tS = await db.getTotalSellSize(data.exchange, {"name": data.pair, "id": data.pairId, "digitsSize": 16});
+
         const dailyProfit = await db.sumProfit(data.exchange, data.pair, data.pairId, new Date().toISOString().substr(0,10)+"%");
         if(dailyProfit.total === null){
             dailyProfit.total = 0;
@@ -30,7 +32,7 @@ websocket.emitPendingOrders = async function(data){
             const pl = tools.calculatePendingProfit(po[i].exchange, po[i], tools.takePipsFromPrice(data.tick.ask, 1, 16));
             pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": po[i].sell_size, "sell_target_price": po[i].sell_target_price, "pl": pl});
         }
-        emitToAll("ticker", {"e": data.exchange, "p": data.pair, "i": data.pairId, "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"e": data.exchange, "p": data.pair, "i": data.pairId, "tS": tS, "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
     }
 };
 
