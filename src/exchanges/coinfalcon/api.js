@@ -126,7 +126,7 @@ let getOrders = function(pair, status){
     });
 };
 
-let getOrder = function(id, type, openedOrder){
+let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
         let url = config.url + request_path;
@@ -159,7 +159,7 @@ let getOrder = function(id, type, openedOrder){
     });
 };
 
-let cancelOrder = function(id, type, openedOrder){
+let cancelOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         let request_path = "/api/v1/user/orders/"+id;
         let url = config.url + request_path;

@@ -42,6 +42,14 @@ async function handleWorkers(type){
                         await coinmate.stop();
                     }
                     break;
+                case "binance":
+                    const binance = require('./exchanges/binance/');
+                    if(type === "START"){
+                        binance.start(config.exchanges[i]);
+                    } else if(type === "STOP") {
+                        await binance.stop();
+                    }
+                    break;
             }
         }
     }

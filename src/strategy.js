@@ -286,14 +286,14 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
 async function validateOrder(type, id, pair, openedOrder){
     let orderDetail;
     //Before validate order, first we need cancel opened order to avoid changes in data while validating.
-    const canceledOrder = await api.cancelOrder(id, type, openedOrder);
+    const canceledOrder = await api.cancelOrder(pair, id, type, openedOrder);
     apiCounter++;
     if (canceledOrder.s){
         logMessage += " ### orderDetail = api.cancelOrder(id)\n";
         orderDetail = canceledOrder.data;
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('not found')){
         //Order was probably canceled manually, sync local DB
-        const detailOrder = await api.getOrder(id, type, openedOrder);
+        const detailOrder = await api.getOrder(pair, id, type, openedOrder);
         apiCounter++;
         if(detailOrder.s){
             logMessage += " ### orderDetail = api.getOrder(id)\n";
@@ -485,7 +485,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
             return false;
         } else {
-            if(createdOrder.errorMessage.includes("insufficient size")){
+            if(createdOrder.errorMessage.includes("insufficient size") || createdOrder.errorMessage.includes("Filter failure: MIN_NOTIONAL")){
                 const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
                 await db.setFailedSellOrder(failedSellOrder);
                 logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";

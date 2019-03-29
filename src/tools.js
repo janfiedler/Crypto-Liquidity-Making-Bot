@@ -44,6 +44,15 @@ let parseBalance = function(config, funds){
                 }
             }
             break;
+        case "binance":
+            for (const fund of funds.data) {
+                let currencyCode = fund.asset.toLocaleUpperCase();
+                if(config.accounts.some(currency => currency.name.toLocaleUpperCase() === currencyCode)){
+                    myAccount[config.name].balance[currencyCode] = parseFloat(fund.locked)+parseFloat(fund.free);
+                    myAccount[config.name].available[currencyCode] = parseFloat(fund.free);
+                }
+            }
+            break;
     }
     return myAccount;
 };
@@ -79,7 +88,7 @@ let setPrecisionDown = function(value, digits){
 let getBuyOrderSize = function(pair, price){
     let size = pair.buySize;
     if(size === 0){
-        size = setPrecisionDown((pair.buyForAmount/price), pair.digitsSize);
+        size = setPrecisionUp((pair.buyForAmount/price), pair.digitsSize);
     }
     return size;
 };
