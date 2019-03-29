@@ -188,20 +188,20 @@ dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
-                resolve(false);
+                resolve({"error": err.message});
             } else {
                 if(typeof row !== 'undefined' && row) {
                     db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ?;`, 0, row.buy_id, exchange, pair.name, pair.id, "sell", "pending", function(err) {
                         if (err) {
                             console.error(err.message);
-                            resolve(false);
+                            resolve({"error": err.message});
                         } else {
-                            resolve(true);
+                            resolve(row);
                         }
                     });
                 } else {
                     console.error("setOldestOrderWithLossForSell typeof row === 'undefined'");
-                    resolve(false);
+                    resolve({"error": "setOldestOrderWithLossForSell typeof row === 'undefined'"});
                 }
             }
         });

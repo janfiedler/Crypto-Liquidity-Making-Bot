@@ -326,6 +326,8 @@ async function validateOrder(type, id, pair, openedOrder){
                 //If canceled sell older was set for sell in loose, reset sell_target_price for new round for case we can sell another pending sell older in profit.
                 if(pair.sellOldestOrderWithLoss && openedOrder.sell_target_price === 0){
                     const sell_target_price = tools.getProfitTargetPrice(openedOrder.buy_price, pair.percentageProfitTarget, pair.digitsPrice);
+                    logMessage += " $$$ Set again profit target: " + sell_target_price + " \n";
+                    logMessage += JSON.stringify(openedOrder)+"\n";
                     await db.setSellTargetPrice(config.name, pair, openedOrder.buy_id, sell_target_price);
                 }
                 break;
@@ -498,7 +500,8 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
             if(resultTotalSellSize >= pair.bagHolderLimit){
                 logMessage += " $$$ Sell the oldest order with a loss, if the bag holder limit was reached!\n";
-                await db.setOldestOrderWithLossForSell(config.name, pair);
+                const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                logMessage += JSON.stringify(forSell)+"\n";
             }
         }
         return false;
