@@ -381,8 +381,8 @@ let processFulfilledOrder = function(pair, orderDetail){
             if(orderDetail.fee > 0){
                 switch (config.name) {
                     case "coinfalcon":
-                        myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
-                        myAccount.available[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "coinmate":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
@@ -427,8 +427,8 @@ let processPartiallyFilled = function (pair, orderDetail){
             if(orderDetail.fee > 0){
                 switch (config.name) {
                     case "coinfalcon":
-                        myAccount.balance[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
-                        myAccount.available[pair.name.split(pair.separator)[0]] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "coinmate":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;

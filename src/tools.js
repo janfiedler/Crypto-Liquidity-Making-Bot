@@ -106,13 +106,7 @@ let orderCreatedForm = function(){
 };
 
 let calculateProfit = function(exchange, completedOrder){
-    if(completedOrder.buy_fee > 0){
-        switch (exchange) {
-            case "coinfalcon":
-                completedOrder.buy_fee = completedOrder.buy_fee * completedOrder.buy_price;
-                break;
-        }
-    } else {
+    if(completedOrder.buy_fee < 0){
         completedOrder.buy_fee = 0;
     }
     if(completedOrder.sell_fee < 0){
@@ -130,13 +124,7 @@ let calculateProfit = function(exchange, completedOrder){
 };
 
 let calculatePendingProfit = function(exchange, pendingOrder, sellPrice){
-    if(pendingOrder.buy_fee > 0){
-        switch (exchange) {
-            case "coinfalcon":
-                pendingOrder.buy_fee = pendingOrder.buy_fee * pendingOrder.buy_price;
-                break;
-        }
-    } else {
+    if(pendingOrder.buy_fee < 0){
         pendingOrder.buy_fee = 0;
     }
 
