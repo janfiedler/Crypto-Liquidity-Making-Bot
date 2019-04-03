@@ -58,6 +58,7 @@ let config =
                 "clientId": "",
                 "sleepPause": 650,
                 "stickToBigOrders": false,
+                "pusher": true,
                 "accounts": [{"name": "BTC"}, {"name": "CZK"}],
                 "pairs": [
                     {

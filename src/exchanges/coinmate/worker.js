@@ -14,11 +14,15 @@ process.on('message', async function(data) {
         case "init":
             config = data.config;
             coinmate.setConfig(data.config);
-            //await coinmate.setGetOrdersListByPusher();
+            if(config.pusher){
+                await coinmate.setGetOrdersListByPusher();
+            }
             init();
             break;
         case "stop":
-            //await coinmate.cancelPusher();
+            if(config.pusher){
+                await coinmate.cancelPusher();
+            }
             stop = true;
             break
     }

@@ -76,36 +76,42 @@ let getBalance = function(){
 };
 /* Get actual order book with buys and sells */
 let getTicker = async function (pair){
-    /*
-    if(typeof order_book[pair] === 'undefined'){
-        console.log(pair + " waiting on order book!");
-        await tools.sleep(1000);
-        return {s:0, data: null, counter: 0};
+    if(config.pusher){
+        if(typeof order_book[pair] === 'undefined'){
+            console.log(pair + " waiting on order book!");
+            await tools.sleep(1000);
+            return {s:0, data: null, counter: 0};
+        } else {
+            return {s:1, data: order_book[pair], counter: 0};
+        }
     } else {
-        return {s:1, data: order_book[pair], counter: 0};
-    }
-    */
-
-    return new Promise(function (resolve) {
-        request('https://coinmate.io/api/orderBook?currencyPair='+pair+'&groupByPriceLimit=false', function (error, response, body) {
-            try {
-                const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result, counter: 1});
-                } else {
+        return new Promise(function (resolve) {
+            request('https://coinmate.io/api/orderBook?currencyPair='+pair+'&groupByPriceLimit=false', function (error, response, body) {
+                try {
+                    const result = JSON.parse(body);
+                    if (!error && response.statusCode === 200) {
+                        resolve({s:1, data: result, counter: 1});
+                    } else {
+                        console.error(body);
+                        resolve({s:0, data: result, counter: 1});
+                    }
+                } catch (e) {
                     console.error(body);
-                    resolve({s:0, data: result, counter: 1});
+                    console.error(e);
+                    resolve({s:0, data: {error: "getTicker"}, counter: 1});
                 }
-            } catch (e) {
-                console.error(body);
-                console.error(e);
-                resolve({s:0, data: {error: "getTicker"}, counter: 1});
-            }
+            });
         });
-    });
-
+    }
 };
 let parseTicker = function(type, book, pair, order){
+    if(config.pusher){
+        return parsePusherTicker(type, book, pair, order);
+    } else {
+        return parseApiTicker(type, book, pair, order);
+    }
+};
+let parseApiTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
     for(let i=0;i<book.data.asks.length;i++){
@@ -152,7 +158,7 @@ let parseTicker = function(type, book, pair, order){
     return ticks;
 };
 
-let parseTickerPusher = function(type, book, pair, order){
+let parsePusherTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
     for(let i=0;i<book.asks.length;i++){
