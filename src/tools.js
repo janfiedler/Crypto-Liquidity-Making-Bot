@@ -88,7 +88,7 @@ let setPrecisionDown = function(value, digits){
 let getBuyOrderSize = function(pair, price){
     let size = pair.buySize;
     if(size === 0){
-        size = setPrecisionUp((pair.buyForAmount/price), pair.digitsSize);
+        size = setPrecisionDown((pair.buyForAmount/price), pair.digitsSize);
     }
     return size;
 };
