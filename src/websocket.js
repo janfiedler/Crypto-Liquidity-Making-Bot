@@ -20,19 +20,22 @@ let removeSocket = function (socket){
 
 websocket.emitPendingOrders = async function(data){
     if(sockets.length > 0){
-        const po = await db.getAllSellOrders(data.exchange, data.pair, data.pairId);
-        const tS = await db.getTotalSellSize(data.exchange, {"name": data.pair, "id": data.pairId, "digitsSize": 16});
+        const po = await db.getAllSellOrders(data.exchange, data.pair.name, data.pair.id);
+        const tS = await db.getTotalSellSize(data.exchange, {"name": data.pair.name, "id": data.pair.id, "digitsSize": data.pair.digitsSize});
 
-        const dailyProfit = await db.sumProfit(data.exchange, data.pair, data.pairId, new Date().toISOString().substr(0,10)+"%");
+        const dailyProfit = await db.sumProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,10)+"%");
         if(dailyProfit.total === null){
             dailyProfit.total = 0;
         }
         let pendingOrders = [];
+        let totalAmount = 0;
         for(let i=0;i<po.length;i++){
-            const pl = tools.calculatePendingProfit(po[i].exchange, po[i], tools.takePipsFromPrice(data.tick.ask, 1, 16));
-            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": po[i].sell_size, "sell_target_price": po[i].sell_target_price, "pl": pl});
+            const orderAmount = (po[i].buy_price * po[i].sell_size);
+            totalAmount += orderAmount;
+            const pl = tools.calculatePendingProfit(po[i].exchange, po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice));
+            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": po[i].sell_size, "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice)});
         }
-        emitToAll("ticker", {"e": data.exchange, "p": data.pair, "i": data.pairId, "tS": tS, "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
     }
 };
 

@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 let db = {};
 let dbApi = {};
 
-dbApi.connect = function(){
+let connect = function(){
     return new Promise(function (resolve) {
         db = new sqlite3.Database('db/clmb.sqlite3', function(err) {
             if (err) {
@@ -19,7 +19,7 @@ dbApi.connect = function(){
     });
 };
 
-dbApi.createTables = function(){
+let createTables = function(){
     return new Promise(async function (resolve) {
         await createTableOrders();
         await createTableCondition();
@@ -59,7 +59,7 @@ function createTableCondition(){
     });
 }
 
-dbApi.getCondition = function(condition){
+let getCondition = function(condition){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM condition WHERE key = ?`, condition, (err, row) => {
             if (err) {
@@ -71,7 +71,7 @@ dbApi.getCondition = function(condition){
     });
 };
 
-dbApi.updateCondition = function(key, value){
+let updateCondition = function(key, value){
     return new Promise(function (resolve) {
         db.run(`UPDATE condition SET value = ? WHERE key = ?; `, value, key, function(err) {
             if (err) {
@@ -83,7 +83,7 @@ dbApi.updateCondition = function(key, value){
     });
 };
 
-dbApi.getOpenedBuyOrder = function(exchange, pair){
+let getOpenedBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND buy_status = ? AND buy_id IS NOT NULL`, exchange, pair.name, pair.id, "open", (err, row) => {
             if (err) {
@@ -102,7 +102,7 @@ dbApi.getOpenedBuyOrder = function(exchange, pair){
     });
 };
 
-dbApi.getOpenedSellOrder = function(exchange, pair){
+let getOpenedSellOrder = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND sell_status = ? AND sell_id IS NOT NULL`, exchange, pair.name, pair.id, "open", (err, row) => {
             if (err) {
@@ -121,7 +121,7 @@ dbApi.getOpenedSellOrder = function(exchange, pair){
     });
 };
 
-dbApi.saveOpenedBuyOrder = function(exchange, pair, createdOrder){
+let saveOpenedBuyOrder = function(exchange, pair, createdOrder){
     return new Promise(function (resolve) {
         db.run(`insert INTO orders(exchange, pair, pair_id, status, buy_status, buy_id, buy_price, buy_size, buy_created) VALUES (?,?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, "buy", "open", createdOrder.data.id, createdOrder.data.price, createdOrder.data.size, createdOrder.data.created_at, function(err) {
             if (err) {
@@ -133,7 +133,7 @@ dbApi.saveOpenedBuyOrder = function(exchange, pair, createdOrder){
     });
 };
 
-dbApi.deleteOpenedBuyOrder = function(id){
+let deleteOpenedBuyOrder = function(id){
     return new Promise(function (resolve) {
         db.run(`DELETE FROM orders WHERE buy_id=?`, id, function(err) {
             if (err) {
@@ -145,7 +145,7 @@ dbApi.deleteOpenedBuyOrder = function(id){
     });
 };
 
-dbApi.getLowestFilledBuyOrder = function(exchange, pair){
+let getLowestFilledBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
@@ -164,7 +164,7 @@ dbApi.getLowestFilledBuyOrder = function(exchange, pair){
     });
 };
 
-dbApi.getLowestSellTargetPrice = function(exchange, pair){
+let getLowestSellTargetPrice = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
@@ -183,7 +183,7 @@ dbApi.getLowestSellTargetPrice = function(exchange, pair){
     });
 };
 
-dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
+let setOldestOrderWithLossForSell = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
@@ -208,7 +208,7 @@ dbApi.setOldestOrderWithLossForSell = function(exchange, pair){
     });
 };
 
-dbApi.setSellTargetPrice = function(exchange, pair, buy_id, price){
+let setSellTargetPrice = function(exchange, pair, buy_id, price){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_target_price = ? WHERE buy_id = ? AND exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ?;`, price, buy_id, exchange, pair.name, pair.id, "sell", "pending", function(err) {
             if (err) {
@@ -221,7 +221,7 @@ dbApi.setSellTargetPrice = function(exchange, pair, buy_id, price){
     });
 };
 
-dbApi.deleteOpenedSellOrder = function(id){
+let deleteOpenedSellOrder = function(id){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_created = ? WHERE sell_id = ?;`, "pending", "", "", id, function(err) {
             if (err) {
@@ -233,7 +233,7 @@ dbApi.deleteOpenedSellOrder = function(id){
     });
 };
 
-dbApi.setPendingSellOrder = function(data, sell_target_price){
+let setPendingSellOrder = function(data, sell_target_price){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET status = ?, buy_status = ?, buy_filled = ?, buy_fee = ?, sell_status = ?, sell_target_price = ?, sell_size = ? WHERE buy_id= ?;`, "sell", data.status, data.size_filled, data.fee, "pending", sell_target_price, data.size_filled, data.id, function(err) {
             if (err) {
@@ -245,7 +245,7 @@ dbApi.setPendingSellOrder = function(data, sell_target_price){
     });
 };
 
-dbApi.setFailedSellOrder = function(failedOrder){
+let setFailedSellOrder = function(failedOrder){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET status = ?, sell_status = ?, completed_at = ? WHERE buy_id = ? AND sell_id IS NULL;`, "failed", failedOrder.status, new Date().toISOString(), failedOrder.id, function(err) {
             if (err) {
@@ -257,7 +257,7 @@ dbApi.setFailedSellOrder = function(failedOrder){
     });
 };
 
-dbApi.setCompletedSellOrder = function(orderDetail){
+let setCompletedSellOrder = function(orderDetail){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET status = ?, sell_status = ?, sell_filled = ?, sell_fee = ?, completed_at = ? WHERE sell_id = ?;`, "completed", orderDetail.status, orderDetail.size_filled, orderDetail.fee, new Date().toISOString(), orderDetail.id, function(err) {
             if (err) {
@@ -269,7 +269,7 @@ dbApi.setCompletedSellOrder = function(orderDetail){
     });
 };
 
-dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, newSellSize){
+let reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, newSellSize){
     return new Promise(function (resolve) {
         db.run(`insert INTO orders(exchange, pair, pair_id, status, buy_status, buy_id, buy_price, buy_size, buy_created, buy_filled, buy_fee, sell_status, sell_price, sell_target_price, sell_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, "sell", resultOpenedOrder.buy_status, resultOpenedOrder.buy_id, resultOpenedOrder.buy_price, resultOpenedOrder.buy_size, resultOpenedOrder.buy_created, resultOpenedOrder.buy_filled, resultOpenedOrder.buy_fee, "pending", resultOpenedOrder.sell_price, resultOpenedOrder.sell_target_price, newSellSize, function(err) {
             if (err) {
@@ -281,7 +281,7 @@ dbApi.reOpenPartFilledSellOrder = function(exchange, pair, resultOpenedOrder, ne
     });
 };
 
-dbApi.setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
+let setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET sell_status = ?, sell_id = ?, sell_price = ?, sell_created = ? WHERE status = ? AND buy_id = ?;`, "open", createdOrder.data.id, parseFloat(createdOrder.data.price), createdOrder.data.created_at, "sell", pendingSellOrder.buy_id, function(err) {
             if (err) {
@@ -293,7 +293,7 @@ dbApi.setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     });
 };
 
-dbApi.countOpenOrders = function(){
+let countOpenOrders = function(){
     return new Promise(function (resolve) {
         db.get(`SELECT COUNT(*) AS openCount FROM orders WHERE status = ?`, "ACTIVE", (err, row) => {
             if (err) {
@@ -305,7 +305,7 @@ dbApi.countOpenOrders = function(){
     });
 };
 
-dbApi.sumProfit = function(exchange, pair, pairId, date){
+let sumProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
         db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND completed_at like ?`, exchange, pair, pairId, "completed", date, (err, row) => {
             if (err) {
@@ -317,7 +317,7 @@ dbApi.sumProfit = function(exchange, pair, pairId, date){
     });
 };
 
-dbApi.getTotalSellSize = function(exchange, pair){
+let getTotalSellSize = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT SUM(sell_size) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ?`, exchange, pair.name, pair.id, "sell", (err, row) => {
             if (err) {
@@ -329,7 +329,7 @@ dbApi.getTotalSellSize = function(exchange, pair){
     });
 };
 
-dbApi.getAllSellOrders = function(exchange, pair, pairId){
+let getAllSellOrders = function(exchange, pair, pairId){
     return new Promise(function (resolve) {
         db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, pairId, "sell", (err, rows) => {
             if (err) {
@@ -341,7 +341,8 @@ dbApi.getAllSellOrders = function(exchange, pair, pairId){
     });
 };
 
-dbApi.getAllCompletedOrders = function(){
+
+let getAllCompletedOrders = function(){
     return new Promise(function (resolve) {
         db.all(`SELECT * FROM orders WHERE status = ?`, "completed", (err, rows) => {
             if (err) {
@@ -353,7 +354,7 @@ dbApi.getAllCompletedOrders = function(){
     });
 };
 
-dbApi.getCompletedOrder = function(sell_id){
+let getCompletedOrder = function(sell_id){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE status = ? AND sell_id = ?`, "completed", sell_id, (err, row) => {
             if (err) {
@@ -365,7 +366,7 @@ dbApi.getCompletedOrder = function(sell_id){
     });
 };
 
-dbApi.updateProfit = function(profit, sell_id){
+let updateProfit = function(profit, sell_id){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET profit = ? WHERE sell_id = ?;`, profit, sell_id, function(err) {
             if (err) {
@@ -377,7 +378,7 @@ dbApi.updateProfit = function(profit, sell_id){
     });
 };
 
-dbApi.close = function() {
+let close = function() {
     return new Promise(function (resolve) {
         db.close((err) => {
             if (err) {
@@ -390,4 +391,31 @@ dbApi.close = function() {
     });
 };
 
-module.exports = dbApi;
+module.exports = {
+    connect: connect,
+    createTables: createTables,
+    getCondition: getCondition,
+    updateCondition: updateCondition,
+    getOpenedBuyOrder: getOpenedBuyOrder,
+    getOpenedSellOrder: getOpenedSellOrder,
+    saveOpenedBuyOrder: saveOpenedBuyOrder,
+    deleteOpenedBuyOrder: deleteOpenedBuyOrder,
+    getLowestFilledBuyOrder: getLowestFilledBuyOrder,
+    getLowestSellTargetPrice: getLowestSellTargetPrice,
+    setOldestOrderWithLossForSell: setOldestOrderWithLossForSell,
+    setSellTargetPrice: setSellTargetPrice,
+    deleteOpenedSellOrder: deleteOpenedSellOrder,
+    setPendingSellOrder: setPendingSellOrder,
+    setFailedSellOrder: setFailedSellOrder,
+    setCompletedSellOrder: setCompletedSellOrder,
+    reOpenPartFilledSellOrder: reOpenPartFilledSellOrder,
+    setOpenedSellerOrder: setOpenedSellerOrder,
+    countOpenOrders: countOpenOrders,
+    sumProfit: sumProfit,
+    getTotalSellSize: getTotalSellSize,
+    getAllSellOrders: getAllSellOrders,
+    getAllCompletedOrders: getAllCompletedOrders,
+    getCompletedOrder: getCompletedOrder,
+    updateProfit: updateProfit,
+    close: close
+};

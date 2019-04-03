@@ -141,6 +141,16 @@ let calculatePendingProfit = function(exchange, pendingOrder, sellPrice){
     return profit;
 };
 
+let getAmountSpent = async function(db, exchange, pair){
+    return new Promise(async function (resolve) {
+        const po = await db.getAllSellOrders(exchange, pair.name, pair.id);
+        let totalAmount = 0;
+        for(let i=0;i<po.length;i++){
+            totalAmount += (po[i].buy_price * po[i].sell_size);
+        }
+        resolve(totalAmount);
+    });
+};
 module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
@@ -155,5 +165,6 @@ module.exports = {
     orderDetailForm: orderDetailForm,
     orderCreatedForm: orderCreatedForm,
     calculateProfit: calculateProfit,
-    calculatePendingProfit: calculatePendingProfit
+    calculatePendingProfit: calculatePendingProfit,
+    getAmountSpent: getAmountSpent
 };

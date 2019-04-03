@@ -68,8 +68,7 @@ let doAskOrder = async function(){
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
-                        "pair": pair.name,
-                        "pairId": pair.id,
+                        "pair": pair,
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
@@ -127,7 +126,18 @@ let doBidOrder = async function (){
             continue;
         } else if (config.pairs[i].bagHolderLimit > 0 && config.pairs[i].bagHolderLimit <= await db.getTotalSellSize(config.name, config.pairs[i]) ){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" reached maximum bag holder limit. We do not need to buy more.\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum bag holder limit. We do not need to buy more.\n";
+            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                config.debug && console.log("\r\n"+logMessage);
+                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+            }
+            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+            await tools.sleep(1);
+            continue;
+        } else if (config.pairs[i].budgetLimit > 0 && config.pairs[i].budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
@@ -163,8 +173,7 @@ let doBidOrder = async function (){
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
-                        "pair": pair.name,
-                        "pairId": pair.id,
+                        "pair": pair,
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
@@ -504,6 +513,13 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
             if(resultTotalSellSize >= pair.bagHolderLimit){
                 logMessage += " $$$ Sell the oldest order with a loss, if the bag holder limit was reached!\n";
+                const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                logMessage += JSON.stringify(forSell)+"\n";
+            }
+        } else if(pair.sellOldestOrderWithLoss && pair.budgetLimit > 0){
+            const totalAmount = await tools.getAmountSpent(db, config.name, pair);
+            if(totalAmount >= pair.budgetLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                 const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                 logMessage += JSON.stringify(forSell)+"\n";
             }

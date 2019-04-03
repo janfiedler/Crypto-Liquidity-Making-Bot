@@ -46,15 +46,17 @@ block content
                 diw.row
                   div.col-sm-12
                     div.card-box
-                      div.pull-right
-                        span.badge.badge-binance.pull-left.m-t-20 Today profit:
-                        span.badge.badge-dark.badge-pill.pull-left.m-t-20( id="dailyProfit_" + exchange.name + "_" + pair.name + "_" + pair.id )
-                        span.badge.badge-binance.pull-left.m-t-20 Total size:
-                        span.badge.badge-dark.badge-pill.pull-left.m-t-20( id="totalSize_" + exchange.name + "_" + pair.name + "_" + pair.id )
-                        span.badge.badge-binance.pull-left.m-t-20 Actual rate:
-                        span.badge.badge-dark.badge-pill.pull-left.m-t-20( id="rateBid_" + exchange.name + "_" + pair.name + "_" + pair.id )
-                        span.badge.badge-dark.badge-pill.pull-left.m-t-20( id="rateAsk_" + exchange.name + "_" + pair.name + "_" + pair.id )
-                      h4.header-title.mt-0.m-b-30 !{exchange.name}: !{pair.name} #!{pair.id}
+                      h4.header-title.mt-0.m-b-0 !{exchange.name}: !{pair.name} #!{pair.id}
+                      div.row.mt-0.m-b-0
+                        span.badge.badge-binance.pull-left.m-b-10 Today profit:
+                        span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="dailyProfit_" + exchange.name + "_" + pair.name + "_" + pair.id )
+                        span.badge.badge-binance.pull-left.m-b-10 Total size:
+                        span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="totalSize_" + exchange.name + "_" + pair.name + "_" + pair.id )
+                        span.badge.badge-binance.pull-left.m-b-10 Amount spent:
+                        span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="amountSpent_" + exchange.name + "_" + pair.name + "_" + pair.id )
+                        span.badge.badge-binance.pull-left.m-b-10 Actual rate:
+                        span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="rateBid_" + exchange.name + "_" + pair.name + "_" + pair.id )
+                        span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="rateAsk_" + exchange.name + "_" + pair.name + "_" + pair.id )
                       div.table-responsive
                         table.table.mb-0
                           thead
@@ -63,6 +65,7 @@ block content
                               th BUY PRICE
                               th SELL SIZE
                               th SELL TARGET PRICE
+                              th AMOUNT SPENT
                               th P&L
                               th Action
                           tbody( id="tbody_" + exchange.name + "_" + pair.name + "_" + pair.id)
