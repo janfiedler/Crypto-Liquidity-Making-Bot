@@ -355,7 +355,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 break;
             case "SELL":
                 await db.setCompletedSellOrder(orderDetail);
-                await processCalculateProfit(orderDetail);
+                await processCalculateProfit(pair, orderDetail);
                 break;
         }
         await processFulfilledOrder(pair, orderDetail);
@@ -370,7 +370,7 @@ async function validateOrder(type, id, pair, openedOrder){
             case "SELL":
                 await db.setCompletedSellOrder(orderDetail);
                 await db.reOpenPartFilledSellOrder(config.name, pair, openedOrder, (orderDetail.size-orderDetail.size_filled));
-                await processCalculateProfit(orderDetail);
+                await processCalculateProfit(pair, orderDetail);
                 break;
         }
 
@@ -381,9 +381,15 @@ async function validateOrder(type, id, pair, openedOrder){
     }
 }
 
-let processCalculateProfit = async function(orderDetail){
+let processCalculateProfit = async function(pair, orderDetail){
     const completedOrder = await db.getCompletedOrder(orderDetail.id);
     const profit = tools.calculateProfit(config.name, completedOrder);
+    process.send({
+        "type": "completedOrder",
+        "pair": pair,
+        "order": completedOrder,
+        "profit": profit
+    });
     await db.updateProfit(profit, completedOrder.sell_id);
 };
 

@@ -37,6 +37,9 @@ binanceWorker.on('message', async function (data) {
         case "ticker":
             ws.emitPendingOrders(data);
             break;
+        case "completedOrder":
+            ws.emitCompletedOrder(data);
+            break;
     }
 });
 

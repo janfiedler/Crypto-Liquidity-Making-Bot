@@ -33,9 +33,15 @@ websocket.emitPendingOrders = async function(data){
             const orderAmount = (po[i].buy_price * po[i].sell_size);
             totalAmount += orderAmount;
             const pl = tools.calculatePendingProfit(po[i].exchange, po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice));
-            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": po[i].sell_size, "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice)});
+            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": tools.setPrecision(po[i].sell_size, data.pair.digitsSize), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice)});
         }
         emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
+    }
+};
+
+websocket.emitCompletedOrder = async function(data){
+    if(sockets.length > 0){
+        emitToAll("completedOrder", {"p": {"n": data.pair.name, "l": data.order.exchange+" "+data.order.pair+" #"+data.order.pair_id, "s":data.pair.separator}, "s": data.order.sell_filled, "oP": data.profit});
     }
 };
 

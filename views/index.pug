@@ -71,18 +71,12 @@ block content
                           tbody( id="tbody_" + exchange.name + "_" + pair.name + "_" + pair.id)
           div.col-sm-4
             div.card-box
-              h4.header-title.mt-0 Last closed trades
-              div.inbox-widget.nicescroll
-                div.inbox-item
-                div.inbox-item
-                  p.inbox-item-text
-                    a.nav-link.text-sm-left(href="https://www.binance.com/?ref=11012917", rel="nofollow", target="_blank")
-                      | B
-                div.inbox-item
-                  p.inbox-item-text
-                    a.nav-link.text-sm-left(href="https://coinfalcon.com/?ref=CFJSNZWGJDJJ", rel="nofollow", target="_blank")
-                      | C
-                  ul
-                    li 1
-                    li 2
-                    li 3
+              h4.header-title.mt-0 Last completed trades
+              div.table-responsive
+                table.table.mb-0
+                  thead
+                    tr
+                      th Pair
+                      th SIZE
+                      th P&L
+                  tbody( id="tbody_completedOrders")

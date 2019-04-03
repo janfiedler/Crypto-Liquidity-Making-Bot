@@ -25,4 +25,16 @@ $( document ).ready(function() {
             });
         }
     });
+
+    ws.on('completedOrder', function (data) {
+        console.log(data);
+        let tbody = document.getElementById("tbody_completedOrders");
+        if (tbody){
+            let plColor = "class='text-danger'";
+            if(data.oP > 0){
+                plColor = "class='text-success'";
+            }
+            $(tbody).append('<tr><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td '+plColor+'>'+data.oP+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
+        }
+    });
 });
