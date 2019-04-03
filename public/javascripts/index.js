@@ -5,7 +5,7 @@ $( document ).ready(function() {
         let tbody = document.getElementById("tbody_" + data.e + "_" + data.p + "_" + data.i);
         if (tbody){
             let dP = document.getElementById("dailyProfit_" + data.e + "_" + data.p + "_" + data.i);
-            $(dP).text(data.dP.total.toFixed(4) + ' ' + data.p.substring(4));
+            $(dP).text(data.dP.total.toFixed(8) + ' ' + data.p.substring(4));
             let tS = document.getElementById("totalSize_" + data.e + "_" + data.p + "_" + data.i);
             $(tS).text(data.tS + ' ' + data.p.substring(0, 3));
             let rB = document.getElementById("rateBid_" + data.e + "_" + data.p + "_" + data.i);

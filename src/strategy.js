@@ -18,7 +18,7 @@ let init = function (configuration, balance, database, apiExchange){
     for(let i=0;i<config.pairs.length;i++){
         let pair = config.pairs[i];
         lastLogMessage[pair.name+"_"+pair.id] = {"ask": "", "bid": ""};
-        lastTickers[pair.name+"_"+pair.id] = {"ask": "", "bid": ""};
+        lastTickers[pair.name+"_"+pair.id] = {"ask": "", "bid": "", "timestamp": {"ask": Date.now(), "bid": Date.now()} };
     }
 };
 
@@ -62,7 +62,7 @@ let doAskOrder = async function(){
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
             //Performance optimization, process only if orders book change
-            if (JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name])) {
+            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name])) {
                 //Performance optimization, send ask/bid price only when is different
                 if (lastTickers[pair.name+"_"+pair.id].ask.askBorder !== tickers[pair.name].askBorder) {
                     process.send({
@@ -88,7 +88,9 @@ let doAskOrder = async function(){
 
         if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
             logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
-            if(targetAsk !== resultOpenedSellOrder.sell_price){
+            //If targetAsk dont change after ten minutes, force validate order.
+            if((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || targetAsk !== resultOpenedSellOrder.sell_price){
+                lastTickers[pair.name+"_"+pair.id].timestamp.ask = Date.now();
                 //If founded opened sell order, lets check and process
                 const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -155,7 +157,7 @@ let doBidOrder = async function (){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
 
             //Performance optimization, process only if orders book change
-            if (JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name])) {
+            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name])) {
                 //Performance optimization, send ask/bid price only when is different
                 if (lastTickers[pair.name+"_"+pair.id].bid.bidBorder !== tickers[pair.name].bidBorder) {
                     process.send({
@@ -189,7 +191,9 @@ let doBidOrder = async function (){
 
         if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
             logMessage += " ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
-            if(targetBid !== resultOpenedBuyOrder.buy_price) {
+            //If targetBid dont change after ten minutes, force validate order.
+            if((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || targetBid !== resultOpenedBuyOrder.buy_price) {
+                lastTickers[pair.name+"_"+pair.id].timestamp.bid = Date.now();
                 //If founded opened buy order, lets check and process
                 const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
