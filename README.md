@@ -188,6 +188,7 @@ Each object in array "exchanges" represent setting for specific exchange
                  "clientId": "",
                  "sleepPause": 650,
                  "stickToBigOrders": false,
+                 "pusher": true,
                  "accounts": [{"name": "BTC"}, {"name": "CZK"}],
                  "pairs": [
                      {
@@ -328,6 +329,11 @@ Every exchange has API request limits per seconds or minutes. This is coefficien
 * "stickToBigOrders": false,
 ```
 This is part of the strategy. If true, the bot will take as spot price (for obtaining target price) only from order, where size is bigger than two next orders. This is one strategy how to follow big orders. You get less filled trades, but you maybe get a fair price, because more traders think this is a good price for sell/buy order (support/resistance levels).
+```
+* "pusher": true
+```
+It is a specific parameter only for coinmate exchange. If the parameter is true, pusher for obtaining the order book will be used. This will save a lot of time instead of using API. 
+Sometimes can happen, the pusher is stacked. So you can turn it off and use standard API call.
 ```
 
 * "accounts": [{"name":"eur"},{"name":"btc"},...],
