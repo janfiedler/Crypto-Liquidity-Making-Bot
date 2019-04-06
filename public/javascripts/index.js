@@ -9,7 +9,7 @@ $( document ).ready(function() {
             let tS = document.getElementById("totalSize_" + data.e + "_" + data.p.n + "_" + data.p.i);
             $(tS).text(data.tS + ' ' + data.p.n.split(data.p.s)[0]);
             let tA = document.getElementById("amountSpent_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(tA).text(data.tA + ' ' + data.p.n.split(data.p.s)[1]);
+            $(tA).text(data.tA + ' / ' + data.mA + ' ' + data.p.n.split(data.p.s)[1]);
             let rB = document.getElementById("rateBid_" + data.e + "_" + data.p.n + "_" + data.p.i);
             $(rB).text('Bid: ' + data.t.bid + ' ' + data.p.n.split(data.p.s)[1]);
             let rA = document.getElementById("rateAsk_" + data.e + "_" + data.p.n + "_" + data.p.i);
