@@ -250,8 +250,7 @@ let getOrder = async function (pair, id, type, openedOrder){
         }
         return {"s": true, "data": orderDetail};
     } else {
-        // getTransactionHistory error, repeat call
-        getOrder(pair, id, type, openedOrder);
+        return {"s": false, "data": rTH.data};
     }
 };
 
@@ -399,7 +398,13 @@ let getTransactionHistory = function (orderId ){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result.data});
+                    if (result.error) {
+                        console.error("coinmate getTransactionHistory");
+                        console.error(result);
+                        resolve({ s: 0, errorMessage: result.errorMessage });
+                    } else {
+                        resolve({ s: 1, data: result.data });
+                    }
                 } else {
                     console.error("coinmate getTransactionHistory");
                     console.error(body);

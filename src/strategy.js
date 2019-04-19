@@ -95,6 +95,9 @@ let doAskOrder = async function(){
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                 if(resultValidateOrder){
                     await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
+                } else {
+                    await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
+                    return false;
                 }
             } else {
                 logMessage += " ### We already have opened ask order at " + targetAsk + " skipping validateOrder\n";
@@ -208,6 +211,9 @@ let doBidOrder = async function (){
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                 if(resultValidateOrder){
                     await processBidOrder(pair, targetBid);
+                } else {
+                    await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
+                    return false;
                 }
             } else {
                 logMessage += " ### We already have opened bid order at " + targetBid + " skipping validateOrder\n";
@@ -313,6 +319,7 @@ async function validateOrder(type, id, pair, openedOrder){
             orderDetail = detailOrder.data;
         } else {
             logMessage +=  " !!! Something bad happened when validate canceled order "+id+" !\n";
+            return false
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
