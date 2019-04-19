@@ -206,7 +206,7 @@ let parsePusherTicker = function(type, book, pair, order){
 };
 
 let getOrder = async function (pair, id, type, openedOrder){
-    const rTH = await getTransactionHistory(id);
+    const rTH = await getTradeHistory(id);
     if(rTH.s){
         let orderDetail = new tools.orderDetailForm;
         orderDetail.id = id;
@@ -379,6 +379,40 @@ let sellLimitOrder = function (currencyPair, amount, price){
                 console.error(body);
                 console.error(e);
                 resolve({s:0, errorMessage: "sellLimitOrder"});
+            }
+        });
+    });
+};
+
+let getTradeHistory = function (orderId ){
+    return new Promise(function (resolve) {
+        request({
+            method: 'POST',
+            url: 'https://coinmate.io/api/tradeHistory',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: "orderId=" + orderId + "&" + sign()
+        }, function (error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    if (result.error) {
+                        console.error("coinmate getTradeHistory");
+                        console.error(result);
+                        resolve({ s: 0, errorMessage: result.errorMessage });
+                    } else {
+                        resolve({ s: 1, data: result.data });
+                    }
+                } else {
+                    console.error("coinmate getTradeHistory");
+                    console.error(body);
+                    resolve({s:0, data: result.errorMessage});
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+                resolve({s:0});
             }
         });
     });
