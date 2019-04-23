@@ -431,6 +431,20 @@ For example, if the fee for market maker trade is 0,12% your profit target must 
 Don't forget count with the situation when your order will be for market taker fee. Cover this situation you can set your profit target as doubled market taker fee.
 ```
 
+* "percentageBuySpread": 0,
+```
+This parameter will help you handle money management. You need define spread for new buy order from price of already filled buy order.
+Example BTC-EUR, percentageBuySpread": 1
+Your last order was filled for 1000, next buy order can be only for 990 and lower.
+
+If you set percentageBuySpread": 0, than will be used parameter "pipsBuySpread"
+
+This parameter combined with buySize/buyForAmount define how much orders with your balance can strategy handle before bot stop trading. In the best scenario, this never happened only if the market drops a lot.
+Then you have option add more funds to your exchange, or use (not existed yet) function for "close" oldest order in lose and funds used for a new order.
+ 
+If the drop is so big for example from 19000 USD to 3200 USD, why still hodl older order, when you can use those funds to make so many flips and make some profits back. This option will be manual. Or automated only if previous profits cover loose from closed lose order.
+```
+
 * "pipsBuySpread": 1,
 ```
 This parameter will help you handle money management. You need define spread for new buy order from price of already filled buy order.

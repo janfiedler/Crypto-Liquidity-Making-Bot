@@ -65,6 +65,11 @@ let takePipsFromPrice = function(price, pips, digits){
     return Math.round((price-(pips/Math.pow(10, digits)))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
+let getPercentageBuySpread = function(price, percentage, digits){
+    //Round a number down
+    return price-(Math.floor(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
+};
+
 let getProfitTargetPrice = function (price, percentage, digits){
     //Round a number upward
     return price+(Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
@@ -155,6 +160,7 @@ module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
     takePipsFromPrice: takePipsFromPrice,
+    getPercentageBuySpread: getPercentageBuySpread,
     getProfitTargetPrice: getProfitTargetPrice,
     getBuyOrderSize: getBuyOrderSize,
     convertPipsToPrice: convertPipsToPrice,

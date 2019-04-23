@@ -26,6 +26,7 @@ let config =
                         "ignoreOrderSize": 1,
                         "pipsAskBidSpread": 10,
                         "percentageProfitTarget": 0.12,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 10,
                         "sellOldestOrderWithLoss": false
                     },
@@ -43,6 +44,7 @@ let config =
                         "ignoreOrderSize": 0.0,
                         "pipsAskBidSpread": 100,
                         "percentageProfitTarget": 0.12,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 100,
                         "sellOldestOrderWithLoss": false
                     }
@@ -75,6 +77,7 @@ let config =
                         "ignoreOrderSize": 0.0001,
                         "pipsAskBidSpread": 2500,
                         "percentageProfitTarget": 0.5,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 10000,
                         "sellOldestOrderWithLoss": false
                     },
@@ -92,6 +95,7 @@ let config =
                         "ignoreOrderSize": 0.0001,
                         "pipsAskBidSpread": 100,
                         "percentageProfitTarget": 0.5,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 500,
                         "sellOldestOrderWithLoss": false
                     }
@@ -122,6 +126,7 @@ let config =
                         "ignoreOrderSize": 0,
                         "pipsAskBidSpread": 1,
                         "percentageProfitTarget": 0.4,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 15,
                         "sellOldestOrderWithLoss": false
                     },
@@ -139,6 +144,7 @@ let config =
                         "ignoreOrderSize": 0,
                         "pipsAskBidSpread": 1,
                         "percentageProfitTarget": 0.2,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 40,
                         "sellOldestOrderWithLoss": false
                     },
@@ -156,6 +162,7 @@ let config =
                         "ignoreOrderSize": 0,
                         "pipsAskBidSpread": 1,
                         "percentageProfitTarget": 0.5,
+                        "percentageBuySpread": 0,
                         "pipsBuySpread": 10,
                         "sellOldestOrderWithLoss": false
                     }

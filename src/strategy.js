@@ -278,7 +278,13 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
 
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
     if(lowestOrder){
-        const bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.pipsBuySpread, pair.digitsPrice);
+        let bidWithSpread;
+        if(pair.percentageBuySpread === 0){
+            bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.pipsBuySpread, pair.digitsPrice);
+        } else {
+            bidWithSpread = tools.getPercentageBuySpread(buyOrder.buy_price, pair.percentageBuySpread, pair.digitsPrice);
+        }
+
         if(targetBid > bidWithSpread){
             logMessage += " ### Target bid " +targetBid+" is higher than previous filled buy order with spread "+bidWithSpread+" !\n";
             targetBid = bidWithSpread;
