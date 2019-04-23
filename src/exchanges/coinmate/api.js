@@ -250,7 +250,7 @@ let getOrder = async function (pair, id, type, openedOrder){
         }
         return {"s": true, "data": orderDetail};
     } else {
-        return {"s": false, "data": rTH.data};
+        return {"s": false};
     }
 };
 
@@ -269,7 +269,11 @@ let cancelOrder = function (pair, id, type, openedOrder){
                 if (!error && response.statusCode === 200) {
                     if(result.data){
                         const detailCanceledOrder = await getOrder(pair, id, type, openedOrder);
-                        resolve({"s":1, "data": detailCanceledOrder.data});
+                        if(detailCanceledOrder.s){
+                            resolve({"s":1, "data": detailCanceledOrder.data});
+                        } else {
+                            resolve({"s":0, "data": {"error": "getOrder failed"}});
+                        }
                     } else {
                         resolve({"s":0, "data": {"error": "not found"}});
                     }
@@ -281,7 +285,7 @@ let cancelOrder = function (pair, id, type, openedOrder){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getTicker"}});
+                resolve({s:0, data: {error: "coinmate cancelOrder"}});
             }
         });
     });
