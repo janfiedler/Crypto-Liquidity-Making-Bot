@@ -5,3 +5,38 @@ body {
 a {
   color: #00B7FF;
 }
+
+tr {
+  line-height: 24px;
+}
+
+.freeze_order{
+  visibility:hidden;
+  width: 24px;
+  height: 24px;
+  display: block;
+  background-image: url("/images/frozen.png");
+  background-size: 24px 24px;
+}
+
+tbody tr:hover .freeze_order{
+  visibility:visible;
+}
+
+.frozen_order{
+  visibility:visible;
+  width: 24px;
+  height: 24px;
+  display: block;
+  background-image: url("/images/frozen.png");
+  background-size: 24px 24px;
+}
+
+tbody tr:hover .frozen_order{
+  visibility:visible;
+  width: 24px;
+  height: 24px;
+  display: block;
+  background-image: url("/images/unfreeze.png");
+  background-size: 24px 24px;
+}

@@ -158,7 +158,7 @@ let doBidOrder = async function (){
 
         //Get lowest already filled buy order = pending sell order
         const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.name, pair);
-        // Check for actual oepend buy order
+        // Check for actual opened buy order
         const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair);
         //Fetch actual prices from coinfalcon exchange
         const resultTicker = await api.getTicker(pair.name);
@@ -231,17 +231,19 @@ let doBidOrder = async function (){
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     const keysCount = Object.keys(ticker.ask).length;
     let targetAsk = 99999999;
-    if(!config.stickToBigOrders){
-        targetAsk = ticker.ask[0].price;
-    } else {
-        for(let i=0;i<keysCount;i++){
-            if ((i+2) >= keysCount){
-                break;
-            }
-            if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
-                logMessage += " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
-                targetAsk = ticker.ask[i].price;
-                break;
+    if(typeof ticker.ask[0].price !== 'undefined' && ticker.ask[0].price){
+        if(!config.stickToBigOrders){
+            targetAsk = ticker.ask[0].price;
+        } else {
+            for(let i=0;i<keysCount;i++){
+                if ((i+2) >= keysCount){
+                    break;
+                }
+                if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
+                    logMessage += " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
+                    targetAsk = ticker.ask[i].price;
+                    break;
+                }
             }
         }
     }
@@ -260,17 +262,19 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
 let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
     const keysCount = Object.keys(ticker.bid).length;
     let targetBid = 0;
-    if(firstOrder || !config.stickToBigOrders){
-        targetBid = ticker.bid[0].price;
-    } else {
-        for(let i=0;i<keysCount;i++){
-            if ((i+2) >= keysCount){
-                break
-            }
-            if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
-                logMessage += " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size+"\n";
-                targetBid = ticker.bid[i].price;
-                break;
+    if(typeof ticker.bid[0].price !== 'undefined' && ticker.bid[0].price){
+        if(firstOrder || !config.stickToBigOrders){
+            targetBid = ticker.bid[0].price;
+        } else {
+            for(let i=0;i<keysCount;i++){
+                if ((i+2) >= keysCount){
+                    break
+                }
+                if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
+                    logMessage += " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size+"\n";
+                    targetBid = ticker.bid[i].price;
+                    break;
+                }
             }
         }
     }

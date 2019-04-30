@@ -147,7 +147,7 @@ let deleteOpenedBuyOrder = function(id){
 
 let getLowestFilledBuyOrder = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = 0 ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -166,7 +166,7 @@ let getLowestFilledBuyOrder = function(exchange, pair){
 
 let getLowestSellTargetPrice = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = 0 ORDER BY sell_target_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -378,6 +378,19 @@ let updateProfit = function(profit, sell_id){
     });
 };
 
+let setFreeze = function(id, state){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET frozen = ? WHERE buy_id = ? AND status = ?;`, state, id, "sell", function(err) {
+            if (err) {
+                console.error(err.message);
+                resolve(0);
+            } else {
+                resolve(1);
+            }
+        })
+    });
+};
+
 let close = function() {
     return new Promise(function (resolve) {
         db.close((err) => {
@@ -417,5 +430,7 @@ module.exports = {
     getAllCompletedOrders: getAllCompletedOrders,
     getCompletedOrder: getCompletedOrder,
     updateProfit: updateProfit,
+    setFreeze: setFreeze,
+
     close: close
 };
