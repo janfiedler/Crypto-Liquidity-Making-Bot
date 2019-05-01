@@ -230,6 +230,10 @@ let getOrder = async function (pair, id, type, openedOrder){
             console.error(openedOrder);
             console.error("id: " + id);
         } else if(rTH.data.length > 0){
+            orderDetail.price = parseFloat(rTH.data[0].price);
+            if(type === "BUY"){
+                orderDetail.funds = tools.setPrecision(orderDetail.price*openedOrder.buy_size, pair.digitsPrice);
+            }
             for(let i=0;i<rTH.data.length;i++){
                 orderDetail.size_filled += rTH.data[i].amount;
                 orderDetail.fee += rTH.data[i].fee;
@@ -512,6 +516,7 @@ module.exports = {
     getTicker: getTicker,
     parseTicker: parseTicker,
     getOrder: getOrder,
+    getTradeHistory: getTradeHistory,
     cancelOrder: cancelOrder,
     createOrder: createOrder,
 };

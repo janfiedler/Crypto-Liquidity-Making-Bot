@@ -61,16 +61,11 @@ $( document ).ready(function() {
     function emitFreeze(event, type, id){
         ws.emit(type, {orderId:id}, function (data) {
             if (data.done === 1) {
-                //Remove current row
+                //Remove selected tr row
                 event.currentTarget.parentNode.parentElement.remove();
-                console.log("Authorized");
-                if(type === "freezeOrder"){
-
-                } else if(type === "freezeOrder"){
-
-                }
+                console.log("Freeze Authorized");
             } else {
-                console.log("Unauthorized");
+                console.log("Freeze Unauthorized");
             }
         });
     }
