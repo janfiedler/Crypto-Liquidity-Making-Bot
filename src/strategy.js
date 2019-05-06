@@ -515,6 +515,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         logMessage += " !!! No available " + pair.name.split(pair.separator)[0] + " funds!\n";
         return false;
     } else if (targetAsk >= pendingSellOrder.sell_target_price) {
+        //When we hit taker fee on buy order, we can have negative profit. Place sell order only if final profit is bigger than 0
         if(pair.sellOldestOrderWithLoss || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
             logMessage += " ### Let´go open new sell order!\n";
             const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
@@ -533,6 +534,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             }
         } else {
             logMessage += " !!! Canceled, profit is < 0 for pendingSellOrder at current targetAsk!\n";
+            logMessage += JSON.stringify(pendingSellOrder)+"\n";
             return false;
         }
     } else {
