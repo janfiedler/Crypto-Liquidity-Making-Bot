@@ -514,20 +514,25 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
     } else if (myAccount.available[pair.name.split(pair.separator)[0]] < pendingSellOrder.sell_size) {
         logMessage += " !!! No available " + pair.name.split(pair.separator)[0] + " funds!\n";
         return false;
-    } else if (pendingSellOrder.sell_target_price <= targetAsk) {
-        logMessage += " ### Let´go open new sell order!\n";
-        const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
-        apiCounter++;
-        if(createdOrder.s){
-            myAccount.available[pair.name.split(pair.separator)[0]] -= createdOrder.data.size;
-            await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
-            return false;
-        } else {
-            if(createdOrder.errorMessage.includes("insufficient size") || createdOrder.errorMessage.includes("Filter failure: MIN_NOTIONAL")){
-                const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
-                await db.setFailedSellOrder(failedSellOrder);
-                logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
+    } else if (targetAsk >= pendingSellOrder.sell_target_price) {
+        if(pair.sellOldestOrderWithLoss || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
+            logMessage += " ### Let´go open new sell order!\n";
+            const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
+            apiCounter++;
+            if(createdOrder.s){
+                myAccount.available[pair.name.split(pair.separator)[0]] -= createdOrder.data.size;
+                await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
+                return false;
+            } else {
+                if(createdOrder.errorMessage.includes("insufficient size") || createdOrder.errorMessage.includes("Filter failure: MIN_NOTIONAL")){
+                    const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
+                    await db.setFailedSellOrder(failedSellOrder);
+                    logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
+                }
+                return false;
             }
+        } else {
+            logMessage += " !!! Canceled, profit is < 0 for pendingSellOrder at current targetAsk!\n";
             return false;
         }
     } else {

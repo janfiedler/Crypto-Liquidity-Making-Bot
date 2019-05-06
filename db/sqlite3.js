@@ -307,7 +307,7 @@ let countOpenOrders = function(){
 
 let sumProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
-        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND completed_at like ?`, exchange, pair, pairId, "completed", date, (err, row) => {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND completed_at like ?`, exchange, pair, pairId, "completed", "collection", "withdraw", date, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {

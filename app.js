@@ -23,6 +23,15 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 const cmmb = require('./src/index');
+/*
+const coinmate = require('./src/exchanges/coinmate/api');
+(async function () {
+  let config = require('./config');
+  coinmate.setConfig(config.exchanges[1]);
+  const resto = await coinmate.getTradeHistory();
+  console.log(resto);
+})();
+*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

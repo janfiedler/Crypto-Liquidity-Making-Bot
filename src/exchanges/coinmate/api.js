@@ -418,6 +418,7 @@ let getTradeHistory = function (orderId ){
                     resolve({s:0, data: result.errorMessage});
                 }
             } catch (e) {
+                console.error("getTradeHistory:");
                 console.error(body);
                 console.error(e);
                 resolve({s:0});

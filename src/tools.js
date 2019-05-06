@@ -128,7 +128,7 @@ let calculateProfit = function(exchange, completedOrder){
     return profit;
 };
 
-let calculatePendingProfit = function(exchange, pendingOrder, sellPrice){
+let calculatePendingProfit = function(pendingOrder, sellPrice){
     if(pendingOrder.buy_fee < 0){
         pendingOrder.buy_fee = 0;
     }
@@ -156,6 +156,25 @@ let getAmountSpent = async function(db, exchange, pair){
         resolve(totalAmount);
     });
 };
+
+/*
+const completedOrders = await db.getAllCompletedOrders();
+console.log(completedOrders.length);
+let totalProfit = 0;
+let totalLossProfit = 0;
+completedOrders.forEach(function(row) {
+    const profit = tools.calculateProfit(row.exchange, row);
+    //db.updateProfit(profit, row.sell_id);
+    if(profit < 0 && row.exchange === "coinmate" && row.pair === "BTC_CZK"){
+        totalLossProfit += profit;
+    } else if(profit > 0 && row.exchange === "coinmate" && row.pair === "BTC_CZK") {
+        totalProfit += profit;
+    }
+});
+console.log(totalProfit);
+console.log(totalLossProfit);
+*/
+
 module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
