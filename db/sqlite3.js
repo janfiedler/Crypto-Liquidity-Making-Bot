@@ -235,7 +235,7 @@ let deleteOpenedSellOrder = function(id){
 
 let setPendingSellOrder = function(data, sell_target_price){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET status = ?, buy_status = ?, buy_filled = ?, buy_fee = ?, sell_status = ?, sell_target_price = ?, sell_size = ? WHERE buy_id= ?;`, "sell", data.status, data.size_filled, data.fee, "pending", sell_target_price, data.size_filled, data.id, function(err) {
+        db.run(`UPDATE orders SET status = ?, buy_price = ?, buy_status = ?, buy_filled = ?, buy_fee = ?, sell_status = ?, sell_target_price = ?, sell_size = ? WHERE buy_id= ?;`, "sell", data.price, data.status, data.size_filled, data.fee, "pending", sell_target_price, data.size_filled, data.id, function(err) {
             if (err) {
                 console.error(err.message);
             } else {
