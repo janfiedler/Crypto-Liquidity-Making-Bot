@@ -514,6 +514,10 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
     } else if (myAccount.available[pair.name.split(pair.separator)[0]] < pendingSellOrder.sell_size) {
         logMessage += " !!! No available " + pair.name.split(pair.separator)[0] + " funds!\n";
         return false;
+    } else if(pendingSellOrder.sell_size === 0){
+        const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
+        await db.setFailedSellOrder(failedSellOrder);
+        logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
     } else if (targetAsk >= pendingSellOrder.sell_target_price) {
         //When we hit taker fee on buy order, we can have negative profit. Place sell order only if final profit is bigger than 0
         if(pair.sellOldestOrderWithLoss || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
