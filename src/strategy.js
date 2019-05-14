@@ -520,7 +520,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
     } else if (targetAsk >= pendingSellOrder.sell_target_price) {
         //When we hit taker fee on buy order, we can have negative profit. Place sell order only if final profit is bigger than 0
-        if(pair.sellOldestOrderWithLoss || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
+        if(pendingSellOrder.sell_target_price === 0 || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
             logMessage += " ### Let´go open new sell order!\n";
             const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
             apiCounter++;
@@ -546,7 +546,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         if(pair.sellOldestOrderWithLoss && pair.bagHolderLimit > 0){
             const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
             if(resultTotalSellSize >= pair.bagHolderLimit){
-                logMessage += " $$$ Sell the oldest order with a loss, if the bag holder limit was reached!\n";
+                logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
                 const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                 logMessage += JSON.stringify(forSell)+"\n";
             }
