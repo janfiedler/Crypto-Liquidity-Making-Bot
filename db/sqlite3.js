@@ -185,7 +185,7 @@ let getLowestSellTargetPrice = function(exchange, pair){
 
 let setOldestOrderWithLossForSell = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 0, 1, (err, row) => {
             if (err) {
                 console.error(err.message);
                 resolve({"error": err.message});
