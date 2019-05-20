@@ -65,6 +65,10 @@ let takePipsFromPrice = function(price, pips, digits){
     return Math.round((price-(pips/Math.pow(10, digits)))*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
+let getPercentage = function (percentage, value, digits){
+    return Math.floor(((percentage / 100) * value)*Math.pow(10,digits))/Math.pow(10, digits);
+};
+
 let getPercentageBuySpread = function(price, percentage, digits){
     //Round a number down
     return price-(Math.floor(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
@@ -90,10 +94,15 @@ let setPrecisionDown = function(value, digits){
     return Math.floor(value*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
-let getBuyOrderSize = function(pair, price){
-    let size = pair.buySize;
-    if(size === 0){
-        size = setPrecisionDown((pair.buyForAmount/price), pair.digitsSize);
+let getBuyOrderSize = function(pair, availableBalance, price){
+    let size = 0;
+    if(pair.moneyManagement.buyPercentageAvailableBalance.active){
+        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, availableBalance, pair.digitsPrice);
+        size = setPrecisionDown((fundValue/price), pair.digitsSize);
+    } else if(pair.moneyManagement.buyForAmount.active){
+        size = setPrecisionDown((pair.moneyManagement.buyForAmount.value/price), pair.digitsSize);
+    } else if (pair.moneyManagement.buySize.active){
+        size = pair.moneyManagement.buySize.value;
     }
     return size;
 };
@@ -179,6 +188,7 @@ module.exports = {
     parseBalance: parseBalance,
     addPipsToPrice: addPipsToPrice,
     takePipsFromPrice: takePipsFromPrice,
+    getPercentage: getPercentage,
     getPercentageBuySpread: getPercentageBuySpread,
     getProfitTargetPrice: getProfitTargetPrice,
     getBuyOrderSize: getBuyOrderSize,

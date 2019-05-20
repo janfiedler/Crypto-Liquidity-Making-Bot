@@ -19,16 +19,39 @@ let config =
                         "separator": "-",
                         "digitsPrice": 4,
                         "digitsSize": 5,
-                        "bagHolderLimit": 0,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 10,
-                        "ignoreOrderSize": 1,
-                        "pipsAskBidSpread": 10,
-                        "percentageProfitTarget": 0.12,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 10,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": false,
+                                "value": 1,
+                                "budgetLimit": 1000
+                            },
+                            "buyForAmount": {
+                                "active": true,
+                                "value": 15,
+                                "budgetLimit": 150
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.5,
+                            "pipsAskBidSpread": 1
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0.001,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 2500
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     },
                     {
                         "name": "BTC-EUR",
@@ -37,16 +60,39 @@ let config =
                         "separator": "-",
                         "digitsPrice": 2,
                         "digitsSize": 8,
-                        "bagHolderLimit": 0,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 20,
-                        "ignoreOrderSize": 0.0,
-                        "pipsAskBidSpread": 100,
-                        "percentageProfitTarget": 0.12,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 100,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": false,
+                                "value": 1,
+                                "budgetLimit": 1000
+                            },
+                            "buyForAmount": {
+                                "active": true,
+                                "value": 15,
+                                "budgetLimit": 150
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.5,
+                            "pipsAskBidSpread": 1
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0.001,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 2500
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     }
                 ]
             },
@@ -70,16 +116,39 @@ let config =
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
-                        "bagHolderLimit": 0,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 50,
-                        "ignoreOrderSize": 0.0001,
-                        "pipsAskBidSpread": 2500,
-                        "percentageProfitTarget": 0.5,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 10000,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": true,
+                                "value": 1,
+                                "budgetLimit": 100000
+                            },
+                            "buyForAmount": {
+                                "active": false,
+                                "value": 1000,
+                                "budgetLimit": 100000
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.25,
+                            "pipsAskBidSpread": 1
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0.001,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 6000
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     },
                     {
                         "name": "BTC_EUR",
@@ -88,16 +157,39 @@ let config =
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
-                        "bagHolderLimit": 0,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 5,
-                        "ignoreOrderSize": 0.0001,
-                        "pipsAskBidSpread": 100,
-                        "percentageProfitTarget": 0.5,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 500,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": true,
+                                "value": 1,
+                                "budgetLimit": 1000
+                            },
+                            "buyForAmount": {
+                                "active": false,
+                                "value": 10,
+                                "budgetLimit": 1000
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.25,
+                            "pipsAskBidSpread": 1
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0.001,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 2400
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     }
                 ]
             },
@@ -119,16 +211,39 @@ let config =
                         "separator": "-",
                         "digitsPrice": 8,
                         "digitsSize": 0,
-                        "bagHolderLimit": 400,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 0.001,
-                        "ignoreOrderSize": 0,
-                        "pipsAskBidSpread": 1,
-                        "percentageProfitTarget": 0.4,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 15,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": false,
+                                "value": 1,
+                                "budgetLimit": 1
+                            },
+                            "buyForAmount": {
+                                "active": true,
+                                "value": 0.0011,
+                                "budgetLimit": 0.18
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.3,
+                            "pipsAskBidSpread": 0.3
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 50
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     },
                     {
                         "name": "BNB-BTC",
@@ -137,34 +252,39 @@ let config =
                         "separator": "-",
                         "digitsPrice": 7,
                         "digitsSize": 2,
-                        "bagHolderLimit": 0.25,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 0.001,
-                        "ignoreOrderSize": 0,
-                        "pipsAskBidSpread": 1,
-                        "percentageProfitTarget": 0.2,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 40,
-                        "sellOldestOrderWithLoss": false
-                    },
-                    {
-                        "name": "PIVX-BTC",
-                        "id": 3,
-                        "active": true,
-                        "separator": "-",
-                        "digitsPrice": 7,
-                        "digitsSize": 2,
-                        "bagHolderLimit": 1,
-                        "buySize": 0,
-                        "budgetLimit": 0,
-                        "buyForAmount": 0.001,
-                        "ignoreOrderSize": 0,
-                        "pipsAskBidSpread": 1,
-                        "percentageProfitTarget": 0.5,
-                        "percentageBuySpread": 0,
-                        "pipsBuySpread": 10,
-                        "sellOldestOrderWithLoss": false
+                        "moneyManagement": {
+                            "buyPercentageAvailableBalance": {
+                                "active": false,
+                                "value": 1,
+                                "budgetLimit": 1
+                            },
+                            "buyForAmount": {
+                                "active": true,
+                                "value": 0.0011,
+                                "budgetLimit": 0.11
+                            },
+                            "buySize": {
+                                "active": false,
+                                "value": 0,
+                                "bagHolderLimit": 0
+                            },
+                            "percentageProfitTarget": 0.3,
+                            "pipsAskBidSpread": 0.3
+                        },
+                        "strategy": {
+                            "ignoreOrderSize": 0,
+                            "buySpread": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.05
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 50
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false
+                        }
                     }
                 ]
             }

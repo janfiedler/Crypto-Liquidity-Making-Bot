@@ -193,11 +193,11 @@ let cancelOrder = function(pair, id, type, openedOrder){
     });
 };
 
-let createOrder = async function(pair, type, pendingSellOrder, price){
+let createOrder = async function(pair, type, pendingSellOrder, availableBalance, price){
         let size = "";
         switch(type){
             case "BUY":
-                size = tools.getBuyOrderSize(pair, price).toString();
+                size = tools.getBuyOrderSize(pair, availableBalance, price).toString();
                 if(size > 0){
                     return await limitOrder(type, pair.name, size, price);
                 } else {
@@ -275,11 +275,11 @@ let parseTicker = function(type, orders, pair, order){
         if(type === "ask"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(orders.data.asks[i].price) === order.sell_price){
                 const askSizeDiff = (parseFloat(orders.data.asks[i].size)-order.sell_size);
-                if( askSizeDiff > pair.ignoreOrderSize){
+                if( askSizeDiff > pair.strategy.ignoreOrderSize){
                     ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
                 }
-            } else if( parseFloat(orders.data.asks[i].size) > pair.ignoreOrderSize){
+            } else if( parseFloat(orders.data.asks[i].size) > pair.strategy.ignoreOrderSize){
                 ticks.ask.push({price: parseFloat(orders.data.asks[i].price), size: parseFloat(orders.data.asks[i].size)});
                 ii++;
             }
@@ -295,13 +295,13 @@ let parseTicker = function(type, orders, pair, order){
         if(type === "bid"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(orders.data.bids[i].price) === order.buy_price){
                 const bidSizeDiff = (parseFloat(orders.data.bids[i].size)-order.buy_size);
-                if( bidSizeDiff > pair.ignoreOrderSize){
+                if( bidSizeDiff > pair.strategy.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
                     //console.log("My position "+orders.data.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
-            } else if(parseFloat(orders.data.bids[i].size) > pair.ignoreOrderSize){
+            } else if(parseFloat(orders.data.bids[i].size) > pair.strategy.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(orders.data.bids[i].price), size: parseFloat(orders.data.bids[i].size)});
                 ii++;
             }

@@ -127,28 +127,45 @@ let doBidOrder = async function (){
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
-        } else if (config.pairs[i].bagHolderLimit > 0 && config.pairs[i].bagHolderLimit <= await db.getTotalSellSize(config.name, config.pairs[i]) ){
-            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum bag holder limit. We do not need to buy more.\n";
-            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                config.debug && console.log("\r\n"+logMessage);
-                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+        } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBalance.active){
+            if (config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
             }
-            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-            await tools.sleep(1);
-            continue;
-        } else if (config.pairs[i].budgetLimit > 0 && config.pairs[i].budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                config.debug && console.log("\r\n"+logMessage);
-                lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+        } else if(config.pairs[i].moneyManagement.buyForAmount.active){
+            if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
             }
-            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-            await tools.sleep(1);
-            continue;
+        } else if(config.pairs[i].moneyManagement.buySize.active){
+            if (config.pairs[i].moneyManagement.buySize.bagHolderLimit > 0 && config.pairs[i].moneyManagement.buySize.bagHolderLimit <= await db.getTotalSellSize(config.name, config.pairs[i]) ){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum bag holder limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
+            }
         }
         let pair = config.pairs[i];
         apiCounter = 0;
@@ -249,7 +266,7 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     }
     targetAsk = tools.takePipsFromPrice(targetAsk, 1, pair.digitsPrice);
     //Validate if new target ask is not close to bid order or taking bid order.
-    const bidBorderPipsSpreadFromAsk = tools.addPipsToPrice(ticker.bidBorder, pair.pipsAskBidSpread, pair.digitsPrice);
+    const bidBorderPipsSpreadFromAsk = tools.addPipsToPrice(ticker.bidBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
     if(targetAsk < bidBorderPipsSpreadFromAsk) {
         logMessage += "### New target ask "+targetAsk+" is in danger zone bid border "+ticker.bidBorder+", targetAsk = bidBorderPipsSpreadFromAsk: "+bidBorderPipsSpreadFromAsk+"\n";
         targetAsk = bidBorderPipsSpreadFromAsk;
@@ -283,10 +300,10 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
     if(lowestOrder){
         let bidWithSpread;
-        if(pair.percentageBuySpread === 0){
-            bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.pipsBuySpread, pair.digitsPrice);
-        } else {
-            bidWithSpread = tools.getPercentageBuySpread(buyOrder.buy_price, pair.percentageBuySpread, pair.digitsPrice);
+        if(pair.strategy.buySpread.percentage.active){
+            bidWithSpread = tools.getPercentageBuySpread(buyOrder.buy_price, pair.strategy.buySpread.percentage.value, pair.digitsPrice);
+        } else if(pair.strategy.buySpread.pips.active){
+            bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.strategy.buySpread.pips.value, pair.digitsPrice);
         }
 
         if(targetBid > bidWithSpread){
@@ -302,7 +319,7 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
     }
 
     //Validate if new target ask is not close to bid order or taking bid order.
-    const askBorderPipsSpreadFromBid = tools.takePipsFromPrice(ticker.askBorder, pair.pipsAskBidSpread, pair.digitsPrice);
+    const askBorderPipsSpreadFromBid = tools.takePipsFromPrice(ticker.askBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
     if(targetBid > askBorderPipsSpreadFromBid) {
         logMessage += " ### New target bid "+targetBid+" is in danger zone of ask border "+ticker.askBorder+". Target bid = askBorderPipsSpreadFromBid: "+ askBorderPipsSpreadFromBid+"\n";
         targetBid = askBorderPipsSpreadFromBid;
@@ -354,8 +371,8 @@ async function validateOrder(type, id, pair, openedOrder){
                 myAccount.available[pair.name.split(pair.separator)[0]] += orderDetail.size;
                 await db.deleteOpenedSellOrder(orderDetail.id);
                 //If canceled sell older was set for sell in loose, reset sell_target_price for new round for case we can sell another pending sell older in profit.
-                if(pair.sellOldestOrderWithLoss && openedOrder.sell_target_price === 0){
-                    const sell_target_price = tools.getProfitTargetPrice(openedOrder.buy_price, pair.percentageProfitTarget, pair.digitsPrice);
+                if(pair.strategy.sellOldestOrderWithLoss && openedOrder.sell_target_price === 0){
+                    const sell_target_price = tools.getProfitTargetPrice(openedOrder.buy_price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
                     logMessage += " $$$ Set again profit target: " + sell_target_price + " \n";
                     logMessage += JSON.stringify(openedOrder)+"\n";
                     await db.setSellTargetPrice(config.name, pair, openedOrder.buy_id, sell_target_price);
@@ -367,7 +384,7 @@ async function validateOrder(type, id, pair, openedOrder){
         // Order was fulfilled
         switch(orderDetail.type){
             case "BUY":
-                const sell_target_price = tools.getProfitTargetPrice(orderDetail.price, pair.percentageProfitTarget, pair.digitsPrice);
+                const sell_target_price = tools.getProfitTargetPrice(orderDetail.price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
                 await db.setPendingSellOrder(orderDetail, sell_target_price);
                 break;
             case "SELL":
@@ -381,7 +398,7 @@ async function validateOrder(type, id, pair, openedOrder){
         // Order was partially_filled
         switch(orderDetail.type){
             case "BUY":
-                const sell_target_price = tools.getProfitTargetPrice(orderDetail.price, pair.percentageProfitTarget, pair.digitsPrice);
+                const sell_target_price = tools.getProfitTargetPrice(orderDetail.price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
                 await db.setPendingSellOrder(orderDetail, sell_target_price);
                 break;
             case "SELL":
@@ -522,7 +539,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         //When we hit taker fee on buy order, we can have negative profit. Place sell order only if final profit is bigger than 0
         if(pendingSellOrder.sell_target_price === 0 || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
             logMessage += " ### Let´go open new sell order!\n";
-            const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, targetAsk);
+            const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, null, targetAsk);
             apiCounter++;
             if(createdOrder.s){
                 myAccount.available[pair.name.split(pair.separator)[0]] -= createdOrder.data.size;
@@ -543,17 +560,24 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         }
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
-        if(pair.sellOldestOrderWithLoss && pair.bagHolderLimit > 0){
-            const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
-            if(resultTotalSellSize >= pair.bagHolderLimit){
-                logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
+        if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
+            const totalAmount = await tools.getAmountSpent(db, config.name, pair);
+            if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                 const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                 logMessage += JSON.stringify(forSell)+"\n";
             }
-        } else if(pair.sellOldestOrderWithLoss && pair.budgetLimit > 0){
+        } else if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buyForAmount.active && pair.moneyManagement.buyForAmount.budgetLimit > 0){
             const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-            if(totalAmount >= pair.budgetLimit){
+            if(totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
                 logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
+                const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                logMessage += JSON.stringify(forSell)+"\n";
+            }
+        } else if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.bagHolderLimit > 0){
+            const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
+            if(resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
                 const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                 logMessage += JSON.stringify(forSell)+"\n";
             }
@@ -566,12 +590,12 @@ async function processBidOrder(pair, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < tools.setPrecisionUp((tools.getBuyOrderSize(pair, targetBid)*targetBid), pair.digitsPrice)){
+    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < tools.setPrecisionUp((tools.getBuyOrderSize(pair, myAccount.available[pair.name.split(pair.separator)[1]],targetBid)*targetBid), pair.digitsPrice)){
         logMessage += " !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {
         logMessage += " ### Let´go open new buy order!\n";
-        const createdOrder = await api.createOrder(pair,"BUY",null, targetBid);
+        const createdOrder = await api.createOrder(pair,"BUY",null, myAccount.available[pair.name.split(pair.separator)[1]], targetBid);
         if(createdOrder.s){
             apiCounter++;
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;

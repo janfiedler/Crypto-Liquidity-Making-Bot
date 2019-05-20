@@ -104,11 +104,11 @@ let parseTicker = function(type, book, pair, order){
         if(type === "ask"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.asks[i][0]) === order.sell_price){
                 const askSizeDiff = (parseFloat(book.asks[i][1])-order.sell_size);
-                if( askSizeDiff > pair.ignoreOrderSize){
+                if( askSizeDiff > pair.strategy.ignoreOrderSize){
                     ticks.ask.push({price: parseFloat(book.asks[i][0]), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
                     ii++;
                 }
-            } else if( parseFloat(book.asks[i][1]) > pair.ignoreOrderSize){
+            } else if( parseFloat(book.asks[i][1]) > pair.strategy.ignoreOrderSize){
                 ticks.ask.push({price: parseFloat(book.asks[i][0]), size: parseFloat(book.asks[i][1])});
                 ii++;
             }
@@ -124,13 +124,13 @@ let parseTicker = function(type, book, pair, order){
         if(type === "bid"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) === order.buy_price){
                 const bidSizeDiff = (parseFloat(book.bids[i][1])-order.buy_size);
-                if( bidSizeDiff > pair.ignoreOrderSize){
+                if( bidSizeDiff > pair.strategy.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(book.bids[i][0]), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
                 } else {
                     //console.log("My position "+book.bids[i][0]+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
-            } else if(parseFloat(book.bids[i][1]) > pair.ignoreOrderSize){
+            } else if(parseFloat(book.bids[i][1]) > pair.strategy.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
                 ii++;
             }
@@ -141,11 +141,11 @@ let parseTicker = function(type, book, pair, order){
     return ticks;
 };
 
-let createOrder = async function(pair, type, pendingSellOrder, price){
+let createOrder = async function(pair, type, pendingSellOrder, availableBalance, price){
     let size = "";
     switch(type){
         case "BUY":
-            size = tools.getBuyOrderSize(pair, price).toString();
+            size = tools.getBuyOrderSize(pair, availableBalance, price).toString();
             if(size > 0){
                 return await limitOrder(type, pair, size, price);
             } else {
