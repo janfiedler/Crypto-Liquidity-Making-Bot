@@ -383,9 +383,9 @@ let setFreeze = function(id, state){
         db.run(`UPDATE orders SET frozen = ? WHERE buy_id = ? AND status = ?;`, state, id, "sell", function(err) {
             if (err) {
                 console.error(err.message);
-                resolve(0);
+                resolve(false);
             } else {
-                resolve(1);
+                resolve(true);
             }
         })
     });
