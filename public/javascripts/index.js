@@ -65,7 +65,7 @@ $( document ).ready(function() {
 
     function emitFreeze(event, type, id){
         ws.emit(type, {orderId:id}, function (data) {
-            if (data.done === 1) {
+            if (data.done) {
                 //Remove selected tr row
                 event.currentTarget.parentNode.parentElement.remove();
                 console.log("Freeze Authorized");
@@ -89,7 +89,7 @@ $( document ).ready(function() {
 
     function emitKill(event, type, id){
         ws.emit(type, {orderId:id}, function (data) {
-            if (data.done === 1) {
+            if (data.done) {
                 //Remove selected tr row
                 event.currentTarget.parentNode.parentElement.remove();
                 console.log("Kill order Authorized");
