@@ -10,33 +10,50 @@ tr {
   line-height: 24px;
 }
 
-.freeze_order{
-  visibility:hidden;
-  width: 24px;
-  height: 24px;
-  display: block;
-  background-image: url("/images/frozen.png");
-  background-size: 24px 24px;
+
+tbody tr .action > * {
+  visibility: hidden;
+}
+tbody tr:hover .action > * {
+  visibility:visible;
 }
 
-tbody tr:hover .freeze_order{
-  visibility:visible;
+.freeze_order{
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  background-image: url("/images/frozen.png");
+  background-size: 24px 24px;
 }
 
 .frozen_order{
-  visibility:visible;
+  display: inline-block;
   width: 24px;
   height: 24px;
-  display: block;
-  background-image: url("/images/frozen.png");
+  margin-right: 10px;
+  background-image: url("/images/unfreeze.png");
   background-size: 24px 24px;
 }
 
-tbody tr:hover .frozen_order{
+.kill_order{
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("/images/kill_off.png");
+  background-size: 24px 24px;
+}
+
+tbody tr .kill_order:hover{
+  background-image: url("/images/kill.png");
+  background-size: 24px 24px;
+}
+
+.kill_order_active{
+  display: inline-block;
   visibility:visible;
   width: 24px;
   height: 24px;
-  display: block;
-  background-image: url("/images/unfreeze.png");
+  background-image: url("/images/kill.png");
   background-size: 24px 24px;
 }

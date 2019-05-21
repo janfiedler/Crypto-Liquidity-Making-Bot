@@ -220,7 +220,7 @@ let config =
                             "buyForAmount": {
                                 "active": true,
                                 "value": 0.0011,
-                                "budgetLimit": 0.18
+                                "budgetLimit": 0.011
                             },
                             "buySize": {
                                 "active": false,

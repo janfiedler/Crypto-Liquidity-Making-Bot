@@ -75,6 +75,11 @@ io.on('connection', function (socket) {
         const resultFreeze = await db.setFreeze(data.orderId, 0);
         fn({done:resultFreeze});
     });
+
+    socket.on('killOrder', async function (data, fn) {
+        const resultKill = await db.killOrder(data.orderId);
+        fn({done:resultKill});
+    });
 });
 
 module.exports = websocket;

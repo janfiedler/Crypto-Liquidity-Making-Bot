@@ -391,6 +391,19 @@ let setFreeze = function(id, state){
     });
 };
 
+let killOrder = function(id, state){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET sell_target_price = 0 WHERE buy_id = ? AND status = ? AND sell_status = ?;`, id, "sell", "pending", function(err) {
+            if (err) {
+                console.error(err.message);
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        })
+    });
+};
+
 let close = function() {
     return new Promise(function (resolve) {
         db.close((err) => {
@@ -431,6 +444,6 @@ module.exports = {
     getCompletedOrder: getCompletedOrder,
     updateProfit: updateProfit,
     setFreeze: setFreeze,
-
+    killOrder: killOrder,
     close: close
 };
