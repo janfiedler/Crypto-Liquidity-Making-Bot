@@ -15,7 +15,9 @@ let setGetOrdersListByPusher = function(){
             const pair = config.pairs[i].name;
             pusher_order_book[pair] = coinmatePusher.subscribe('order_book-' + pair);
             pusher_order_book[pair].bind('order_book', function(data) {
-                console.log("New data for " + pair);
+                if(config.debug){
+                    console.log("New data for " + pair);
+                }
                 order_book[pair] = data;
             });
         }
