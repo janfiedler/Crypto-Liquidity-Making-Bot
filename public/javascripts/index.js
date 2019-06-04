@@ -16,6 +16,8 @@ $( document ).ready(function() {
             $(rA).text('Ask: ' + data.t.ask + ' ' + data.p.n.split(data.p.s)[1]);
 
             $(tbody).find('tr').remove();
+            let totalPl = 0;
+            let totalOpenOrders = 0;
             data.pO.forEach(function(order){
                 let plColor = "class='text-danger'";
                 let ico_frozen = "<span class='freeze_order' title='Freeze order'></span>";
@@ -30,9 +32,11 @@ $( document ).ready(function() {
                 if(order.sell_target_price === 0){
                     ico_kill = "<span class='kill_order_active'  title='Kill order active'></span>";
                 }
-
+                totalPl += order.pl;
+                totalOpenOrders++;
                 $(tbody).append('<tr><td>'+order.buy_id+'</td><td>'+order.buy_price+'</td><td>'+order.sell_size+'</td><td>'+order.sell_target_price+'</td><td>'+order.oA+' '+data.p.n.split(data.p.s)[1]+'</td><td '+plColor+'><strong>'+order.pl+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
             });
+            $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+setPrecision(totalPl, data.d)+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td></td></tr>');
         }
     });
 
@@ -62,6 +66,10 @@ $( document ).ready(function() {
     }
     $(this).on("click", ".freeze_order", freezeHandler);
     $(this).on("click", ".frozen_order", freezeHandler);
+
+    function setPrecision(value, digits){
+        return Math.round(value*Math.pow(10, digits))/Math.pow(10, digits);
+    }
 
     function emitFreeze(event, type, id){
         ws.emit(type, {orderId:id}, function (data) {
