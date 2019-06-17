@@ -99,6 +99,9 @@ let getBuyOrderSize = function(pair, availableBalance, price){
     if(pair.moneyManagement.buyPercentageAvailableBalance.active){
         const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, availableBalance, pair.digitsPrice);
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
+    } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
+        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBudget.value, availableBalance, pair.digitsPrice);
+        size = setPrecisionDown((fundValue/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyForAmount.active){
         size = setPrecisionDown((pair.moneyManagement.buyForAmount.value/price), pair.digitsSize);
     } else if (pair.moneyManagement.buySize.active){
@@ -113,7 +116,7 @@ let sleep = function (ms){
     })
 };
 let orderDetailForm  = function(){
-   return {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0, "status": ""};
+    return {"id": "", "pair": "", "type": "", "funds": 0, "price": 0,  "size": 0, "size_filled": 0, "fee": 0, "status": ""};
 };
 let orderCreatedForm = function(){
     return {"id": "", "price": 0, "size": 0, "funds": 0, "created_at": new Date().toISOString()};
