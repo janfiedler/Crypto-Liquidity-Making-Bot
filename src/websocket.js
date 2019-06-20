@@ -33,7 +33,7 @@ websocket.emitPendingOrders = async function(data){
             const orderAmount = (po[i].buy_price * po[i].sell_size);
             totalAmount += orderAmount;
             const pl = tools.calculatePendingProfit(po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice+2));
-            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": tools.setPrecision(po[i].sell_size, data.pair.digitsSize), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice), "f": po[i].frozen});
+            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": tools.setPrecision(po[i].sell_size, data.pair.digitsSize), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice+2), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice), "f": po[i].frozen});
         }
         let budgetLimit = 0;
         if(data.pair.moneyManagement.buyPercentageAvailableBalance.active){
