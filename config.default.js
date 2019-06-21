@@ -33,7 +33,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.5,
                             "pipsAskBidSpread": 1
@@ -74,7 +75,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.5,
                             "pipsAskBidSpread": 1
@@ -130,7 +132,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.25,
                             "pipsAskBidSpread": 1
@@ -171,7 +174,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.25,
                             "pipsAskBidSpread": 1
@@ -225,7 +229,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.3,
                             "pipsAskBidSpread": 0.3
@@ -266,7 +271,8 @@ let config =
                             "buySize": {
                                 "active": false,
                                 "value": 0,
-                                "bagHolderLimit": 0
+                                "bagHolderLimit": 0,
+                                "budgetLimit": 0
                             },
                             "percentageProfitTarget": 0.3,
                             "pipsAskBidSpread": 0.3

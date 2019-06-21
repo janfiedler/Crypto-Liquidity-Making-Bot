@@ -178,6 +178,17 @@ let doBidOrder = async function (){
                 //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
                 await tools.sleep(1);
                 continue;
+            } else if (config.pairs[i].moneyManagement.buySize.budgetLimit > 0 && config.pairs[i].moneyManagement.buySize.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
             }
         }
         let pair = config.pairs[i];
