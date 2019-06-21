@@ -42,6 +42,8 @@ websocket.emitPendingOrders = async function(data){
             budgetLimit = data.pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit;
         } else if (data.pair.moneyManagement.buyForAmount.active){
             budgetLimit = data.pair.moneyManagement.buyForAmount.budgetLimit;
+        } else if (data.pair.moneyManagement.buySize.active){
+            budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
         emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "d": data.pair.digitsPrice+2, "mA": budgetLimit , "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
     }
