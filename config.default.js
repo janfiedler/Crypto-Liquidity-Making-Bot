@@ -20,6 +20,11 @@ let config =
                         "digitsPrice": 4,
                         "digitsSize": 5,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.0002,
+                                "budgetLimit": 1000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
@@ -62,6 +67,11 @@ let config =
                         "digitsPrice": 2,
                         "digitsSize": 8,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.0002,
+                                "budgetLimit": 1000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
@@ -119,6 +129,11 @@ let config =
                         "digitsPrice": 2,
                         "digitsSize": 4,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.0002,
+                                "budgetLimit": 100000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": true,
                                 "value": 1,
@@ -161,6 +176,11 @@ let config =
                         "digitsPrice": 2,
                         "digitsSize": 4,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.0001,
+                                "budgetLimit": 1000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": true,
                                 "value": 1,
@@ -216,6 +236,11 @@ let config =
                         "digitsPrice": 8,
                         "digitsSize": 0,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.001,
+                                "budgetLimit": 0.011
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
@@ -258,6 +283,11 @@ let config =
                         "digitsPrice": 7,
                         "digitsSize": 2,
                         "moneyManagement": {
+                            "autopilot": {
+                                "active": false,
+                                "minSize": 0.001,
+                                "budgetLimit": 0.11
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,

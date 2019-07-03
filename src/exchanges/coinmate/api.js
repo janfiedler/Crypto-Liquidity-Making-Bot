@@ -297,11 +297,11 @@ let cancelOrder = function (pair, id, type, openedOrder){
     });
 };
 
-let createOrder = async function (pair, type, pendingSellOrder, availableBalance, price){
+let createOrder = async function (pair, type, pendingSellOrder, valueForSize, price){
     let size = "";
     switch(type){
         case "BUY":
-            size = tools.getBuyOrderSize(pair, availableBalance, price);
+            size = tools.getBuyOrderSize(pair, valueForSize, price);
             if(size > 0){
                 return await buyLimitOrder(pair.name, size, price);
             } else {

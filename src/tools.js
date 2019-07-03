@@ -74,6 +74,22 @@ let getPercentageBuySpread = function(price, percentage, digits){
     return price-(Math.floor(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
 };
 
+let getPercentageValue = function (dividend, divisor, rounded, digits){
+    let value = ((dividend / divisor) * 100)*Math.pow(10,digits);
+    switch(rounded){
+        case "floor":
+            value = Math.floor(value);
+            break;
+        case "round":
+            value = Math.round(value);
+            break;
+        case "ceil":
+            value = Math.ceil(value);
+            break;
+    }
+    return value/Math.pow(10, digits);
+};
+
 let getProfitTargetPrice = function (price, percentage, digits){
     //Round a number upward
     return price+(Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
@@ -94,13 +110,18 @@ let setPrecisionDown = function(value, digits){
     return Math.floor(value*Math.pow(10, digits))/Math.pow(10, digits);
 };
 
-let getBuyOrderSize = function(pair, availableBalance, price){
+let getBuyOrderSize = function(pair, valueForSize, price){
     let size = 0;
-    if(pair.moneyManagement.buyPercentageAvailableBalance.active){
-        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, availableBalance, pair.digitsPrice);
+    if(pair.moneyManagement.autopilot.active){
+        size = setPrecisionDown((valueForSize/price), pair.digitsSize);
+        if(size < pair.moneyManagement.autopilot.minSize){
+            size = pair.moneyManagement.autopilot.minSize;
+        }
+    } else if(pair.moneyManagement.buyPercentageAvailableBalance.active){
+        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
-        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBudget.value, availableBalance, pair.digitsPrice);
+        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBudget.value, valueForSize, pair.digitsPrice);
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyForAmount.active){
         size = setPrecisionDown((pair.moneyManagement.buyForAmount.value/price), pair.digitsSize);
@@ -193,6 +214,7 @@ module.exports = {
     takePipsFromPrice: takePipsFromPrice,
     getPercentage: getPercentage,
     getPercentageBuySpread: getPercentageBuySpread,
+    getPercentageValue: getPercentageValue,
     getProfitTargetPrice: getProfitTargetPrice,
     getBuyOrderSize: getBuyOrderSize,
     convertPipsToPrice: convertPipsToPrice,

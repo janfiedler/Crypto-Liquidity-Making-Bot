@@ -141,11 +141,11 @@ let parseTicker = function(type, book, pair, order){
     return ticks;
 };
 
-let createOrder = async function(pair, type, pendingSellOrder, availableBalance, price){
+let createOrder = async function(pair, type, pendingSellOrder, valueForSize, price){
     let size = "";
     switch(type){
         case "BUY":
-            size = tools.getBuyOrderSize(pair, availableBalance, price).toString();
+            size = tools.getBuyOrderSize(pair, valueForSize, price).toString();
             if(size > 0){
                 return await limitOrder(type, pair, size, price);
             } else {

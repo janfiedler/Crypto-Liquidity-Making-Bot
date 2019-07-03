@@ -201,13 +201,29 @@ let doBidOrder = async function (){
         const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.name, pair);
         // Check for actual opened buy order
         const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair);
-        //Get availableBalance by strategy
-        let availableBalance = 0;
-        if(pair.moneyManagement.buyPercentageAvailableBudget.active){
+        //Get valueForSize by strategy
+        let valueForSize = 0;
+        if(pair.moneyManagement.autopilot.active){
+            const spendAmount = await tools.getAmountSpent(db, config.name, pair);
+            //console.log("spendAmount: " + spendAmount);
+            const percentageSpendValue = tools.getPercentageValue(spendAmount, pair.moneyManagement.autopilot.budgetLimit, "floor", 2);
+            //console.log("percentageSpendValue: " + percentageSpendValue);
+            const availableBalance = (pair.moneyManagement.autopilot.budgetLimit-spendAmount);
+            //console.log("availableBalance: " + availableBalance);
+            let coefficient = 0.25;
+            if(percentageSpendValue > 25 && percentageSpendValue < 50){
+                coefficient = percentageSpendValue/100;
+            } else if (percentageSpendValue >= 50 && percentageSpendValue < 75){
+                coefficient = 1-(percentageSpendValue/100);
+            }
+            //console.log("coefficient: " + coefficient);
+            valueForSize = tools.getPercentage(coefficient, availableBalance, pair.digitsPrice);
+            //console.log("valueForSize: " + valueForSize);
+        } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
             const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-            availableBalance = (pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit-totalAmount);
+            valueForSize = (pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit-totalAmount);
         } else {
-            availableBalance = myAccount.available[pair.name.split(pair.separator)[1]];
+            valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
         }
         //Fetch actual prices from exchange
         const resultTicker = await api.getTicker(pair.name);
@@ -259,7 +275,7 @@ let doBidOrder = async function (){
                 const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                 if(resultValidateOrder){
-                    await processBidOrder(pair, availableBalance, targetBid);
+                    await processBidOrder(pair, valueForSize, targetBid);
                 } else {
                     await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
                     return false;
@@ -269,7 +285,7 @@ let doBidOrder = async function (){
             }
         } else {
             logMessage += " !!! This will be first opened buy order!\n";
-            await processBidOrder(pair, availableBalance, targetBid);
+            await processBidOrder(pair, valueForSize, targetBid);
         }
 
         await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
@@ -592,7 +608,14 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         }
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
-        if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
+        if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
+            const totalAmount = await tools.getAmountSpent(db, config.name, pair);
+            if(totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
+                const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                logMessage += JSON.stringify(forSell)+"\n";
+            }
+        } else if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
             const totalAmount = await tools.getAmountSpent(db, config.name, pair);
             if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
                 logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
@@ -625,7 +648,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
     }
 }
 
-async function processBidOrder(pair, availableBalance, targetBid){
+async function processBidOrder(pair, valueForSize, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
         return false;
@@ -634,7 +657,7 @@ async function processBidOrder(pair, availableBalance, targetBid){
         return false;
     } else {
         logMessage += " ### Let´go open new buy order!\n";
-        const createdOrder = await api.createOrder(pair,"BUY",null, availableBalance, targetBid);
+        const createdOrder = await api.createOrder(pair,"BUY",null, valueForSize, targetBid);
         if(createdOrder.s){
             apiCounter++;
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;
