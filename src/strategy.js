@@ -643,6 +643,13 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                 logMessage += JSON.stringify(forSell)+"\n";
             }
+        } else if(pair.strategy.sellOldestOrderWithLoss && pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.budgetLimit > 0){
+            const totalAmount = await tools.getAmountSpent(db, config.name, pair);
+            if(totalAmount >= pair.moneyManagement.buySize.budgetLimit){
+                logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
+                const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                logMessage += JSON.stringify(forSell)+"\n";
+            }
         }
         return false;
     }
