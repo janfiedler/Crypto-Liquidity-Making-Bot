@@ -15,14 +15,17 @@ let config =
                     {
                         "name": "IOT-EUR",
                         "id": 1,
-                        "active": true,
+                        "active":  {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "-",
                         "digitsPrice": 4,
                         "digitsSize": 5,
+                        "minSize": 0.0002,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.0002,
                                 "budgetLimit": 1000
                             },
                             "buyPercentageAvailableBalance": {
@@ -62,14 +65,17 @@ let config =
                     {
                         "name": "BTC-EUR",
                         "id": 2,
-                        "active": true,
+                        "active": {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "-",
                         "digitsPrice": 2,
                         "digitsSize": 8,
+                        "minSize": 0.0002,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.0002,
                                 "budgetLimit": 1000
                             },
                             "buyPercentageAvailableBalance": {
@@ -124,14 +130,17 @@ let config =
                     {
                         "name": "BTC_CZK",
                         "id": 1,
-                        "active": true,
+                        "active": {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
+                        "minSize": 0.0002,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.0002,
                                 "budgetLimit": 100000
                             },
                             "buyPercentageAvailableBalance": {
@@ -171,14 +180,17 @@ let config =
                     {
                         "name": "BTC_EUR",
                         "id": 2,
-                        "active": true,
+                        "active": {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
+                        "minSize": 0.0002,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.0001,
                                 "budgetLimit": 1000
                             },
                             "buyPercentageAvailableBalance": {
@@ -231,14 +243,17 @@ let config =
                     {
                         "name": "IOTA-BTC",
                         "id": 1,
-                        "active": true,
+                        "active": {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "-",
                         "digitsPrice": 8,
                         "digitsSize": 0,
+                        "minSize": 0.001,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.001,
                                 "budgetLimit": 0.011
                             },
                             "buyPercentageAvailableBalance": {
@@ -278,14 +293,17 @@ let config =
                     {
                         "name": "BNB-BTC",
                         "id": 2,
-                        "active": true,
+                        "active": {
+                            "buy": true,
+                            "sell": true
+                        },
                         "separator": "-",
                         "digitsPrice": 7,
                         "digitsSize": 2,
+                        "minSize": 0.001,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
-                                "minSize": 0.001,
                                 "budgetLimit": 0.11
                             },
                             "buyPercentageAvailableBalance": {

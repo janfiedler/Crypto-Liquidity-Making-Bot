@@ -9,7 +9,7 @@ router.get('/', async function(req, res, next) {
     if(config.exchanges[i].active) {
       let ex = {"name": config.exchanges[i].name, "pairs": []};
       for(let ii=0;ii<config.exchanges[i].pairs.length;ii++){
-        if(config.exchanges[i].pairs[ii].active){
+        if(config.exchanges[i].pairs[ii].active.buy || config.exchanges[i].pairs[ii].active.sell){
           ex.pairs.push({"name": config.exchanges[i].pairs[ii].name, "id": config.exchanges[i].pairs[ii].id, "separator": config.exchanges[i].pairs[ii].separator});
         }
       }

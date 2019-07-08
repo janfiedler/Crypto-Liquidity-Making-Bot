@@ -26,9 +26,9 @@ let doAskOrder = async function(){
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
-        if(!config.pairs[i].active){
+        if(!config.pairs[i].active.sell){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" for SELL is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
@@ -116,9 +116,9 @@ let doBidOrder = async function (){
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
-        if(!config.pairs[i].active){
+        if(!config.pairs[i].active.buy){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" is disabled.\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" for BUY is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);

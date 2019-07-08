@@ -114,9 +114,6 @@ let getBuyOrderSize = function(pair, valueForSize, price){
     let size = 0;
     if(pair.moneyManagement.autopilot.active){
         size = setPrecisionDown((valueForSize/price), pair.digitsSize);
-        if(size < pair.moneyManagement.autopilot.minSize){
-            size = pair.moneyManagement.autopilot.minSize;
-        }
     } else if(pair.moneyManagement.buyPercentageAvailableBalance.active){
         const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
@@ -127,6 +124,9 @@ let getBuyOrderSize = function(pair, valueForSize, price){
         size = setPrecisionDown((pair.moneyManagement.buyForAmount.value/price), pair.digitsSize);
     } else if (pair.moneyManagement.buySize.active){
         size = pair.moneyManagement.buySize.value;
+    }
+    if(size < pair.minSize){
+        size = pair.minSize;
     }
     return size;
 };
