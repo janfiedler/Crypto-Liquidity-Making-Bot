@@ -75,7 +75,7 @@ let getTicker = function(pair) {
             String	asks[].price
             String	asks[].size
         */
-        request.get({url: config.url + "/api/v1/depth", qs: { "symbol": pair.replace('-',''), "limit": 20 }}, function(error, response, body) {
+        request.get({url: config.url + "/api/v1/depth", qs: { "symbol": pair.name.replace('-',''), "limit": 20 }}, function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {

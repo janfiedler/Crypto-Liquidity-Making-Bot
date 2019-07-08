@@ -12,24 +12,27 @@ let order_book = [];
 let setGetOrdersListByPusher = function(){
     return new Promise(function (resolve) {
         for(let i=0;i<config.pairs.length;i++){
-            const pair = config.pairs[i].name;
-            pusher_order_book[pair] = coinmatePusher.subscribe('order_book-' + pair);
-            pusher_order_book[pair].bind('order_book', function(data) {
-                if(config.debug){
-                    console.log("New data for " + pair);
+            if(config.pairs[i].active.buy || config.pairs[i].active.sell){
+                if(typeof pusher_order_book[config.pairs[i].name] === 'undefined'){
+                    pusher_order_book[config.pairs[i].name] = coinmatePusher.subscribe('order_book-' + config.pairs[i].name);
+                    console.log("subscribe " + config.pairs[i].name);
+                    pusher_order_book[config.pairs[i].name].bind('order_book', function(data) {
+                        if(config.debug){
+                            console.log("New data for " + config.pairs[i].name);
+                        }
+                        order_book[config.pairs[i].name] = data;
+                    });
                 }
-                order_book[pair] = data;
-            });
+            }
         }
         resolve(true);
     });
 };
 
 let cancelPusher = function(){
-    for(let i=0;i<config.pairs.length;i++){
-        const pair = config.pairs[i].name;
-        console.log("unsubscribe " + pair);
-        coinmatePusher.unsubscribe('order_book-' + pair);
+    for(let i=0;i<Object.keys(pusher_order_book).length;i++){
+        console.log("unsubscribe " + Object.keys(pusher_order_book)[i]);
+        coinmatePusher.unsubscribe('order_book-' + Object.keys(pusher_order_book)[i]);
     }
 };
 
@@ -79,16 +82,16 @@ let getBalance = function(){
 /* Get actual order book with buys and sells */
 let getTicker = async function (pair){
     if(config.pusher){
-        if(typeof order_book[pair] === 'undefined'){
-            console.log(pair + " waiting on order book!");
+        if(typeof order_book[pair.name] === 'undefined'){
+            console.log(pair.name + " waiting on order book!");
             await tools.sleep(1000);
             return {s:0, data: null, counter: 0};
         } else {
-            return {s:1, data: order_book[pair], counter: 0};
+            return {s:1, data: order_book[pair.name], counter: 0};
         }
     } else {
         return new Promise(function (resolve) {
-            request('https://coinmate.io/api/orderBook?currencyPair='+pair+'&groupByPriceLimit=false', function (error, response, body) {
+            request('https://coinmate.io/api/orderBook?currencyPair='+pair.name+'&groupByPriceLimit=false', function (error, response, body) {
                 try {
                     const result = JSON.parse(body);
                     if (!error && response.statusCode === 200) {

@@ -61,7 +61,7 @@ let getTicker = function(pair) {
             String	asks[].price
             String	asks[].size
         */
-        request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair+"/orders", qs: { "level": "2" }}, function(error, response, body) {
+        request.get({url: "https://coinfalcon.com/api/v1/markets/"+pair.name+"/orders", qs: { "level": "2" }}, function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {

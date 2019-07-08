@@ -47,7 +47,7 @@ For every exchange setting is defined own worker (child process). So bot can han
     > If not found, round ends and skipping actual loop with continue function.
 2. Get from database details of opened order.
 3. Get actual orders (tickers) on exchange.
-    > api.getTicker(pair.name)
+    > api.getTicker(pair)
 4. Parse tickers from exchange to unity format for strategy.    
 5. Call function findSpotForAskOrder.
     > Find target ask price for this round based on actual conditions on the exchange.
@@ -69,7 +69,7 @@ For every exchange setting is defined own worker (child process). So bot can han
 1. Get from database details of lowest filled buy order.
 2. Get from database details of opened order. 
 3. Get actual orders (tickers) on exchange.
-    > api.getTicker(pair.name)
+    > api.getTicker(pair)
 4. Parse tickers from exchange to unity format for strategy.    
 5. Call function findSpotForBidOrder.
     > Find target bid price for this round based on actual conditions on the exchange.

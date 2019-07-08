@@ -35,7 +35,7 @@ process.on('SIGINT', () => {
 let init = async function(){
     await db.connect();
     myAccount = await getBalance();
-    await strategy.init(config,myAccount[config.name], db, coinmate);
+    await strategy.init(config, myAccount[config.name], db, coinmate);
     begin();
 };
 
