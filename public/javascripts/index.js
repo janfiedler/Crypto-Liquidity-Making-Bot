@@ -4,6 +4,8 @@ $( document ).ready(function() {
         //console.log(data);
         let tbody = document.getElementById("tbody_" + data.e + "_" + data.p.n + "_" + data.p.i);
         if (tbody){
+            let tP = document.getElementById("totalProfit_" + data.e + "_" + data.p.n + "_" + data.p.i);
+            $(tP).text(data.tP.toFixed(8) + ' ' + data.p.n.split(data.p.s)[1]);
             let dP = document.getElementById("dailyProfit_" + data.e + "_" + data.p.n + "_" + data.p.i);
             $(dP).text(data.dP.total.toFixed(8) + ' ' + data.p.n.split(data.p.s)[1]);
             let tS = document.getElementById("totalSize_" + data.e + "_" + data.p.n + "_" + data.p.i);
@@ -11,9 +13,9 @@ $( document ).ready(function() {
             let tA = document.getElementById("amountSpent_" + data.e + "_" + data.p.n + "_" + data.p.i);
             $(tA).text(data.tA + ' / ' + data.mA + ' ' + data.p.n.split(data.p.s)[1]);
             let rB = document.getElementById("rateBid_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(rB).text('Bid: ' + data.t.bid + ' ' + data.p.n.split(data.p.s)[1]);
+            $(rB).text(data.t.bid + ' ' + data.p.n.split(data.p.s)[1]);
             let rA = document.getElementById("rateAsk_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(rA).text('Ask: ' + data.t.ask + ' ' + data.p.n.split(data.p.s)[1]);
+            $(rA).text(data.t.ask + ' ' + data.p.n.split(data.p.s)[1]);
 
             $(tbody).find('tr').remove();
             let totalPl = 0;

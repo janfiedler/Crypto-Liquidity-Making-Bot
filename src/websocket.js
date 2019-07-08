@@ -23,7 +23,9 @@ websocket.emitPendingOrders = async function(data){
         const po = await db.getAllSellOrders(data.exchange, data.pair.name, data.pair.id);
         const tS = await db.getTotalSellSize(data.exchange, {"name": data.pair.name, "id": data.pair.id, "digitsSize": data.pair.digitsSize});
 
+
         const dailyProfit = await db.getDailyProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,10)+"%");
+        const totalProfit = await db.getProfit(data.exchange, data.pair);
         if(dailyProfit.total === null){
             dailyProfit.total = 0;
         }
@@ -47,7 +49,7 @@ websocket.emitPendingOrders = async function(data){
         } else if (data.pair.moneyManagement.buySize.active){
             budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
-        emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "d": data.pair.digitsPrice+2, "mA": budgetLimit , "t": data.tick, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "d": data.pair.digitsPrice+2, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
     }
 };
 

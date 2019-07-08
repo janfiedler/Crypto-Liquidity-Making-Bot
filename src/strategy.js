@@ -609,47 +609,12 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
         if(pair.strategy.sellOldestOrderWithLoss){
-            if(pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
-                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
-                }
-            } else if(pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
-                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
-                }
-            } else if(pair.moneyManagement.buyPercentageAvailableBudget.active && pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0){
-                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
-                }
-            } else if(pair.moneyManagement.buyForAmount.active && pair.moneyManagement.buyForAmount.budgetLimit > 0){
-                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
-                }
-            } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.bagHolderLimit > 0){
-                const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
-                if(resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
-                }
-            } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.budgetLimit > 0){
-                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buySize.budgetLimit){
-                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
-                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
-                    logMessage += JSON.stringify(forSell)+"\n";
+            const totalProfit = await db.getProfit(config.name, pair);
+            const oldestOrder = await db.getOldestPendingSellOrder(config.name, pair);
+            const pl = tools.calculatePendingProfit(oldestOrder, targetAsk);
+            if(pl < 0){
+                if( (totalProfit - Math.abs(pl)) > 0 ){
+                    await db.setSellTargetPrice(config.name, pair, oldestOrder.buy_id, 0);
                 }
             }
         }

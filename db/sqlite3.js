@@ -183,6 +183,25 @@ let getLowestSellTargetPrice = function(exchange, pair){
     });
 };
 
+let getOldestPendingSellOrder = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = 0 ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                if(typeof row !== 'undefined' && row) {
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
+                resolve(row);
+            }
+        });
+    });
+};
+
 let setOldestOrderWithLossForSell = function(exchange, pair){
     return new Promise(function (resolve) {
         db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = ? ORDER BY buy_price DESC LIMIT ?`,exchange, pair.name, pair.id, "sell", 0, 1, (err, row) => {
@@ -293,25 +312,13 @@ let setOpenedSellerOrder = function(pair, pendingSellOrder, createdOrder){
     });
 };
 
-let countOpenOrders = function(){
+let getProfit = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.get(`SELECT COUNT(*) AS openCount FROM orders WHERE status = ?`, "ACTIVE", (err, row) => {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ?`, exchange, pair.name, pair.id, "completed", "collection", "withdraw", (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
-                resolve(row.openCount);
-            }
-        });
-    });
-};
-
-let getProfit = function(exchange, pair, pairId){
-    return new Promise(function (resolve) {
-        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ?`, exchange, pair, pairId, "completed", "collection", "withdraw", (err, row) => {
-            if (err) {
-                console.error(err.message);
-            } else {
-                resolve(row);
+                resolve(row.total);
             }
         });
     });
@@ -440,6 +447,7 @@ module.exports = {
     deleteOpenedBuyOrder: deleteOpenedBuyOrder,
     getLowestFilledBuyOrder: getLowestFilledBuyOrder,
     getLowestSellTargetPrice: getLowestSellTargetPrice,
+    getOldestPendingSellOrder: getOldestPendingSellOrder,
     setOldestOrderWithLossForSell: setOldestOrderWithLossForSell,
     setSellTargetPrice: setSellTargetPrice,
     deleteOpenedSellOrder: deleteOpenedSellOrder,
@@ -448,7 +456,6 @@ module.exports = {
     setCompletedSellOrder: setCompletedSellOrder,
     reOpenPartFilledSellOrder: reOpenPartFilledSellOrder,
     setOpenedSellerOrder: setOpenedSellerOrder,
-    countOpenOrders: countOpenOrders,
     getProfit: getProfit,
     getDailyProfit: getDailyProfit,
     getTotalSellSize: getTotalSellSize,
