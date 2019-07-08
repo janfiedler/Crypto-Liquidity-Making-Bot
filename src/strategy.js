@@ -28,7 +28,7 @@ let doAskOrder = async function(){
     for(let i=0;i<config.pairs.length;i++){
         if(!config.pairs[i].active.sell){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" for SELL is disabled.\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for SELL is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
@@ -118,7 +118,7 @@ let doBidOrder = async function (){
     for(let i=0;i<config.pairs.length;i++){
         if(!config.pairs[i].active.buy){
             logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" for BUY is disabled.\n";
+            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for BUY is disabled.\n";
             logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
