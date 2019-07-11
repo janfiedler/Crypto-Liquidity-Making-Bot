@@ -31,6 +31,13 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
+                                "maxAmount": 0,
+                                "budgetLimit": 1000
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 1000
                             },
                             "buyForAmount": {
@@ -81,6 +88,12 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
+                                "budgetLimit": 1000
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 1000
                             },
                             "buyForAmount": {
@@ -146,6 +159,13 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": true,
                                 "value": 1,
+                                "maxAmount": 0,
+                                "budgetLimit": 100000
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 100000
                             },
                             "buyForAmount": {
@@ -196,6 +216,13 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": true,
                                 "value": 1,
+                                "maxAmount": 0,
+                                "budgetLimit": 1000
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 1000
                             },
                             "buyForAmount": {
@@ -259,6 +286,13 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
+                                "maxAmount": 0,
+                                "budgetLimit": 1
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 1
                             },
                             "buyForAmount": {
@@ -309,6 +343,13 @@ let config =
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
+                                "maxAmount": 0,
+                                "budgetLimit": 1
+                            },
+                            "buyPercentageAvailableBudget": {
+                                "active": false,
+                                "value": 0.5,
+                                "maxAmount": 0,
                                 "budgetLimit": 1
                             },
                             "buyForAmount": {

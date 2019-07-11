@@ -115,10 +115,16 @@ let getBuyOrderSize = function(pair, valueForSize, price){
     if(pair.moneyManagement.autopilot.active){
         size = setPrecisionDown((valueForSize/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyPercentageAvailableBalance.active){
-        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);
+        let fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);
+        if(pair.moneyManagement.buyPercentageAvailableBalance.maxAmount > 0 && fundValue > pair.moneyManagement.buyPercentageAvailableBalance.maxAmount){
+            fundValue = pair.moneyManagement.buyPercentageAvailableBalance.maxAmount;
+        }
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
-        const fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBudget.value, valueForSize, pair.digitsPrice);
+        let fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBudget.value, valueForSize, pair.digitsPrice);
+        if(pair.moneyManagement.buyPercentageAvailableBudget.maxAmount > 0 && fundValue > pair.moneyManagement.buyPercentageAvailableBudget.maxAmount){
+            fundValue = pair.moneyManagement.buyPercentageAvailableBudget.maxAmount;
+        }
         size = setPrecisionDown((fundValue/price), pair.digitsSize);
     } else if(pair.moneyManagement.buyForAmount.active){
         size = setPrecisionDown((pair.moneyManagement.buyForAmount.value/price), pair.digitsSize);
