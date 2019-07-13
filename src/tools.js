@@ -161,7 +161,7 @@ let calculateProfit = function(exchange, completedOrder){
     sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
     let buyFee = (completedOrder.buy_fee / completedOrder.buy_filled) * completedOrder.sell_filled;
     let buyTotalPrice = (completedOrder.sell_filled*completedOrder.buy_price)+(buyFee);
-    buyTotalPrice = setPrecisionDown(buyTotalPrice, 8);
+    buyTotalPrice = setPrecisionUp(buyTotalPrice, 8);
     let profit = sellTotalPrice - buyTotalPrice;
     profit = setPrecisionDown(profit, 8);
     return profit;
@@ -174,7 +174,7 @@ let calculatePendingProfit = function(pendingOrder, sellPrice){
 
     let buyFee = ((pendingOrder.buy_fee / pendingOrder.buy_filled) * pendingOrder.sell_size);
     let buyTotalPrice = ((pendingOrder.sell_size*pendingOrder.buy_price)+buyFee);
-    buyTotalPrice = setPrecisionDown(buyTotalPrice, 8);
+    buyTotalPrice = setPrecisionUp(buyTotalPrice, 8);
 
     //Because we do not know sellFee, we use same as was buyFee
     let sellTotalPrice = ((pendingOrder.sell_size*sellPrice)-buyFee);
