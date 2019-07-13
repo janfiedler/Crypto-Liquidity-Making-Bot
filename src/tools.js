@@ -190,7 +190,7 @@ let getAmountSpent = async function(db, exchange, pair){
         const po = await db.getAllSellOrders(exchange, pair.name, pair.id);
         let totalAmount = 0;
         for(let i=0;i<po.length;i++){
-            totalAmount += (po[i].buy_price * po[i].sell_size);
+            totalAmount += (po[i].buy_price * po[i].sell_size)+po[i].buy_fee;
         }
         resolve(totalAmount);
     });
