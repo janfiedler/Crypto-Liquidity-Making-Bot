@@ -210,11 +210,13 @@ let doBidOrder = async function (){
             //console.log("percentageSpendValue: " + percentageSpendValue);
             const availableBalance = (pair.moneyManagement.autopilot.budgetLimit-spendAmount);
             //console.log("availableBalance: " + availableBalance);
-            let coefficient = 0.25;
-            if(percentageSpendValue > 25 && percentageSpendValue < 50){
+            let coefficient = 0.1;
+            if(percentageSpendValue >= 10 && percentageSpendValue < 25){
                 coefficient = percentageSpendValue/100;
-            } else if (percentageSpendValue >= 50 && percentageSpendValue < 75){
-                coefficient = 1-(percentageSpendValue/100);
+            } else if(percentageSpendValue >= 25 && percentageSpendValue < 50){
+                coefficient = 0.25;
+            } else if (percentageSpendValue >= 50 && percentageSpendValue < 80){
+                coefficient = (1-(percentageSpendValue/100)/2);
             }
             //console.log("coefficient: " + coefficient);
             valueForSize = tools.getPercentage(coefficient, availableBalance, pair.digitsPrice);
