@@ -216,7 +216,7 @@ let doBidOrder = async function (){
             } else if(percentageSpendValue >= 25 && percentageSpendValue < 50){
                 coefficient = 0.25;
             } else if (percentageSpendValue >= 50 && percentageSpendValue < 80){
-                coefficient = (1-(percentageSpendValue/100)/2);
+                coefficient = (1-(percentageSpendValue/100))/2;
             }
             //console.log("coefficient: " + coefficient);
             valueForSize = tools.getPercentage(coefficient, availableBalance, pair.digitsPrice);
