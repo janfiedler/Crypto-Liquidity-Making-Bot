@@ -221,6 +221,10 @@ let doBidOrder = async function (){
             //console.log("coefficient: " + coefficient);
             valueForSize = tools.getPercentage(coefficient, availableBalance, pair.digitsPrice);
             //console.log("valueForSize: " + valueForSize);
+        } else if(pair.moneyManagement.supportLevel.active){
+            const spendAmount = await tools.getAmountSpent(db, config.name, pair);
+            const availableBalance = (pair.moneyManagement.supportLevel.budgetLimit-spendAmount);
+            valueForSize = availableBalance;
         } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
             const totalAmount = await tools.getAmountSpent(db, config.name, pair);
             valueForSize = (pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit-totalAmount);
@@ -628,7 +632,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < tools.setPrecisionUp((tools.getBuyOrderSize(pair, myAccount.available[pair.name.split(pair.separator)[1]],targetBid)*targetBid), pair.digitsPrice)){
+    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSize*targetBid){
         logMessage += " !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {

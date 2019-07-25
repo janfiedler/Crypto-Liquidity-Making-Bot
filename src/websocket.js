@@ -40,6 +40,8 @@ websocket.emitPendingOrders = async function(data){
         let budgetLimit = 0;
         if(data.pair.moneyManagement.autopilot.active){
             budgetLimit = data.pair.moneyManagement.autopilot.budgetLimit;
+        } else if(data.pair.moneyManagement.supportLevel.active){
+            budgetLimit = data.pair.moneyManagement.supportLevel.budgetLimit;
         } else if(data.pair.moneyManagement.buyPercentageAvailableBalance.active){
             budgetLimit = data.pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit;
         } else if(data.pair.moneyManagement.buyPercentageAvailableBudget.active){

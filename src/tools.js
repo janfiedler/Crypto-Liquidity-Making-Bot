@@ -114,6 +114,24 @@ let getBuyOrderSize = function(pair, valueForSize, price){
     let size = 0;
     if(pair.moneyManagement.autopilot.active){
         size = setPrecisionDown((valueForSize/price), pair.digitsSize);
+    } else if(pair.moneyManagement.supportLevel.active){
+        if(pair.strategy.buySpread.percentage.active){
+            //console.log("valueForSize: "+ valueForSize);
+            const supportLevelValue = pair.moneyManagement.supportLevel.value;
+            const buySpreadPercentage = pair.strategy.buySpread.percentage.value;
+            let counterPossibleOrders = 0;
+            let nextBuyPriceLevel = price;
+            while(nextBuyPriceLevel > supportLevelValue){
+                counterPossibleOrders++;
+                nextBuyPriceLevel = getPercentageBuySpread(nextBuyPriceLevel, buySpreadPercentage, pair.digitsPrice);
+                //console.log(nextBuyPriceLevel);
+            }
+            //console.log("counterPossibleOrders: "+ counterPossibleOrders);
+            valueForSize = valueForSize/counterPossibleOrders;
+            //console.log("valueForSize: "+ valueForSize);
+            size = setPrecisionDown((valueForSize/price), pair.digitsSize);
+            //console.log("size: "+ size);
+        }
     } else if(pair.moneyManagement.buyPercentageAvailableBalance.active){
         let fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);
         if(pair.moneyManagement.buyPercentageAvailableBalance.maxAmount > 0 && fundValue > pair.moneyManagement.buyPercentageAvailableBalance.maxAmount){

@@ -28,6 +28,11 @@ let config =
                                 "active": false,
                                 "budgetLimit": 1000
                             },
+                            "supportLevel": {
+                                "active": false,
+                                "value": 0.001,
+                                "budgetLimit": 1000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
@@ -58,7 +63,7 @@ let config =
                             "ignoreOrderSize": 0.001,
                             "buySpread": {
                                 "percentage": {
-                                    "active": true,
+                                    "active": false,
                                     "value" : 0.05
                                 },
                                 "pips": {
@@ -83,6 +88,11 @@ let config =
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
+                                "budgetLimit": 1000
+                            },
+                            "supportLevel": {
+                                "active": false,
+                                "value": 9000,
                                 "budgetLimit": 1000
                             },
                             "buyPercentageAvailableBalance": {
@@ -156,6 +166,11 @@ let config =
                                 "active": false,
                                 "budgetLimit": 100000
                             },
+                            "supportLevel": {
+                                "active": false,
+                                "value": 200000,
+                                "budgetLimit": 100000
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": true,
                                 "value": 1,
@@ -211,6 +226,11 @@ let config =
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
+                                "budgetLimit": 1000
+                            },
+                            "supportLevel": {
+                                "active": true,
+                                "value": 7000,
                                 "budgetLimit": 1000
                             },
                             "buyPercentageAvailableBalance": {
@@ -283,6 +303,11 @@ let config =
                                 "active": false,
                                 "budgetLimit": 0.011
                             },
+                            "supportLevel": {
+                                "active": false,
+                                "value": 0.004,
+                                "budgetLimit": 1
+                            },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
                                 "value": 1,
@@ -339,6 +364,11 @@ let config =
                             "autopilot": {
                                 "active": false,
                                 "budgetLimit": 0.11
+                            },
+                            "supportLevel": {
+                                "active": false,
+                                "value": 0.004,
+                                "budgetLimit": 1
                             },
                             "buyPercentageAvailableBalance": {
                                 "active": false,
