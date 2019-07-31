@@ -425,7 +425,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 myAccount.available[pair.name.split(pair.separator)[0]] += orderDetail.size;
                 await db.deleteOpenedSellOrder(orderDetail.id);
                 //If canceled sell older was set for sell in loose, reset sell_target_price for new round for case we can sell another pending sell older in profit.
-                if(pair.strategy.sellOldestOrderWithLoss && openedOrder.sell_target_price === 0){
+                if(pair.strategy.sellOldestOrderWithLossWhenProfit && openedOrder.sell_target_price === 0){
                     const sell_target_price = tools.getProfitTargetPrice(openedOrder.buy_price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
                     logMessage += " $$$ Set again profit target: " + sell_target_price + " \n";
                     logMessage += JSON.stringify(openedOrder)+"\n";
