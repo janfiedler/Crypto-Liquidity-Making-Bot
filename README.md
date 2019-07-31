@@ -459,9 +459,13 @@ If the drop is so big for example from 19000 USD to 3200 USD, why still hodl old
 
 * sellOldestOrderWithLoss": false,
 ```
-This will start selling (even with a loss) oldest pending sell orders if your bag holder limit is reached.
+This will start selling (even with a loss) oldest pending sell order if your bag holder limit is reached.
 ```
 
+* sellOldestOrderWithLossWhenProfit": false,
+```
+This will start selling (even with a loss) oldest pending sell order if loss is less than total gained profit
+```
 
 ### Known bugs
 

@@ -116,7 +116,7 @@ let getBuyOrderSize = function(pair, valueForSize, price){
         size = setPrecisionDown((valueForSize/price), pair.digitsSize);
     } else if(pair.moneyManagement.supportLevel.active){
         if(pair.strategy.buySpread.percentage.active){
-            //console.log("valueForSize: "+ valueForSize);
+            //console.log("valueForSize: "+ valueForSize + " pair_id: " + pair.id);
             const supportLevelValue = pair.moneyManagement.supportLevel.value;
             const buySpreadPercentage = pair.strategy.buySpread.percentage.value;
             let counterPossibleOrders = 0;
@@ -131,6 +131,8 @@ let getBuyOrderSize = function(pair, valueForSize, price){
             //console.log("valueForSize: "+ valueForSize);
             size = setPrecisionDown((valueForSize/price), pair.digitsSize);
             //console.log("size: "+ size);
+        } else {
+            size = 0;
         }
     } else if(pair.moneyManagement.buyPercentageAvailableBalance.active){
         let fundValue =  getPercentage(pair.moneyManagement.buyPercentageAvailableBalance.value, valueForSize, pair.digitsPrice);

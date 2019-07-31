@@ -71,7 +71,8 @@ let config =
                                     "value": 2500
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": false
                         }
                     },
                     {
@@ -132,7 +133,8 @@ let config =
                                     "value": 2500
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": false
                         }
                     }
                 ]
@@ -271,7 +273,8 @@ let config =
                                     "value": 2400
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": false
                         }
                     }
                 ]
@@ -346,7 +349,8 @@ let config =
                                     "value": 50
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": false
                         }
                     },
                     {
@@ -408,7 +412,8 @@ let config =
                                     "value": 50
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": false
                         }
                     }
                 ]
