@@ -425,7 +425,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 myAccount.available[pair.name.split(pair.separator)[0]] += orderDetail.size;
                 await db.deleteOpenedSellOrder(orderDetail.id);
                 //If canceled sell older was set for sell in loose, reset sell_target_price for new round for case we can sell another pending sell older in profit.
-                if(pair.strategy.sellOldestOrderWithLossWhenProfit && openedOrder.sell_target_price === 0){
+                if(pair.strategy.sellOldestOrderWithLossWhenProfit.active && openedOrder.sell_target_price === 0){
                     const sell_target_price = tools.getProfitTargetPrice(openedOrder.buy_price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
                     logMessage += " $$$ Set again profit target: " + sell_target_price + " \n";
                     logMessage += JSON.stringify(openedOrder)+"\n";
@@ -614,13 +614,15 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         }
     } else {
         logMessage += " !!! No sell order for this ask price!\n";
-        if(pair.strategy.sellOldestOrderWithLoss){
+        if(pair.strategy.sellOldestOrderWithLoss || pair.strategy.sellOldestOrderWithLossWhenProfit.active){
             if(pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
                 if(totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
@@ -628,6 +630,8 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBudget.active && pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
@@ -635,6 +639,8 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             } else if(pair.moneyManagement.buyForAmount.active && pair.moneyManagement.buyForAmount.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
@@ -642,6 +648,8 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.bagHolderLimit > 0){
                 const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
@@ -649,6 +657,8 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
@@ -656,19 +666,32 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
-                }
-            }
-        } else if(pair.strategy.sellOldestOrderWithLossWhenProfit){
-            const totalProfit = await db.getProfit(config.name, pair);
-            const oldestOrder = await db.getOldestPendingSellOrder(config.name, pair);
-            const pl = tools.calculatePendingProfit(oldestOrder, targetAsk);
-            if(pl < 0) {
-                if ((totalProfit - Math.abs(pl)) > 0) {
-                    await db.setSellTargetPrice(config.name, pair, oldestOrder.buy_id, 0);
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
                 }
             }
         }
         return false;
+    }
+}
+
+async function sellOldestOrderWithLossWhenProfit(config_name, pair, targetAsk){
+    const totalPositiveProfit = await db.getPositiveProfit(config_name, pair);
+    //console.error("totalPositiveProfit: " + totalPositiveProfit);
+    const totalProfitForLosses = tools.getPercentage((100 - pair.strategy.sellOldestOrderWithLossWhenProfit.keepPercentageOfProfit), totalPositiveProfit, pair.digitsPrice) ;
+    //console.error("totalProfitForLosses: " + totalProfitForLosses);
+    const totalNegativeProfit = await db.getNegativeProfit(config_name, pair);
+    //console.error("totalNegativeProfit: " + totalNegativeProfit);
+    const availableProfitForLosses = totalProfitForLosses - Math.abs(totalNegativeProfit);
+    //console.error("availableProfitForLosses: " + availableProfitForLosses);
+
+    const oldestOrder = await db.getOldestPendingSellOrder(config_name, pair);
+    const pl = tools.calculatePendingProfit(oldestOrder, targetAsk);
+    if(pl < 0) {
+        //console.error("pl: " + pl);
+        if ((availableProfitForLosses - Math.abs(pl)) > 0) {
+            await db.setSellTargetPrice(config_name, pair, oldestOrder.buy_id, 0);
+        }
     }
 }
 

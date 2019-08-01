@@ -72,7 +72,10 @@ let config =
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
-                            "sellOldestOrderWithLossWhenProfit": false
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     },
                     {
@@ -134,7 +137,10 @@ let config =
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
-                            "sellOldestOrderWithLossWhenProfit": false
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     }
                 ]
@@ -274,7 +280,10 @@ let config =
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
-                            "sellOldestOrderWithLossWhenProfit": false
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     }
                 ]
@@ -350,7 +359,10 @@ let config =
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
-                            "sellOldestOrderWithLossWhenProfit": false
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     },
                     {
@@ -413,7 +425,10 @@ let config =
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
-                            "sellOldestOrderWithLossWhenProfit": false
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     }
                 ]

@@ -324,6 +324,30 @@ let getProfit = function(exchange, pair){
     });
 };
 
+let getPositiveProfit = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND profit >= 0`, exchange, pair.name, pair.id, "completed", "collection", "withdraw", (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(row.total);
+            }
+        });
+    });
+};
+
+let getNegativeProfit = function(exchange, pair){
+    return new Promise(function (resolve) {
+        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND profit < 0`, exchange, pair.name, pair.id, "completed", "collection", "withdraw", (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(row.total);
+            }
+        });
+    });
+};
+
 let getDailyProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
         db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND completed_at like ?`, exchange, pair, pairId, "completed", "collection", "withdraw", date, (err, row) => {
@@ -457,6 +481,8 @@ module.exports = {
     reOpenPartFilledSellOrder: reOpenPartFilledSellOrder,
     setOpenedSellerOrder: setOpenedSellerOrder,
     getProfit: getProfit,
+    getPositiveProfit: getPositiveProfit,
+    getNegativeProfit: getNegativeProfit,
     getDailyProfit: getDailyProfit,
     getTotalSellSize: getTotalSellSize,
     getAllSellOrders: getAllSellOrders,
