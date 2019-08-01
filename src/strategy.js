@@ -678,7 +678,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
 async function sellOldestOrderWithLossWhenProfit(config_name, pair, targetAsk){
     const totalPositiveProfit = await db.getPositiveProfit(config_name, pair);
     //console.error("totalPositiveProfit: " + totalPositiveProfit);
-    const totalProfitForLosses = tools.getPercentage((100 - pair.strategy.sellOldestOrderWithLossWhenProfit.keepPercentageOfProfit), totalPositiveProfit, pair.digitsPrice) ;
+    const totalProfitForLosses = tools.getPercentage(Math.abs((100 - pair.strategy.sellOldestOrderWithLossWhenProfit.keepPercentageOfProfit)), totalPositiveProfit, pair.digitsPrice) ;
     //console.error("totalProfitForLosses: " + totalProfitForLosses);
     const totalNegativeProfit = await db.getNegativeProfit(config_name, pair);
     //console.error("totalNegativeProfit: " + totalNegativeProfit);

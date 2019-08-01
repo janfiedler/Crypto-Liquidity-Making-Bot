@@ -28,6 +28,7 @@ process.on('SIGINT', () => {
 
 let init = async function(){
     await db.connect();
+    await recalculateProfitTarget();
     myAccount = await getBalance();
     await strategy.init(config,myAccount[config.name], db, binance);
     begin();
@@ -36,6 +37,17 @@ let init = async function(){
 let getBalance = async function(){
     const rawBalance = await binance.getBalance();
     return await tools.parseBalance(config, rawBalance);
+};
+
+let recalculateProfitTarget = async function(){
+    for(let i=0;i<config.pairs.length;i++){
+        let pair = config.pairs[i];
+        const po = await db.getAllSellOrders(config.name, pair.name, pair.id);
+        for(let ii=0;ii<po.length;ii++){
+            const sell_target_price = tools.getProfitTargetPrice(po[ii].buy_price, pair.moneyManagement.percentageProfitTarget, pair.digitsPrice);
+            await db.setSellTargetPrice(config.name, pair, po[ii].buy_id, sell_target_price);
+        }
+    }
 };
 
 async function begin(){
