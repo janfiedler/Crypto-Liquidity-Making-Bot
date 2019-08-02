@@ -342,7 +342,11 @@ let getNegativeProfit = function(exchange, pair){
             if (err) {
                 console.error(err.message);
             } else {
-                resolve(row.total);
+                if(row.total ===  null){
+                    resolve(0);
+                } else {
+                    resolve(row.total);
+                }
             }
         });
     });
