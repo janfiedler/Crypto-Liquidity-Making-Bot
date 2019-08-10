@@ -8,7 +8,6 @@ process.on('SIGINT', () => {
 // Init
 (async function () {
     // Promise not compatible with config.debug && console.log, async is?
-
     await db.connect();
     await db.createTables();
     const condition = await db.getCondition("safe_shutdown");

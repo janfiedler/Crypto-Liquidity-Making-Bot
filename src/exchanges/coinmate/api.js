@@ -350,7 +350,7 @@ let buyLimitOrder = function (currencyPair, amount, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, errorMessage: "buyLimitOrder"});
+                resolve({s:0, errorMessage: e.toString()});
             }
         });
     });
@@ -411,14 +411,14 @@ let getTradeHistory = function (orderId ){
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     if (result.error) {
-                        console.error("coinmate getTradeHistory");
+                        console.error("coinmate getTradeHistory #1");
                         console.error(result);
                         resolve({ s: 0, errorMessage: result.errorMessage });
                     } else {
                         resolve({ s: 1, data: result.data });
                     }
                 } else {
-                    console.error("coinmate getTradeHistory");
+                    console.error("coinmate getTradeHistory #2");
                     console.error(body);
                     resolve({s:0, data: result.errorMessage});
                 }

@@ -1,5 +1,22 @@
 let config =
     {
+        "mail": {
+            "setting": {
+                host: 'smtp',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: "username",
+                    pass: "password"
+                }
+            },
+            "options": {
+                from: 'from@',
+                to: 'to@',
+                subject: null,
+                text: null
+            }
+        },
         "exchanges": [
             {
                 "name": "coinfalcon",
