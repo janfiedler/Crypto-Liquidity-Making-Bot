@@ -622,7 +622,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         if(pair.strategy.sellOldestOrderWithLoss || pair.strategy.sellOldestOrderWithLossWhenProfit.active){
             if(pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -631,7 +631,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss &&  totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -640,7 +640,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBudget.active && pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -649,7 +649,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyForAmount.active && pair.moneyManagement.buyForAmount.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -658,7 +658,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.bagHolderLimit > 0){
                 const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
-                if(resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -667,7 +667,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buySize.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buySize.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
