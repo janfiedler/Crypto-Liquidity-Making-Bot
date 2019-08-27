@@ -402,7 +402,7 @@ async function validateOrder(type, id, pair, openedOrder){
         } else {
             //logMessage +=  " !!! Something bad happened when validate canceled order "+id+" !\n";
             //return false
-            await email.sendEmail("API Timeout validateOrder", "Need manual validate last orders");
+            await email.sendEmail("API Timeout validateOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders");
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
@@ -411,7 +411,7 @@ async function validateOrder(type, id, pair, openedOrder){
     } else {
         //logMessage += " !!! Catched cancelOrder error\n";
         //return false;
-        await email.sendEmail("API Timeout validateOrder", "Need manual validate last orders");
+        await email.sendEmail("API Timeout validateOrder", pair.name +" #"+ pair.id +" need manual validate last orders");
     }
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
@@ -625,7 +625,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
                 } else {
-                    await email.sendEmail("API Timeout - createOrder SELL", "Need manual validate last orders");
+                    await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders");
                 }
             }
         } else {
@@ -737,7 +737,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
             } else if(createdOrder.errorMessage.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
             } else {
-                await email.sendEmail("API Timeout - createOrder BUY", "Need manual validate last orders");
+                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last orders");
             }
         }
     }
