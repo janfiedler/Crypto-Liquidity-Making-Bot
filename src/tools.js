@@ -70,8 +70,8 @@ let getPercentage = function (percentage, value, digits){
 };
 
 let getPercentageBuySpread = function(price, percentage, digits){
-    //Round a number down
-    return price-(Math.floor(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits));
+    const minus = Math.ceil(((percentage / 100) * price)*Math.pow(10,digits))/Math.pow(10, digits);
+    return Math.round(((price-minus)*Math.pow(10,digits)))/Math.pow(10, digits);
 };
 
 let getPercentageValue = function (dividend, divisor, rounded, digits){
