@@ -83,7 +83,7 @@ let getBalance = function(){
 let getTicker = async function (pair){
     if(config.pusher){
         if(typeof order_book[pair.name] === 'undefined'){
-            console.log(pair.name + " waiting on order book!");
+            console.error(pair.name + " waiting on order book!");
             await tools.sleep(1000);
             return {s:0, data: null, counter: 0};
         } else {
