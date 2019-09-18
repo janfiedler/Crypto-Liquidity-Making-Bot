@@ -410,7 +410,7 @@ async function validateOrder(type, id, pair, openedOrder){
         } else {
             //logMessage +=  " !!! Something bad happened when validate canceled order "+id+" !\n";
             //return false
-            await email.sendEmail("API Timeout validateOrder", "Need manual validate last orders");
+            await email.sendEmail("API Timeout validateOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders");
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
@@ -419,7 +419,7 @@ async function validateOrder(type, id, pair, openedOrder){
     } else {
         //logMessage += " !!! Catched cancelOrder error\n";
         //return false;
-        await email.sendEmail("API Timeout validateOrder", "Need manual validate last orders");
+        await email.sendEmail("API Timeout validateOrder", pair.name +" #"+ pair.id +" need manual validate last orders");
     }
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
@@ -506,6 +506,10 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "binance":
+                        myAccount.balance["BNB"] -= orderDetail.fee;
+                        myAccount.available["BNB"] -= orderDetail.fee;
+                        break;
                 }
             }
             //We bought, need add new size to balance and available
@@ -525,6 +529,10 @@ let processFulfilledOrder = function(pair, orderDetail){
                     case "coinmate":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "binance":
+                        myAccount.balance["BNB"] -= orderDetail.fee;
+                        myAccount.available["BNB"] -= orderDetail.fee;
                         break;
                 }
             }
@@ -552,6 +560,10 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "binance":
+                        myAccount.balance["BNB"] -= orderDetail.fee;
+                        myAccount.available["BNB"] -= orderDetail.fee;
+                        break;
                 }
             }
             //We bought, need add new size to balance and available
@@ -573,6 +585,10 @@ let processPartiallyFilled = function (pair, orderDetail){
                     case "coinmate":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "binance":
+                        myAccount.balance["BNB"] -= orderDetail.fee;
+                        myAccount.available["BNB"] -= orderDetail.fee;
                         break;
                 }
             }
@@ -617,7 +633,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
                 } else {
-                    await email.sendEmail("API Timeout - createOrder SELL", "Need manual validate last orders");
+                    await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders");
                 }
             }
         } else {
@@ -630,7 +646,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         if(pair.strategy.sellOldestOrderWithLoss || pair.strategy.sellOldestOrderWithLossWhenProfit.active){
             if(pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -639,7 +655,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBalance.active && pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss &&  totalAmount >= pair.moneyManagement.buyPercentageAvailableBalance.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -648,7 +664,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyPercentageAvailableBudget.active && pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -657,7 +673,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buyForAmount.active && pair.moneyManagement.buyForAmount.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buyForAmount.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -666,7 +682,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.bagHolderLimit > 0){
                 const resultTotalSellSize = await db.getTotalSellSize(config.name, pair);
-                if(resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && resultTotalSellSize >= pair.moneyManagement.buySize.bagHolderLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the bag holder (total size) limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -675,7 +691,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }
             } else if(pair.moneyManagement.buySize.active && pair.moneyManagement.buySize.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
-                if(totalAmount >= pair.moneyManagement.buySize.budgetLimit){
+                if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.buySize.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
@@ -729,7 +745,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
             } else if(createdOrder.errorMessage.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
             } else {
-                await email.sendEmail("API Timeout - createOrder BUY", "Need manual validate last orders");
+                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last orders");
             }
         }
     }
