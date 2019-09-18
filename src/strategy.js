@@ -84,8 +84,13 @@ let doAskOrder = async function(){
             return false;
         }
 
-        let targetAsk = await findSpotForAskOrder(pendingSellOrder, tickers[pair.name] , pair);
+        if(tickers[pair.name].ask.length === 0){
+            logMessage += " !!! ASK order book not match with ignoreOrderSize !!!\n";
+            //Return false will skip ask process and start bid process.
+            return false;
+        }
 
+        let targetAsk = await findSpotForAskOrder(pendingSellOrder, tickers[pair.name] , pair);
         if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
             logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
             //If targetAsk dont change after ten minutes, force validate order.
@@ -264,6 +269,12 @@ let doBidOrder = async function (){
             return false;
         }
 
+        if(tickers[pair.name].bid.length === 0){
+            logMessage += " !!! BID order book not match with ignoreOrderSize !!!\n";
+            //Return false will skip ask process and start bid process.
+            return false;
+        }
+
         let targetBid;
         if(lowestFilledBuyOrder){
             targetBid = await findSpotForBidOrder(false, true, lowestFilledBuyOrder, tickers[pair.name] , pair);
@@ -303,19 +314,17 @@ let doBidOrder = async function (){
 let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     const keysCount = Object.keys(ticker.ask).length;
     let targetAsk = 99999999;
-    if(typeof ticker.ask[0].price !== 'undefined' && ticker.ask[0].price){
-        if(!config.stickToBigOrders){
-            targetAsk = ticker.ask[0].price;
-        } else {
-            for(let i=0;i<keysCount;i++){
-                if ((i+2) >= keysCount){
-                    break;
-                }
-                if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
-                    logMessage += " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
-                    targetAsk = ticker.ask[i].price;
-                    break;
-                }
+    if(!config.stickToBigOrders){
+        targetAsk = ticker.ask[0].price;
+    } else {
+        for(let i=0;i<keysCount;i++){
+            if ((i+2) >= keysCount){
+                break;
+            }
+            if(ticker.ask[i].size > (ticker.ask[(i+1)].size+ticker.ask[(i+2)].size) && ticker.ask[i].size > pendingOrder.sell_size){
+                logMessage += " ### "+ticker.ask[i].price + " is my target price with size: " + ticker.ask[i].size+"\n";
+                targetAsk = ticker.ask[i].price;
+                break;
             }
         }
     }
@@ -334,19 +343,18 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
 let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
     const keysCount = Object.keys(ticker.bid).length;
     let targetBid = 0;
-    if(typeof ticker.bid[0].price !== 'undefined' && ticker.bid[0].price){
-        if(firstOrder || !config.stickToBigOrders){
-            targetBid = ticker.bid[0].price;
-        } else {
-            for(let i=0;i<keysCount;i++){
-                if ((i+2) >= keysCount){
-                    break
-                }
-                if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
-                    logMessage += " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size+"\n";
-                    targetBid = ticker.bid[i].price;
-                    break;
-                }
+
+    if(firstOrder || !config.stickToBigOrders){
+        targetBid = ticker.bid[0].price;
+    } else {
+        for(let i=0;i<keysCount;i++){
+            if ((i+2) >= keysCount){
+                break
+            }
+            if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
+                logMessage += " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size+"\n";
+                targetBid = ticker.bid[i].price;
+                break;
             }
         }
     }
