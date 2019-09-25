@@ -133,6 +133,32 @@ let doBidOrder = async function (){
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
+        } else if(config.pairs[i].moneyManagement.autopilot.active){
+            if (config.pairs[i].moneyManagement.autopilot.budgetLimit > 0 && config.pairs[i].moneyManagement.autopilot.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
+            }
+        } else if(config.pairs[i].moneyManagement.supportLevel.active){
+            if (config.pairs[i].moneyManagement.supportLevel.budgetLimit > 0 && config.pairs[i].moneyManagement.supportLevel.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
+                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
+                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
+                    config.debug && console.log("\r\n"+logMessage);
+                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
+                }
+                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+                await tools.sleep(1);
+                continue;
+            }
         } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBalance.active){
             if (config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
                 logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -647,6 +673,15 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
             if(pair.moneyManagement.autopilot.active && pair.moneyManagement.autopilot.budgetLimit > 0){
                 const totalAmount = await tools.getAmountSpent(db, config.name, pair);
                 if(pair.strategy.sellOldestOrderWithLoss && totalAmount >= pair.moneyManagement.autopilot.budgetLimit){
+                    logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
+                    const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
+                    logMessage += JSON.stringify(forSell)+"\n";
+                } else if(pair.strategy.sellOldestOrderWithLossWhenProfit.active){
+                    await sellOldestOrderWithLossWhenProfit(config.name, pair, targetAsk);
+                }
+            } else if(pair.moneyManagement.supportLevel.active && pair.moneyManagement.supportLevel.budgetLimit > 0){
+                const totalAmount = await tools.getAmountSpent(db, config.name, pair);
+                if(pair.strategy.sellOldestOrderWithLoss &&  totalAmount >= pair.moneyManagement.supportLevel.budgetLimit){
                     logMessage += " $$$ Sell the oldest order with a loss, if the budget limit was reached!\n";
                     const forSell = await db.setOldestOrderWithLossForSell(config.name, pair);
                     logMessage += JSON.stringify(forSell)+"\n";
