@@ -9,6 +9,7 @@ let apiCounter = 0;
 let logMessage;
 let lastLogMessage = [];
 let lastTickers = {};
+const exclamationMarks = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 
 let init = function (configuration, balance, database, apiExchange){
     config = configuration;
@@ -28,9 +29,7 @@ let doAskOrder = async function(){
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
         if(!config.pairs[i].active.sell){
-            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for SELL is disabled.\n";
-            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage = exclamationMarks + " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for SELL is disabled.\n" + exclamationMarks;
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
                 lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].ask = logMessage;
@@ -167,7 +166,6 @@ let doBidOrder = async function (){
             }
         }
         if(skipDoBidOrder){
-            const exclamationMarks = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             logMessage = exclamationMarks + logMessageDetail + exclamationMarks;
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
