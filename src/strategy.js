@@ -122,10 +122,53 @@ let doBidOrder = async function (){
     let tickers = {};
     // Parse all currency pair in config and check if is available balance for sell trade
     for(let i=0;i<config.pairs.length;i++){
+        let skipDoBidOrder = false;
+        let logMessageDetail;
         if(!config.pairs[i].active.buy){
-            logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for BUY is disabled.\n";
-            logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" for BUY is disabled.\n";
+            skipDoBidOrder = true;
+        } else {
+            let totalSellSize = 0;
+            let totalAmountSpent = 0;
+            if(config.pairs[i].moneyManagement.buySize.active){
+                totalSellSize = await db.getTotalSellSize(config.name, config.pairs[i]);
+                totalAmountSpent = await tools.getAmountSpent(db, config.name, config.pairs[i]);
+                if (config.pairs[i].moneyManagement.buySize.bagHolderLimit > 0 && config.pairs[i].moneyManagement.buySize.bagHolderLimit <= totalSellSize){
+                    logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum bag holder limit "+totalSellSize+". We do not need to buy more.\n";
+                    skipDoBidOrder = true;
+                } else if (config.pairs[i].moneyManagement.buySize.budgetLimit > 0 && config.pairs[i].moneyManagement.buySize.budgetLimit <= totalAmountSpent){
+                    logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit "+totalAmountSpent+". We do not need to buy more.\n";
+                    skipDoBidOrder = true;
+                }
+            } else {
+                totalAmountSpent = await tools.getAmountSpent(db, config.name, config.pairs[i]);
+                logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit "+totalAmountSpent+". We do not need to buy more.\n";
+                if(config.pairs[i].moneyManagement.autopilot.active){
+                    if (config.pairs[i].moneyManagement.autopilot.budgetLimit > 0 && config.pairs[i].moneyManagement.autopilot.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    }
+                } else if(config.pairs[i].moneyManagement.supportLevel.active){
+                    if (config.pairs[i].moneyManagement.supportLevel.budgetLimit > 0 && config.pairs[i].moneyManagement.supportLevel.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    }
+                } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBalance.active){
+                    if (config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    }
+                } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBudget.active){
+                    if (config.pairs[i].moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBudget.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    }
+                } else if(config.pairs[i].moneyManagement.buyForAmount.active){
+                    if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    }
+                }
+            }
+        }
+        if(skipDoBidOrder){
+            const exclamationMarks = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            logMessage = exclamationMarks + logMessageDetail + exclamationMarks;
             if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
                 config.debug && console.log("\r\n"+logMessage);
                 lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
@@ -133,99 +176,11 @@ let doBidOrder = async function (){
             //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
             await tools.sleep(1);
             continue;
-        } else if(config.pairs[i].moneyManagement.autopilot.active){
-            if (config.pairs[i].moneyManagement.autopilot.budgetLimit > 0 && config.pairs[i].moneyManagement.autopilot.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
-        } else if(config.pairs[i].moneyManagement.supportLevel.active){
-            if (config.pairs[i].moneyManagement.supportLevel.budgetLimit > 0 && config.pairs[i].moneyManagement.supportLevel.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
-        } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBalance.active){
-            if (config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBalance.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
-        } else if(config.pairs[i].moneyManagement.buyPercentageAvailableBudget.active){
-            if (config.pairs[i].moneyManagement.buyPercentageAvailableBudget.budgetLimit > 0 && config.pairs[i].moneyManagement.buyPercentageAvailableBudget.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
-        } else if(config.pairs[i].moneyManagement.buyForAmount.active){
-            if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
-        } else if(config.pairs[i].moneyManagement.buySize.active){
-            if (config.pairs[i].moneyManagement.buySize.bagHolderLimit > 0 && config.pairs[i].moneyManagement.buySize.bagHolderLimit <= await db.getTotalSellSize(config.name, config.pairs[i]) ){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum bag holder limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            } else if (config.pairs[i].moneyManagement.buySize.budgetLimit > 0 && config.pairs[i].moneyManagement.buySize.budgetLimit <= await tools.getAmountSpent(db, config.name, config.pairs[i])){
-                logMessage = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                logMessage += " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit. We do not need to buy more.\n";
-                logMessage += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-                if(config.debug && lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid !== logMessage){
-                    config.debug && console.log("\r\n"+logMessage);
-                    lastLogMessage[config.pairs[i].name+"_"+config.pairs[i].id].bid = logMessage;
-                }
-                //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
-                await tools.sleep(1);
-                continue;
-            }
         }
+
         let pair = config.pairs[i];
         apiCounter = 0;
-        logMessage = " ### Lets process bid for "+ pair.name+" in the loop.\n";
+        logMessage = " ### Lets process bid for "+ pair.name+" #"+pair.id+" in the loop.\n";
         //let buyForCurrency = pair.name.split(pair.separator)[1];
         //let buyCurrency = pair.name.split(pair.separator)[0];
 
