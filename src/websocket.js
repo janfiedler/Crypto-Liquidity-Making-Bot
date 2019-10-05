@@ -57,7 +57,7 @@ websocket.emitPendingOrders = async function(data){
 
 websocket.emitCompletedOrder = async function(data){
     if(sockets.length > 0){
-        emitToAll("completedOrder", {"p": {"n": data.pair.name, "l": data.order.exchange+" "+data.order.pair+" #"+data.order.pair_id, "s":data.pair.separator}, "s": data.order.sell_filled, "oP": data.profit});
+        emitToAll("completedOrder", {"p": {"n": data.pair.name, "l": data.order.exchange+" "+data.order.pair+" #"+data.order.pair_id, "s":data.pair.separator}, "s": data.order.sell_filled, "sP": data.order.sell_price, "oP": data.profit});
     }
 };
 
