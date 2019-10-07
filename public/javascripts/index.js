@@ -1,8 +1,14 @@
 $( document ).ready(function() {
     let ws = io();
+    let showAllOpenOrders = {};
     ws.on('ticker', function (data) {
         //console.log(data);
         let tbody = document.getElementById("tbody_" + data.e + "_" + data.p.n + "_" + data.p.i);
+        //Init object if do not exist
+        if (!showAllOpenOrders.hasOwnProperty("tbody_" + data.e + "_" + data.p.n + "_" + data.p.i)) {
+            showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i] = false;
+        }
+
         if (tbody){
             let tP = document.getElementById("totalProfit_" + data.e + "_" + data.p.n + "_" + data.p.i);
             $(tP).text(data.tP.toFixed(8) + ' ' + data.p.n.split(data.p.s)[1]);
@@ -20,6 +26,7 @@ $( document ).ready(function() {
             $(tbody).find('tr').remove();
             let totalPl = 0;
             let totalOpenOrders = 0;
+            let totalHiddenOrders = 0;
             data.pO.forEach(function(order){
                 let plColor = "class='text-danger'";
                 let ico_frozen = "<span class='freeze_order' title='Freeze order'></span>";
@@ -36,7 +43,27 @@ $( document ).ready(function() {
                 }
                 totalPl += order.pl;
                 totalOpenOrders++;
-                $(tbody).append('<tr><td>'+order.buy_id+'</td><td>'+order.buy_price+'</td><td>'+order.sell_size+'</td><td>'+order.sell_target_price+'</td><td>'+order.oA+' '+data.p.n.split(data.p.s)[1]+'</td><td '+plColor+'><strong>'+order.pl+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+                let trStyle = '';
+                if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length || order.pl > 0){
+                    //Do something
+                } else if(!showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i]) {
+                    totalHiddenOrders++;
+                    trStyle = "style='display: none'";
+                    if(totalHiddenOrders === 1){
+                        $(tbody).append('<tr class="hiddenOpenOrders"><td class="hiddenOpenOrdersCount"> '+totalHiddenOrders+'x more</td><td></td><td></td><td></td><td></td><td></td><td class="hiddenOpenOrdersShow">SHOW</td></tr>');
+                        $(tbody).find(".hiddenOpenOrdersShow").click(function() {
+                            showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i] = true;
+                            $(tbody).find(".hiddenOpenOrders").remove();
+                            $(tbody).find('tr').show();
+                        });
+                    } else {
+                        $(tbody).find(".hiddenOpenOrdersCount").text(totalHiddenOrders+"x more");
+                    }
+                }
+                $(tbody).append('<tr '+trStyle+'><td>'+order.buy_id+'</td><td>'+order.buy_price+'</td><td>'+order.sell_size+'</td><td>'+order.sell_target_price+'</td><td>'+order.oA+' '+data.p.n.split(data.p.s)[1]+'</td><td '+plColor+'><strong>'+order.pl+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+                if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length){
+                    $(tbody).find("tr").last().css("display: block;");
+                }
             });
             $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+setPrecision(totalPl, data.d)+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td></td></tr>');
         }
