@@ -611,7 +611,11 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     await db.setFailedSellOrder(failedSellOrder);
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
-                } else {
+                } else if(createdOrder.errorMessage.includes("Order would immediately match and take")){
+                    logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to order would immediately match and take!\n";
+                    console.error(createdOrder.errorMessage);
+                    return false;
+                }  else {
                     await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders");
                 }
             }
@@ -698,8 +702,8 @@ async function processBidOrder(pair, valueForSize, targetBid){
     } else {
         logMessage += " ### Let´go open new buy order!\n";
         const createdOrder = await api.createOrder(pair,"BUY",null, valueForSize, targetBid);
+        apiCounter++;
         if(createdOrder.s){
-            apiCounter++;
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;
             await db.saveOpenedBuyOrder(config.name, pair, createdOrder);
             return true;
@@ -708,6 +712,10 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 console.error("Minimum Order Size: insufficient buy size!");
             } else if(createdOrder.errorMessage.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
+            } else if(createdOrder.errorMessage.includes("Order would immediately match and take")){
+                console.error(createdOrder.errorMessage);
+                logMessage += " !!! Order would immediately match and take!\n";
+                return false;
             } else {
                 await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last orders");
             }
