@@ -161,7 +161,7 @@ let limitOrder = function(type, pair, size, price){
     return new Promise(async function (resolve) {
         let url = config.url + "/api/v3/order";
 
-        let body = { "symbol": pair.name.replace('-',''), "side": type, "type": "LIMIT", "timeInForce": "GTC", "quantity": size, "price": price };
+        let body = { "symbol": pair.name.replace('-',''), "side": type, "type": "LIMIT_MAKER", "quantity": size, "price": price, "newOrderRespType": "FULL" };
         const signed = sign(body);
 
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
