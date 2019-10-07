@@ -486,8 +486,8 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "binance":
-                        myAccount.balance["BNB"] -= orderDetail.fee;
-                        myAccount.available["BNB"] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                 }
             }
@@ -510,8 +510,8 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "binance":
-                        myAccount.balance["BNB"] -= orderDetail.fee;
-                        myAccount.available["BNB"] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                 }
             }
@@ -540,8 +540,8 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "binance":
-                        myAccount.balance["BNB"] -= orderDetail.fee;
-                        myAccount.available["BNB"] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                 }
             }
@@ -566,8 +566,8 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "binance":
-                        myAccount.balance["BNB"] -= orderDetail.fee;
-                        myAccount.available["BNB"] -= orderDetail.fee;
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                 }
             }

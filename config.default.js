@@ -314,6 +314,7 @@ let config =
                 "secretKey": "",
                 "sleepPause": 250,
                 "stickToBigOrders": false,
+                "fees": {"maker": 0.1, "taker": 0.1},
                 "accounts": [{"name": "BTC"}, {"name": "IOTA"}, {"name": "BNB"}, {"name": "PIVX"}],
                 "pairs": [
                     {

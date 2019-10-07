@@ -206,7 +206,7 @@ let getOrder = function(pair, id, type, openedOrder){
                     detailOrder.size = parseFloat(result.origQty);
                     detailOrder.funds = tools.setPrecision(detailOrder.price*detailOrder.size, pair.digitsPrice);
                     detailOrder.size_filled = parseFloat(result.executedQty);
-                    detailOrder.fee = 0;
+                    detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), pair.digitsPrice);
                     detailOrder.status = result.status;
                     resolve({s:1, data: detailOrder});
                 } else {
@@ -241,7 +241,7 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     detailOrder.size = parseFloat(result.origQty);
                     detailOrder.funds = tools.setPrecision(detailOrder.price*detailOrder.size, pair.digitsPrice);
                     detailOrder.size_filled = parseFloat(result.executedQty);
-                    detailOrder.fee = 0;
+                    detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), pair.digitsPrice);
                     detailOrder.status = result.status;
                     resolve({s:1, data: detailOrder});
                 } else {
