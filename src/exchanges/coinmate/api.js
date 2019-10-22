@@ -323,7 +323,7 @@ let buyLimitOrder = function (currencyPair, amount, price){
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&" + sign()
+            body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&postOnly=1" + "&" + sign()
         }, function (error, response, body) {
             try {
                 const result = JSON.parse(body);
@@ -364,7 +364,7 @@ let sellLimitOrder = function (currencyPair, amount, price){
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&" + sign()
+            body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&postOnly=1" + "&" + sign()
         }, function (error, response, body) {
             try {
                 const result = JSON.parse(body);
