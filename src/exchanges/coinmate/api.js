@@ -433,7 +433,7 @@ let getTradeHistory = function (orderId ){
 };
 
 
-let getTransactionHistory = function (orderId ){
+let getTransactionHistory = function (limit){
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -441,7 +441,7 @@ let getTransactionHistory = function (orderId ){
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: "orderId=" + orderId + "&" + sign()
+            body: "sort=DESC&limit=" + limit + "&" + sign()
         }, function (error, response, body) {
             try {
                 const result = JSON.parse(body);
@@ -499,7 +499,7 @@ let getOrderHistory = function (currencyPair, limit){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    resolve({s:1, data: result});
+                    resolve({s:1, data: result.data});
                 } else {
                     console.error("coinmate getOrderHistory");
                     console.error(body);
@@ -522,7 +522,9 @@ module.exports = {
     getTicker: getTicker,
     parseTicker: parseTicker,
     getOrder: getOrder,
+    getTransactionHistory: getTransactionHistory,
     getTradeHistory: getTradeHistory,
+    getOrderHistory: getOrderHistory,
     cancelOrder: cancelOrder,
     createOrder: createOrder,
 };
