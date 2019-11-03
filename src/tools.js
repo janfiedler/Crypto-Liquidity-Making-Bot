@@ -53,6 +53,15 @@ let parseBalance = function(config, funds){
                 }
             }
             break;
+        case "itbit":
+            for (const fund of funds.balances) {
+                let currencyCode = fund.currency.toLocaleUpperCase();
+                if(config.accounts.some(currency => currency.name.toLocaleUpperCase() === currencyCode)){
+                    myAccount[config.name].balance[currencyCode] = parseFloat(fund.totalBalance);
+                    myAccount[config.name].available[currencyCode] = parseFloat(fund.availableBalance);
+                }
+            }
+            break;
     }
     return myAccount;
 };

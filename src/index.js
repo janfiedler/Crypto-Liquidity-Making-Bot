@@ -51,6 +51,14 @@ async function handleWorkers(type){
                         await binance.stop();
                     }
                     break;
+                case "itbit":
+                    const itbit = require('./exchanges/itbit/');
+                    if(type === "START"){
+                        itbit.start(config.exchanges[i]);
+                    } else if(type === "STOP") {
+                        await itbit.stop();
+                    }
+                    break;
             }
         }
     }
