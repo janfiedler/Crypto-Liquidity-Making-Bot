@@ -73,7 +73,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.5,
                             "pipsAskBidSpread": 1
                         },
                         "strategy": {
@@ -86,6 +85,16 @@ let config =
                                 "pips": {
                                     "active": false,
                                     "value": 2500
+                                }
+                            },
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
@@ -138,7 +147,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.5,
                             "pipsAskBidSpread": 1
                         },
                         "strategy": {
@@ -151,6 +159,16 @@ let config =
                                 "pips": {
                                     "active": false,
                                     "value": 2500
+                                }
+                            },
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
@@ -219,7 +237,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.25,
                             "pipsAskBidSpread": 1
                         },
                         "strategy": {
@@ -234,7 +251,21 @@ let config =
                                     "value": 6000
                                 }
                             },
-                            "sellOldestOrderWithLoss": false
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
+                                }
+                            },
+                            "sellOldestOrderWithLoss": false,
+                            "sellOldestOrderWithLossWhenProfit": {
+                                "active": false,
+                                "keepPercentageOfProfit" : 25
+                            }
                         }
                     },
                     {
@@ -281,7 +312,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.25,
                             "pipsAskBidSpread": 1
                         },
                         "strategy": {
@@ -294,6 +324,16 @@ let config =
                                 "pips": {
                                     "active": false,
                                     "value": 2400
+                                }
+                            },
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
@@ -361,7 +401,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.3,
                             "pipsAskBidSpread": 0.3
                         },
                         "strategy": {
@@ -374,6 +413,16 @@ let config =
                                 "pips": {
                                     "active": false,
                                     "value": 50
+                                }
+                            },
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
                                 }
                             },
                             "sellOldestOrderWithLoss": false,
@@ -427,7 +476,6 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "percentageProfitTarget": 0.3,
                             "pipsAskBidSpread": 0.3
                         },
                         "strategy": {
@@ -440,6 +488,16 @@ let config =
                                 "pips": {
                                     "active": false,
                                     "value": 50
+                                }
+                            },
+                            "profitTarget": {
+                                "percentage": {
+                                    "active": true,
+                                    "value" : 0.5
+                                },
+                                "pips": {
+                                    "active": false,
+                                    "value": 1
                                 }
                             },
                             "sellOldestOrderWithLoss": false,

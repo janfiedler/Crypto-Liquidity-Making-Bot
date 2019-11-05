@@ -177,7 +177,6 @@ function executeRequest(options) {
                 errorMessage = util.format('%s failed %s. Error code %s, description: %s', functionName,
                     requestDesc, body.code, body.description);
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
             }
             else if (!(res.statusCode === 200 || res.statusCode === 201 || res.statusCode === 202)) {
@@ -217,6 +216,8 @@ let getTicker = async function(pair) {
     //console.log(tickers);
     if(!tickers.error && tickers.statusCode === 200){
         return {s:1, data: tickers.data, counter: 1};
+    } else if (tickers.error){
+        return {s:0, data: tickers.data, counter: 1};
     }
 };
 
