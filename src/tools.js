@@ -191,6 +191,7 @@ let calculateProfit = function(exchange, completedOrder){
     //Profit part
     let profit;
     if(totalFee<=0){
+        //If was rebate for this trade, do not add it to profit. It will cause conflict with strategy sellOldestOrderWithLossWhenProfit
         profit = (sellTotalPrice - buyTotalPrice)
     } else {
         profit = (sellTotalPrice - buyTotalPrice)-(totalFee);
