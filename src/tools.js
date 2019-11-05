@@ -179,28 +179,22 @@ let orderCreatedForm = function(){
 };
 
 let calculateProfit = function(exchange, completedOrder){
-    if(completedOrder.buy_fee < 0){
-        completedOrder.buy_fee = 0;
-    }
-    if(completedOrder.sell_fee < 0){
-        completedOrder.sell_fee = 0;
-    }
-
-    let sellTotalPrice = (completedOrder.sell_filled*completedOrder.sell_price)-(completedOrder.sell_fee);
-    sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
+    //Buy part
     let buyFee = (completedOrder.buy_fee / completedOrder.buy_filled) * completedOrder.sell_filled;
-    let buyTotalPrice = (completedOrder.sell_filled*completedOrder.buy_price)+(buyFee);
+    let buyTotalPrice = (completedOrder.sell_filled*completedOrder.buy_price);
     buyTotalPrice = setPrecisionUp(buyTotalPrice, 8);
-    let profit = sellTotalPrice - buyTotalPrice;
+    //Sell part
+    let sellTotalPrice = (completedOrder.sell_filled*completedOrder.sell_price);
+    sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
+    //Fee part
+    let totalFee = (buyFee)+(completedOrder.sell_fee);
+    //Profit part
+    let profit = (sellTotalPrice - buyTotalPrice)-(totalFee);
     profit = setPrecisionDown(profit, 8);
     return profit;
 };
 
 let calculatePendingProfit = function(pendingOrder, sellPrice){
-    if(pendingOrder.buy_fee < 0){
-        pendingOrder.buy_fee = 0;
-    }
-
     let buyFee = ((pendingOrder.buy_fee / pendingOrder.buy_filled) * pendingOrder.sell_size);
     let buyTotalPrice = ((pendingOrder.sell_size*pendingOrder.buy_price)+buyFee);
     buyTotalPrice = setPrecisionUp(buyTotalPrice, 8);
@@ -219,7 +213,11 @@ let getAmountSpent = async function(db, exchange, pair){
         const po = await db.getAllSellOrders(exchange, pair.name, pair.id);
         let totalAmount = 0;
         for(let i=0;i<po.length;i++){
-            totalAmount += (po[i].buy_price * po[i].sell_size)+po[i].buy_fee;
+            if(po[i].buy_fee > 0){
+                totalAmount += (po[i].buy_price * po[i].sell_size)+po[i].buy_fee;
+            } else {
+                totalAmount += (po[i].buy_price * po[i].sell_size);
+            }
         }
         resolve(totalAmount);
     });

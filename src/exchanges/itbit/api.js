@@ -1,8 +1,7 @@
 var request = require('request');
 const crypto = require('crypto');
 let _ = require("underscore"),
-    util = require('util'),
-    VError = require('verror');
+    util = require('util');
 const tools = require('../../tools');
 let config;
 let options = {};
@@ -31,12 +30,12 @@ let setConfig = function(data){
 };
 
 function makePublicRequest(version, path, args) {
-    var functionName = 'ItBit.makePublicRequest()';
+    let functionName = 'ItBit.makePublicRequest()';
 
-    var params = Object.keys(args).reduce(function(a,k){a.push(k+'='+encodeURIComponent(args[k]));return a},[]).join('&');
+    let params = Object.keys(args).reduce(function(a,k){a.push(k+'='+encodeURIComponent(args[k]));return a},[]).join('&');
     if (params) path = path + "?" + params;
 
-    var server;
+    let server;
     if (version === 'v1') {
         server = self.serverV1;
     }
@@ -44,10 +43,10 @@ function makePublicRequest(version, path, args) {
         server = self.serverV2;
     }
     else {
-        return Promise.reject(new VError('%s version %s needs to be either v1 or v2', functionName, version));
+        return Promise.reject(new Error(util.format('%s version %s needs to be either v1 or v2', functionName, version)));
     }
 
-    var options = {
+    let options = {
         method: "GET",
         uri: server + path,
         headers: {
@@ -64,13 +63,13 @@ function makePrivateRequest(method, path, args) {
     var functionName = "ItBit.makePrivateRequest()";
 
     if (!self.key || !self.secret) {
-        return Promise.reject(new VError("%s must provide key and secret to make a private API request.", functionName))
+        return Promise.reject(new Error(util.format("%s must provide key and secret to make a private API request.", functionName)));
     }
 
-    var uri = self.serverV1 + path;
+    let uri = self.serverV1 + path;
 
     // compute the post data
-    var postData = "";
+    let postData = "";
     if (method === 'POST' || method === 'PUT') {
         postData = JSON.stringify(args);
     }
@@ -327,12 +326,37 @@ let getOrder = function(pair, id, type, openedOrder){
             detailOrder.size = parseFloat(getOrderResult.data.amount);
             detailOrder.funds = tools.setPrecision(detailOrder.price*detailOrder.size, pair.digitsPrice);
             detailOrder.size_filled = parseFloat(getOrderResult.data.amountFilled);
-            detailOrder.fee = 0;
             detailOrder.status = getOrderResult.data.status;
-            resolve({s:1, data: detailOrder});
+
+            if(parseFloat(getOrderResult.data.amountFilled) > 0){
+                const trades = await makePrivateRequest("GET", "/wallets/" + walletId + "/trades", {orderId:id});
+                console.log("getTrades");
+                console.log(trades);
+                if(!trades.error){
+                    if(trades.data.tradingHistory.length > 0){
+                        for(let i=0;i<trades.data.tradingHistory.length;i++){
+                            console.log("fee");
+                            console.log(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
+                            detailOrder.fee = (detailOrder.fee)+(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
+                        }
+                        detailOrder.fee = tools.setPrecision(detailOrder.fee, 8);
+                        if(detailOrder.size === detailOrder.size_filled){
+                            detailOrder.status = "fulfilled";
+                        } else {
+                            detailOrder.status = "partially_filled";
+                        }
+                    }
+                    resolve({s:1, counter: 2, data: detailOrder});
+                } else {
+                    resolve({s:0, counter: 2, data: {error: "itbit getOrderError"}});
+                }
+            } else {
+                detailOrder.fee = 0;
+                resolve({s:1, counter: 1, data: detailOrder});
+            }
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
-            resolve({s:0, data: {error: "itbit cancelOrder"}});
+            resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
         }
     });
 };

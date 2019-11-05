@@ -148,12 +148,12 @@ let getOrder = function(pair, id, type, openedOrder){
                 } else {
                     console.error("coinfalcon getOrder");
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, counter: 1, data: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getOrder"}});
+                resolve({s:0, counter: 1, data: {error: "getOrder"}});
             }
         });
     });

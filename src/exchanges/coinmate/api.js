@@ -257,9 +257,9 @@ let getOrder = async function (pair, id, type, openedOrder){
         } else {
             orderDetail.status = "canceled";
         }
-        return {"s": true, "data": orderDetail};
+        return {s: true, counter: 1, data: orderDetail};
     } else {
-        return {"s": false};
+        return {s: false, counter: 1};
     }
 };
 
@@ -277,14 +277,10 @@ let cancelOrder = function (pair, id, type, openedOrder){
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     if(result.data){
-                        const detailCanceledOrder = await getOrder(pair, id, type, openedOrder);
-                        if(detailCanceledOrder.s){
-                            resolve({"s":1, "data": detailCanceledOrder.data});
-                        } else {
-                            resolve({"s":0, "data": {"error": "getOrder failed"}});
-                        }
+                        //Because cancel order do not response with order detail, we need request order detail in next step
+                        resolve({s:0, data: {error: "not found"}});
                     } else {
-                        resolve({"s":0, "data": {"error": "not found"}});
+                        resolve({s:0, data: {error: "cancelOrder failed"}});
                     }
                 } else {
                     console.error("coinmate cancelOrder");

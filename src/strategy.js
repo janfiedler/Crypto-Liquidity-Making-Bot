@@ -387,7 +387,8 @@ async function validateOrder(type, id, pair, openedOrder){
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('not found')){
         //Order was probably canceled manually, sync local DB
         const detailOrder = await api.getOrder(pair, id, type, openedOrder);
-        apiCounter++;
+        apiCounter += detailOrder.counter;
+
         if(detailOrder.s){
             logMessage += " ### orderDetail = api.getOrder(id)\n";
             orderDetail = detailOrder.data;
@@ -509,6 +510,21 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
+            } else if(orderDetail.fee < 0){
+                switch (config.name) {
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
                 }
             }
             //We bought, need add new size to balance and available
@@ -532,6 +548,21 @@ let processFulfilledOrder = function(pair, orderDetail){
                     case "binance":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
+            } else if(orderDetail.fee < 0){
+                switch (config.name) {
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
                         break;
                 }
             }
@@ -563,6 +594,21 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
+            } else if(orderDetail.fee < 0){
+                switch (config.name) {
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
                 }
             }
             //We bought, need add new size to balance and available
@@ -588,6 +634,21 @@ let processPartiallyFilled = function (pair, orderDetail){
                     case "binance":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                }
+            } else if(orderDetail.fee < 0){
+                switch (config.name) {
+                    case "coinmate":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        break;
+                    case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += orderDetail.fee;
                         break;
                 }
             }

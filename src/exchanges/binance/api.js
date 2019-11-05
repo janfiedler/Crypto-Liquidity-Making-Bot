@@ -208,16 +208,16 @@ let getOrder = function(pair, id, type, openedOrder){
                     detailOrder.size_filled = parseFloat(result.executedQty);
                     detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), 10);
                     detailOrder.status = result.status;
-                    resolve({s:1, data: detailOrder});
+                    resolve({s:1, counter: 1, data: detailOrder});
                 } else {
                     console.error("binance getOrder");
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, counter: 1, data: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getOrder"}});
+                resolve({s:0, counter: 1, data: {error: "getOrder"}});
             }
         });
     });
