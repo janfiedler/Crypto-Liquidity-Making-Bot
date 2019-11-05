@@ -211,9 +211,7 @@ let parsePusherTicker = function(type, book, pair, order){
 };
 
 let getOrder = async function (pair, id, type, openedOrder){
-    console.error("coinmate getOrder");
     const rTH = await getTradeHistory(id);
-    console.error(rTH);
     if(rTH.s){
         let orderDetail = new tools.orderDetailForm;
         orderDetail.id = id;
@@ -266,7 +264,6 @@ let getOrder = async function (pair, id, type, openedOrder){
 };
 
 let cancelOrder = function (pair, id, type, openedOrder){
-    console.error("coinmate cancelOrder");
     return new Promise(function (resolve) {
         request({
             method: 'POST',
@@ -280,7 +277,10 @@ let cancelOrder = function (pair, id, type, openedOrder){
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     if(result.data){
-                        //Because cancel order do not response with order detail, we need request order detail in next step
+                        //Because success cancel order do not response with order detail, we need request order detail in next step
+                        resolve({s:0, data: {error: "not found"}});
+                    } else if(!result.data) {
+                        //Because faild cancel order, we need response with order detail, we need request order detail in next step
                         resolve({s:0, data: {error: "not found"}});
                     } else {
                         resolve({s:0, data: {error: "cancelOrder failed"}});

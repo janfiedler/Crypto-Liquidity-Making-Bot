@@ -33,7 +33,7 @@ tbody tr:hover .action > * {
   width:100%;
   table-layout:fixed;
 }
-.tableLastOrders tbody tr td, .tableLastOrders tbody tr th{
+.tableLastOrders tbody tr td, .tableLastOrders thead tr th{
   padding: 0.25rem;
 }
 
