@@ -17,6 +17,26 @@ tbody tr:hover .action > * {
   visibility:visible;
 }
 
+.tableLastOrders thead {
+  display:table;
+  width:100%;
+  table-layout:fixed;
+}
+
+.tableLastOrders tbody {
+  display:block;
+  height:124px;
+  overflow:auto;
+}
+.tableLastOrders tbody tr{
+  display:table;
+  width:100%;
+  table-layout:fixed;
+}
+.tableLastOrders tbody tr td, .tableLastOrders tbody tr th{
+  padding: 0.25rem;
+}
+
 .freeze_order{
   display: inline-block;
   width: 24px;

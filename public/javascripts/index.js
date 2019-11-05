@@ -73,6 +73,14 @@ $( document ).ready(function() {
         }
     });
 
+    ws.on('filledBuyOrder', function (data) {
+        console.log(data);
+        let tbody = document.getElementById("tbody_filledBuyOrders");
+        if (tbody){
+            $(tbody).prepend('<tr title="'+new Date().toISOString()+'"><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td title="Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.bP+'</td>><td title="Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.sP+'</td><td title="Fee: '+data.f+'">'+setPrecision((data.s*data.bP), 16)+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
+        }
+    });
+
     ws.on('completedOrder', function (data) {
         console.log(data);
         let tbody = document.getElementById("tbody_completedOrders");
@@ -81,7 +89,7 @@ $( document ).ready(function() {
             if(data.oP > 0){
                 plColor = "class='text-success'";
             }
-            $(tbody).append('<tr><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td>'+data.sP+'</td><td '+plColor+'>'+data.oP+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
+            $(tbody).prepend('<tr title="'+new Date().toISOString()+'"><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td title="Fee: '+data.bF+' Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.bP+'</td><td title="Fee: '+data.sF+' Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.sP+'</td><td '+plColor+'>'+data.oP+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
         }
     });
 

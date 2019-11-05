@@ -211,7 +211,9 @@ let parsePusherTicker = function(type, book, pair, order){
 };
 
 let getOrder = async function (pair, id, type, openedOrder){
+    console.error("coinmate getOrder");
     const rTH = await getTradeHistory(id);
+    console.error(rTH);
     if(rTH.s){
         let orderDetail = new tools.orderDetailForm;
         orderDetail.id = id;
@@ -264,6 +266,7 @@ let getOrder = async function (pair, id, type, openedOrder){
 };
 
 let cancelOrder = function (pair, id, type, openedOrder){
+    console.error("coinmate cancelOrder");
     return new Promise(function (resolve) {
         request({
             method: 'POST',

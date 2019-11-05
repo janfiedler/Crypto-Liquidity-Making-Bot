@@ -133,7 +133,7 @@ function executeRequest(options) {
 
             if (err) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
-                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                error = {error: true, statusCode: -1, data: errorMessage};
                 console.log(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
             }
@@ -337,7 +337,7 @@ let getOrder = function(pair, id, type, openedOrder){
                         for(let i=0;i<trades.data.tradingHistory.length;i++){
                             console.log("fee");
                             console.log(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
-                            detailOrder.fee = (detailOrder.fee)+(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
+                            detailOrder.fee -= (parseFloat(trades.data.tradingHistory[i].rebatesApplied));
                         }
                         detailOrder.fee = tools.setPrecision(detailOrder.fee, 8);
                         if(detailOrder.size === detailOrder.size_filled){

@@ -40,6 +40,9 @@ itbitWorker.on('message', async function (data) {
         case "completedOrder":
             ws.emitCompletedOrder(data);
             break;
+        case "filledBuyOrder":
+            ws.emitFilledBuyOrder(data);
+            break;
     }
 });
 

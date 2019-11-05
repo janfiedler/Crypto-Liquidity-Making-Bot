@@ -39,8 +39,35 @@ block content
                 div.widget-detail-1
                   h2.p-t-10.mb-0
                   p.text-muted.m-b-10
+        diw.row
+          div.col-sm-6
+            div.card-box
+              h4.header-title.mt-0 Last filled buy orders
+              div.table-responsive
+                table.table.mb-0.tableLastOrders
+                  thead
+                    tr
+                      th Pair
+                      th Size
+                      th Buy Price
+                      th Target price
+                      th Amount spent
+                  tbody.overflow-auto(id="tbody_filledBuyOrders")
+          div.col-sm-6
+            div.card-box
+              h4.header-title.mt-0 Last completed trades
+              div.table-responsive
+                table.table.mb-0.tableLastOrders
+                  thead
+                    tr
+                      th Pair
+                      th Size
+                      th Buy Price
+                      th Sell price
+                      th P&L
+                  tbody.overflow-auto(id="tbody_completedOrders")
         div.row
-          div.col-sm-8
+          div.col-sm-12
             each exchange in exchanges
               each pair in exchange.pairs
                 diw.row
@@ -84,15 +111,3 @@ block content
                               th P&L
                               th Action
                           tbody( id="tbody_" + exchange.name + "_" + pair.name + "_" + pair.id)
-          div.col-sm-4
-            div.card-box
-              h4.header-title.mt-0 Last completed trades
-              div.table-responsive
-                table.table.mb-0
-                  thead
-                    tr
-                      th Pair
-                      th Size
-                      th Sell Price
-                      th P&L
-                  tbody( id="tbody_completedOrders")

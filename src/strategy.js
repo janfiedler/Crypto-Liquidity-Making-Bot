@@ -445,6 +445,13 @@ async function validateOrder(type, id, pair, openedOrder){
                 } else if(pair.strategy.profitTarget.pips.active){
                     sell_target_price = tools.addPipsToPrice(orderDetail.price, pair.strategy.profitTarget.pips.value, pair.digitsPrice);
                 }
+                process.send({
+                    "type": "filledBuyOrder",
+                    "exchange": config.name,
+                    "pair": pair,
+                    "order": orderDetail,
+                    "sellTargetPrice": sell_target_price
+                });
                 await db.setPendingSellOrder(orderDetail, sell_target_price);
                 break;
             case "SELL":
@@ -464,6 +471,13 @@ async function validateOrder(type, id, pair, openedOrder){
                 } else if(pair.strategy.profitTarget.pips.active){
                     sell_target_price = tools.addPipsToPrice(orderDetail.price, pair.strategy.profitTarget.pips.value, pair.digitsPrice);
                 }
+                process.send({
+                    "type": "filledBuyOrder",
+                    "exchange": config.name,
+                    "pair": pair,
+                    "order": orderDetail,
+                    "sellTargetPrice": sell_target_price
+                });
                 await db.setPendingSellOrder(orderDetail, sell_target_price);
                 break;
             case "SELL":
