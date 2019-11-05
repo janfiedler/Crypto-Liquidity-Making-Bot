@@ -115,13 +115,12 @@ function makePrivateRequest(method, path, args) {
 }
 
 function executeRequest(options) {
-    var functionName = 'ItBit.executeRequest()', requestDesc;
+    let functionName = 'ItBit.executeRequest()', requestDesc;
 
     if (options.method === 'GET') {
         requestDesc = util.format('%s request to url %s',
             options.method, options.uri);
-    }
-    else {
+    } else {
         requestDesc = util.format('%s request to url %s with nonce %s and data %s',
             options.method, options.uri, options.headers["X-Auth-Nonce"], JSON.stringify(options.json));
     }
@@ -130,13 +129,20 @@ function executeRequest(options) {
             //console.log(err);
             //console.log(res.statusCode);
             //console.log(body);
-            var error = null;   // default to no errors
+            let error = null;   // default to no errors
+            let errorMessage = null;
 
             if (err) {
-                return reject(new VError(err, '%s failed %s', functionName, requestDesc));
+                errorMessage = util.format('%s failed %s', functionName, requestDesc);
+                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.log(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
             }
             else if (!body) {
-                return reject(new VError('%s failed %s. Not response from server', functionName, requestDesc));
+                errorMessage = util.format('%s failed %s. Not response from server', functionName, requestDesc);
+                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.log(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
             }
             // if request was not able to parse json response into an object
             else if (!_.isObject(body)) {
@@ -146,34 +152,42 @@ function executeRequest(options) {
                 var responseBody = $('body').text();
 
                 if (responseBody) {
-                    return reject(new VError(err, '%s could not parse response body from %s\nResponse body: %s', functionName, requestDesc, responseBody));
+                    errorMessage = util.format('%s could not parse response body from %s\nResponse body: %s', functionName, requestDesc, responseBody);
+                    error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                    console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                    resolve(error);
                 }
                 else {
-                    return reject(new VError(err, '%s could not parse json or HTML response from %s', functionName, requestDesc));
+                    errorMessage = util.format('%s could not parse json or HTML response from %s', functionName, requestDesc);
+                    error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                    console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                    resolve(error);
                 }
-            }
-            else if (body && body.code) {
-                error = new VError('%s failed %s. Error code %s, description: %s', functionName,
-                    requestDesc, body.code, body.description);
-                error.name = body.code;
-                return reject(error);
             }
             // the following is to trap the JSON response
             // {"error":"The itBit API is currently undergoing maintenance"}
             else if (body && body.error) {
-                error = new VError('%s failed %s. Error %s', functionName,
+                errorMessage = util.format('%s failed %s. Error %s', functionName,
                     requestDesc, body.error);
-                error.name = body.error;
-                return reject(error);
+                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
+            }
+            else if (body && body.code) {
+                errorMessage = util.format('%s failed %s. Error code %s, description: %s', functionName,
+                    requestDesc, body.code, body.description);
+                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
             }
             else if (!(res.statusCode === 200 || res.statusCode === 201 || res.statusCode === 202)) {
-                error = new VError('%s failed %s. Response status code %s, response body %s', functionName,
+                errorMessage = util.format('%s failed %s. Response status code %s, response body %s', functionName,
                     requestDesc, res.statusCode, res.body);
-                error.name = res.statusCode;
-                return reject(error);
+                error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
             }
-
-            resolve(body);
+            resolve({error: false, statusCode: res.statusCode, data: body});
         });
     });
 }
@@ -181,8 +195,10 @@ function executeRequest(options) {
 let getBalance = async function(){
     if(config.walletId === null){
         const wallets = await getWallets(config.userId);
-        walletId = wallets[0].id;
-        return wallets[0];
+        if(!wallets.error && wallets.statusCode === 200){
+            walletId = wallets.data[0].id;
+            return wallets.data[0];
+        }
     } else {
         return await getWallet(config.walletId);
     }
@@ -199,7 +215,9 @@ let getWallet = function (walletId) {
 let getTicker = async function(pair) {
     const tickers = await makePublicRequest('v1', "/markets/" + pair.name.replace('-','') + "/order_book", {});
     //console.log(tickers);
-    return {s:1, data: tickers, counter: 1};
+    if(!tickers.error && tickers.statusCode === 200){
+        return {s:1, data: tickers.data, counter: 1};
+    }
 };
 
 let parseTicker = function(type, book, pair, order){
@@ -277,68 +295,70 @@ let limitOrder = function (type, pair, size, price) {
             instrument: pair.name.replace('-',''),
             "postOnly": true
         };
-        const limitOrderResult = await addOrder(args);
+        const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
         console.log("limitOrder");
         console.log(limitOrderResult);
-        if(limitOrderResult.id !== null){
+        if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
             let createdOrder = new tools.orderCreatedForm;
-            createdOrder.id = limitOrderResult.id;
-            createdOrder.price = parseFloat(limitOrderResult.price);
-            createdOrder.size = parseFloat(limitOrderResult.amount);
+            createdOrder.id = limitOrderResult.data.id;
+            createdOrder.price = parseFloat(limitOrderResult.data.price);
+            createdOrder.size = parseFloat(limitOrderResult.data.amount);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
             resolve({s:1, data: createdOrder});
+        } else if(limitOrderResult.error) {
+            resolve({s:0, errorMessage: limitOrderResult.data});
         }
+
     });
-};
-
-let addOrder = function (args) {
-    return makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
-};
-
-let getOrderDetail = function (id) {
-    return makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
 };
 
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
-        const detailOrderResult = await getOrderDetail(id);
-        console.log("getOrder");
-        console.log(detailOrderResult);
-        if(detailOrderResult.id !== null){
+        const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
+        if(!getOrderResult.error && getOrderResult.statusCode === 200){
+            console.log("getOrder");
+            console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;
-            detailOrder.id = detailOrderResult.id;
+            detailOrder.id = getOrderResult.data.id;
             detailOrder.pair = pair.name;
             detailOrder.type = type;
-            detailOrder.price = parseFloat(detailOrderResult.price);
-            detailOrder.size = parseFloat(detailOrderResult.amount);
+            detailOrder.price = parseFloat(getOrderResult.data.price);
+            detailOrder.size = parseFloat(getOrderResult.data.amount);
             detailOrder.funds = tools.setPrecision(detailOrder.price*detailOrder.size, pair.digitsPrice);
-            detailOrder.size_filled = parseFloat(detailOrderResult.amountFilled);
+            detailOrder.size_filled = parseFloat(getOrderResult.data.amountFilled);
             detailOrder.fee = 0;
-            detailOrder.status = detailOrderResult.status;
+            detailOrder.status = getOrderResult.data.status;
             resolve({s:1, data: detailOrder});
+        } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
+            //The order matching the provided id is not open
+            resolve({s:0, data: {error: "itbit cancelOrder"}});
         }
     });
 };
 
-let cancelSpecificOrder = function (id) {
-    return makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
-};
-
 let cancelOrder = function (pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
-        const trades = await getWalletTrades({orderId:id});
+        /*const trades = await getWalletTrades({orderId:id});
         console.log("trades");
         console.log(trades);
-        const cancelSpecificOrderResult = await cancelSpecificOrder(id);
+         */
+        const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
         console.log("cancelOrder");
-        console.log(cancelSpecificOrderResult);
-        if(cancelSpecificOrderResult.message.includes("Success") || cancelSpecificOrderResult.message.includes("Order already cancelled")){
-            const detailCanceledOrder = await getOrder(pair, id, type, openedOrder);
-            if(detailCanceledOrder.s){
-                resolve({"s":1, "data": detailCanceledOrder.data});
+        console.log(cancelResult);
+        if(!cancelResult.error && cancelResult.statusCode === 202){
+            if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
+                //Because cancel order do not response with order detail, we need request order detail in next step
+                resolve({s:0, data: {error: "not found"}});
             } else {
-                resolve({"s":0, "data": {"error": "getOrder failed"}});
+                resolve({s:0, data: {error: "itbit cancelOrder failed"}});
             }
+
+        } else if(cancelResult.error && cancelResult.statusCode === 422) {
+            //The order matching the provided id is not open
+            resolve({s:0, data: {error: "not found"}});
+        } else if(cancelResult.error && cancelResult.statusCode === 404) {
+            //The order matching the provided id is not open
+            resolve({s:0, data: {error: "itbit cancelOrder failed"}});
         }
     });
 };
