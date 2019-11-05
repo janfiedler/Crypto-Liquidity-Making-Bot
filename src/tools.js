@@ -189,21 +189,32 @@ let calculateProfit = function(exchange, completedOrder){
     //Fee part
     let totalFee = (buyFee)+(completedOrder.sell_fee);
     //Profit part
-    let profit = (sellTotalPrice - buyTotalPrice)-(totalFee);
+    let profit;
+    if(totalFee<=0){
+        profit = (sellTotalPrice - buyTotalPrice)
+    } else {
+        profit = (sellTotalPrice - buyTotalPrice)-(totalFee);
+    }
     profit = setPrecisionDown(profit, 8);
     return profit;
 };
 
 let calculatePendingProfit = function(pendingOrder, sellPrice){
     let buyFee = ((pendingOrder.buy_fee / pendingOrder.buy_filled) * pendingOrder.sell_size);
-    let buyTotalPrice = ((pendingOrder.sell_size*pendingOrder.buy_price)+buyFee);
+    //If fee was with rebate, set buyFee 0 to get true pending profit
+    let buyTotalPrice = (pendingOrder.sell_size*pendingOrder.buy_price);
     buyTotalPrice = setPrecisionUp(buyTotalPrice, 8);
 
     //Because we do not know sellFee, we use same as was buyFee
-    let sellTotalPrice = ((pendingOrder.sell_size*sellPrice)-buyFee);
+    let sellTotalPrice = (pendingOrder.sell_size*sellPrice);
     sellTotalPrice = setPrecisionDown(sellTotalPrice, 8);
 
-    let profit = sellTotalPrice - buyTotalPrice;
+    let profit;
+    if(buyFee < 0){
+        profit = sellTotalPrice - buyTotalPrice;
+    } else {
+        profit = (sellTotalPrice - buyTotalPrice)-(buyFee*2);
+    }
     profit = setPrecisionDown(profit, 8);
     return profit;
 };
