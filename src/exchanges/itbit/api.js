@@ -290,8 +290,8 @@ let limitOrder = function (type, pair, size, price) {
             side: type,
             type: "limit",
             currency: pair.name.split(pair.separator)[0],
-            amount: size.toString(),
-            price: price.toString(),
+            amount: parseFloat(size).toFixed(pair.digitsSize),
+            price: parseFloat(price).toFixed(pair.digitsPrice),
             instrument: pair.name.replace('-',''),
             "postOnly": true
         };

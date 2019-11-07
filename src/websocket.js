@@ -38,8 +38,14 @@ websocket.emitPendingOrders = async function(data){
             if(po[i].frozen){
                 frozenAmount += (orderAmount+po[i].buy_fee);
             }
-            const pl = tools.calculatePendingProfit(po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice+2));
-            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size": tools.setPrecision(po[i].sell_size, data.pair.digitsSize), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": tools.setPrecision(pl, data.pair.digitsPrice+2), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice), "f": po[i].frozen});
+            const pl = tools.calculatePendingProfit(po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice));
+            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size":po[i].sell_size.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: data.pair.digitsSize
+                }), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": pl.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: data.pair.digitsSize
+                }), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice), "f": po[i].frozen});
         }
         let budgetLimit = 0;
         if(data.pair.moneyManagement.autopilot.active){

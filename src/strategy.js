@@ -711,6 +711,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     console.error(createdOrder.errorMessage);
                     return false;
                 }  else {
+                    console.error(createdOrder.errorMessage);
                     await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders");
                 }
             }
