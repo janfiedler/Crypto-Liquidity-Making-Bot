@@ -45,7 +45,7 @@ $( document ).ready(function() {
                 if(order.sell_target_price === 0){
                     ico_kill = "<span class='kill_order_active'  title='Kill order active'></span>";
                 }
-                totalPl += order.pl;
+                totalPl += parseFloat(order.pl);
                 totalOpenOrders++;
                 let trStyle = '';
                 if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length || order.pl > 0){
