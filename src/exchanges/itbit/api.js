@@ -184,8 +184,17 @@ function executeRequest(options) {
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
                 console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
+            } else if(body && res.statusCode){
+                resolve({error: false, statusCode: res.statusCode, data: body});
+            } else {
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(err));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(body));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(res));
+                errorMessage = util.format('%s failed %s', functionName, requestDesc);
+                error = {error: true, statusCode: -1, data: errorMessage};
+                resolve(error);
             }
-            resolve({error: false, statusCode: res.statusCode, data: body});
+
         });
     });
 }
