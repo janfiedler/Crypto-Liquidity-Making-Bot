@@ -46,8 +46,8 @@ let doAskOrder = async function(){
         let pair = config.pairs[i];
         apiCounter = 0;
         logMessage = " ### Lets process ask for "+ pair.name+" in the loop.\n";
-        //let sellingForCurrency = pair.name.split('-')[1];
-        //let sellingCurrency = pair.name.split('-')[0];
+        //let sellingForCurrency = pair.name.split(pair.separator)[1];
+        //let sellingCurrency = pair.name.split(pair.separator)[0];
 
         //Get lowest pending sell order
         const pendingSellOrder = await db.getLowestSellTargetPrice(config.name, pair);

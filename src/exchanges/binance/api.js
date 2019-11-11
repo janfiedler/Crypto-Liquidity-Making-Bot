@@ -75,13 +75,13 @@ let getTicker = function(pair) {
             String	asks[].price
             String	asks[].size
         */
-        request.get({url: config.url + "/api/v1/depth", qs: { "symbol": pair.name.replace('-',''), "limit": 20 }}, function(error, response, body) {
+        request.get({url: config.url + "/api/v1/depth", qs: { "symbol": pair.name.replace(pair.separator,''), "limit": 20 }}, function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result, counter: 1});
                 } else {
-                    console.error("coinfalcon getTicker");
+                    console.error("binance getTicker");
                     console.error(body);
                     resolve({s:0, data: result, counter: 1});
                 }
@@ -161,7 +161,7 @@ let limitOrder = function(type, pair, size, price){
     return new Promise(async function (resolve) {
         let url = config.url + "/api/v3/order";
 
-        let body = { "symbol": pair.name.replace('-',''), "side": type, "type": "LIMIT_MAKER", "quantity": size, "price": price, "newOrderRespType": "FULL" };
+        let body = { "symbol": pair.name.replace(pair.separator,''), "side": type, "type": "LIMIT_MAKER", "quantity": size, "price": price, "newOrderRespType": "FULL" };
         const signed = sign(body);
 
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
@@ -191,7 +191,7 @@ let limitOrder = function(type, pair, size, price){
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         let url = config.url + "/api/v3/order";
-        let body = { "symbol": pair.name.replace('-',''), "origClientOrderId": id};
+        let body = { "symbol": pair.name.replace(pair.separator,''), "origClientOrderId": id};
         const signed = sign(body);
 
         request.get({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
@@ -226,7 +226,7 @@ let getOrder = function(pair, id, type, openedOrder){
 let cancelOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         let url = config.url + "/api/v3/order";
-        let body = { "symbol": pair.name.replace('-',''), "origClientOrderId": id};
+        let body = { "symbol": pair.name.replace(pair.separator,''), "origClientOrderId": id};
         const signed = sign(body);
 
         request.delete({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {

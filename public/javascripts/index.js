@@ -3,29 +3,50 @@ $( document ).ready(function() {
     let showAllOpenOrders = {};
     ws.on('ticker', function (data) {
         //console.log(data);
-        let tbody = document.getElementById("tbody_" + data.e + "_" + data.p.n + "_" + data.p.i);
+        let tbody = document.getElementById("tbody_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
         //Init object if do not exist
-        if (!showAllOpenOrders.hasOwnProperty("tbody_" + data.e + "_" + data.p.n + "_" + data.p.i)) {
-            showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i] = false;
+        if (!showAllOpenOrders.hasOwnProperty("tbody_" + data.p.e + "_" + data.p.n + "_" + data.p.i)) {
+            showAllOpenOrders["tbody_" + data.p.e + "_" + data.p.n + "_" + data.p.i] = false;
         }
 
         if (tbody){
-            let tP = document.getElementById("totalProfit_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(tP).text(data.tP.toFixed(8) + ' ' + data.p.n.split(data.p.s)[1]);
-            let dP = document.getElementById("dailyProfit_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(dP).text(data.dP.total.toFixed(8) + ' ' + data.p.n.split(data.p.s)[1]);
-            let tS = document.getElementById("totalSize_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(tS).text(data.tS + ' ' + data.p.n.split(data.p.s)[0]);
-            let tA = document.getElementById("amountSpent_" + data.e + "_" + data.p.n + "_" + data.p.i);
+            const totalDigits = (window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"] + window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]);
+            /*
+            console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"]);
+            console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]);
+            console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]);
+            */
+            let tP = document.getElementById("totalProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+            $(tP).text(data.tP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: totalDigits
+            }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+            $(dP).text(data.dP.total.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: totalDigits
+            }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+            $(tS).text(data.tS + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
+            let tA = document.getElementById("amountSpent_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.fA > 0){
-                $(tA).html(data.tA + ' <i title="Frozen amount" class="text-primary">('+ data.fA +')</i> ' +  ' / ' + data.mA+ ' ' + data.p.n.split(data.p.s)[1]);
+                $(tA).html(data.tA.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                }) + ' <i title="Frozen amount" class="text-primary">('+ data.fA.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                }) +')</i> ' +  ' / ' + data.mA+ ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
             } else {
-                $(tA).text(data.tA + ' / ' + data.mA + ' ' + data.p.n.split(data.p.s)[1]);
+                $(tA).text(data.tA.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                }) + ' / ' + data.mA + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
             }
-            let rB = document.getElementById("rateBid_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(rB).text(data.t.bid + ' ' + data.p.n.split(data.p.s)[1]);
-            let rA = document.getElementById("rateAsk_" + data.e + "_" + data.p.n + "_" + data.p.i);
-            $(rA).text(data.t.ask + ' ' + data.p.n.split(data.p.s)[1]);
+            let rB = document.getElementById("rateBid_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+            $(rB).text(data.t.bid + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            let rA = document.getElementById("rateAsk_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+            $(rA).text(data.t.ask + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
 
             $(tbody).find('tr').remove();
             let totalPl = 0;
@@ -50,13 +71,13 @@ $( document ).ready(function() {
                 let trStyle = '';
                 if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length || order.pl > 0){
                     //Do something
-                } else if(!showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i]) {
+                } else if(!showAllOpenOrders["tbody_" + data.p.e + "_" + data.p.n + "_" + data.p.i]) {
                     totalHiddenOrders++;
                     trStyle = "style='display: none'";
                     if(totalHiddenOrders === 1){
                         $(tbody).append('<tr class="hiddenOpenOrders"><td class="hiddenOpenOrdersCount"> '+totalHiddenOrders+'x more</td><td></td><td></td><td></td><td></td><td></td><td class="hiddenOpenOrdersShow">SHOW</td></tr>');
                         $(tbody).find(".hiddenOpenOrdersShow").click(function() {
-                            showAllOpenOrders["tbody_" + data.e + "_" + data.p.n + "_" + data.p.i] = true;
+                            showAllOpenOrders["tbody_" + data.p.e + "_" + data.p.n + "_" + data.p.i] = true;
                             $(tbody).find(".hiddenOpenOrders").remove();
                             $(tbody).find('tr').show();
                         });
@@ -64,32 +85,74 @@ $( document ).ready(function() {
                         $(tbody).find(".hiddenOpenOrdersCount").text(totalHiddenOrders+"x more");
                     }
                 }
-                $(tbody).append('<tr '+trStyle+'><td>'+order.buy_id+'</td><td>'+order.buy_price+'</td><td>'+order.sell_size+'</td><td>'+order.sell_target_price+'</td><td>'+order.oA+' '+data.p.n.split(data.p.s)[1]+'</td><td '+plColor+'><strong>'+order.pl+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+                $(tbody).append('<tr '+trStyle+'><td>'+order.buy_id+'</td><td>'+order.buy_price.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                })+'</td><td>'+order.sell_size.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
+                })+'</td><td>'+order.sell_target_price.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                })+'</td><td>'+order.oA.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+                })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td><td '+plColor+'><strong>'+order.pl.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: totalDigits
+                })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
                 if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length){
                     $(tbody).find("tr").last().css("display: block;");
                 }
             });
-            $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+setPrecision(totalPl, data.d)+' '+data.p.n.split(data.p.s)[1]+'</strong></td><td></td></tr>');
+            $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+totalPl.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: totalDigits
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</strong></td><td></td></tr>');
         }
     });
 
     ws.on('filledBuyOrder', function (data) {
-        console.log(data);
+        //console.log(data);
         let tbody = document.getElementById("tbody_filledBuyOrders");
         if (tbody){
-            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td title="Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.bP+'</td>><td title="Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.sP+'</td><td title="Fee: '+data.f+'">'+setPrecision((data.s*data.bP), 8)+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
+            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.n+" #"+data.p.i+'</td><td>'+data.s.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.bP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+            })+'</td>><td title="Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.sP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+            })+'</td><td title="Fee: '+data.f+'">'+(data.s*data.bP).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td></tr>');
         }
     });
 
     ws.on('completedOrder', function (data) {
-        console.log(data);
+        //console.log(data);
         let tbody = document.getElementById("tbody_completedOrders");
         if (tbody){
             let plColor = "class='text-danger'";
             if(data.oP > 0){
                 plColor = "class='text-success'";
             }
-            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.l+'</td><td>'+data.s+' '+data.p.n.split(data.p.s)[0]+'</td><td title="Fee: '+data.bF+' Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.bP+'</td><td title="Fee: '+data.sF+' Currency: '+data.p.n.split(data.p.s)[1]+'">'+data.sP+'</td><td '+plColor+'>'+data.oP+' '+data.p.n.split(data.p.s)[1]+'</td></tr>');
+            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.n+" #"+data.p.i+'</td><td>'+data.s.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Fee: '+data.bF+' Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.bP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+            })+'</td><td title="Fee: '+data.sF+' Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.sP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
+            })+'</td><td '+plColor+'>'+data.oP.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: (window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"] + window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"])
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td></tr>');
         }
     });
 

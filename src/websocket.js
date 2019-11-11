@@ -38,14 +38,8 @@ websocket.emitPendingOrders = async function(data){
             if(po[i].frozen){
                 frozenAmount += (orderAmount+po[i].buy_fee);
             }
-            const pl = tools.calculatePendingProfit(po[i], tools.takePipsFromPrice(data.tick.ask, 1, data.pair.digitsPrice));
-            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size":po[i].sell_size.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: data.pair.digitsSize
-                }), "sell_target_price": tools.setPrecision(po[i].sell_target_price, data.pair.digitsPrice), "pl": pl.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: data.pair.digitsSize
-                }), "oA": tools.setPrecision(orderAmount, data.pair.digitsPrice), "f": po[i].frozen});
+            const pl = tools.calculatePendingProfit(po[i], data.tick.ask);
+            pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size":po[i].sell_size, "sell_target_price": po[i].sell_target_price, "pl": pl, "oA": orderAmount, "f": po[i].frozen});
         }
         let budgetLimit = 0;
         if(data.pair.moneyManagement.autopilot.active){
@@ -61,19 +55,19 @@ websocket.emitPendingOrders = async function(data){
         } else if (data.pair.moneyManagement.buySize.active){
             budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
-        emitToAll("ticker", {"e": data.exchange, "p": {"n": data.pair.name, "i": data.pair.id, "s":data.pair.separator}, "tS": tS, "tA": tools.setPrecision(totalAmount, data.pair.digitsPrice), "fA": tools.setPrecision(frozenAmount, data.pair.digitsPrice), "d": data.pair.digitsSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
     }
 };
 
 websocket.emitFilledBuyOrder = async function(data){
     if(sockets.length > 0){
-        emitToAll("filledBuyOrder", {"p": {"n": data.pair.name, "e":data.exchange, "l": data.order.pair+" #"+data.pair.id, "s":data.pair.separator}, "s": data.order.size_filled, "bP": data.order.price, "f": data.order.fee, "sP":data.sellTargetPrice});
+        emitToAll("filledBuyOrder", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "s": data.order.size_filled, "bP": data.order.price, "f": data.order.fee, "sP":data.sellTargetPrice});
     }
 };
 
 websocket.emitCompletedOrder = async function(data){
     if(sockets.length > 0){
-        emitToAll("completedOrder", {"p": {"n": data.pair.name,"e": data.order.exchange, "l": data.order.pair+" #"+data.order.pair_id, "s":data.pair.separator}, "s": data.order.sell_filled, "bP": data.order.buy_price, "bF": data.order.buy_fee, "sP": data.order.sell_price, "sF": data.order.sell_fee, "oP": data.profit});
+        emitToAll("completedOrder", {"p": {"e": data.order.exchange, "n": data.order.pair, "i": data.order.pair_id}, "s": data.order.sell_filled, "bP": data.order.buy_price, "bF": data.order.buy_fee, "sP": data.order.sell_price, "sF": data.order.sell_fee, "oP": data.profit});
     }
 };
 

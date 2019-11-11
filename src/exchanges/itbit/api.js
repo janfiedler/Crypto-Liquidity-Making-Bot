@@ -220,7 +220,7 @@ let getWallet = function (walletId) {
 };
 
 let getTicker = async function(pair) {
-    const tickers = await makePublicRequest('v1', "/markets/" + pair.name.replace('-','') + "/order_book", {});
+    const tickers = await makePublicRequest('v1', "/markets/" + pair.name.replace(pair.separator,'') + "/order_book", {});
     //console.log(tickers);
     if(!tickers.error && tickers.statusCode === 200){
         return {s:1, data: tickers.data, counter: 1};
@@ -301,7 +301,7 @@ let limitOrder = function (type, pair, size, price) {
             currency: pair.name.split(pair.separator)[0],
             amount: parseFloat(size).toFixed(pair.digitsSize),
             price: parseFloat(price).toFixed(pair.digitsPrice),
-            instrument: pair.name.replace('-',''),
+            instrument: pair.name.replace(pair.separator,''),
             "postOnly": true
         };
         const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);

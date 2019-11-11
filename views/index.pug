@@ -49,7 +49,7 @@ block content
                     tr
                       th Pair
                       th Size
-                      th Buy Price
+                      th Buy price
                       th Target price
                       th Amount spent
                   tbody.overflow-auto(id="tbody_filledBuyOrders")
@@ -62,7 +62,7 @@ block content
                     tr
                       th Pair
                       th Size
-                      th Buy Price
+                      th Buy price
                       th Sell price
                       th P&L
                   tbody.overflow-auto(id="tbody_completedOrders")
@@ -70,6 +70,10 @@ block content
           div.col-sm-12
             each exchange in exchanges
               each pair in exchange.pairs
+                script.
+                  window.!{exchange.name + "_" + pair.name + "_" + pair.id + "_separator"} = '!{pair.separator}';
+                  window.!{exchange.name + "_" + pair.name + "_" + pair.id + "_digitsPrice"} = !{pair.digitsPrice};
+                  window.!{exchange.name + "_" + pair.name + "_" + pair.id + "_digitsSize"} = !{pair.digitsSize};
                 diw.row
                   div.col-sm-12
                     div.card-box
@@ -86,7 +90,7 @@ block content
                           diw.row
                             div.col-sm-6
                               span.badge.badge-binance.pull-left.m-b-10 Today profit:
-                              span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="dailyProfit_" + exchange.name + "_" + pair.name + "_" + pair.id )
+                              span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="todayProfit_" + exchange.name + "_" + pair.name + "_" + pair.id )
                             div.col-sm-6
                               span.badge.badge-binance.pull-left.m-b-10 Total size:
                               span.badge.badge-dark.badge-pill.pull-left.m-b-10( id="totalSize_" + exchange.name + "_" + pair.name + "_" + pair.id )
