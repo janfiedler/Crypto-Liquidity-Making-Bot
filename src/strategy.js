@@ -395,7 +395,7 @@ async function validateOrder(type, id, pair, openedOrder){
         } else {
             //logMessage +=  " !!! Something bad happened when validate canceled order "+id+" !\n";
             //return false
-            await email.sendEmail("API Timeout validateOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders");
+            await email.sendEmail("API Timeout validateOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + detailOrder.data.error);
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.

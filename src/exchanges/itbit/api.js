@@ -366,6 +366,8 @@ let getOrder = function(pair, id, type, openedOrder){
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
+        } else if(getOrderResult.error && getOrderResult.statusCode === 500){
+            resolve({s:0, counter: 0, data: {error: "itbit Internal Server Error 500"}});
         }
     });
 };
