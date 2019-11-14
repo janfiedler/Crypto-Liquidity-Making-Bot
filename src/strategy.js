@@ -6,7 +6,6 @@ let myAccount;
 let db;
 let api;
 let apiCounter = 0;
-let pipSize = 1;
 let logMessage;
 let lastLogMessage = [];
 let lastTickers = {};
@@ -18,9 +17,6 @@ let init = function (configuration, balance, database, apiExchange){
     db = database;
     api = apiExchange;
 
-    if(config.name === "itbit"){
-        pipSize = 25;
-    }
 
     for(let i=0;i<config.pairs.length;i++){
         let pair = config.pairs[i];
@@ -312,7 +308,7 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
             }
         }
     }
-    targetAsk = tools.takePipsFromPrice(targetAsk, pipSize, pair.digitsPrice);
+    targetAsk = tools.takePipsFromPrice(targetAsk, 1, pair.digitsPrice);
     //Validate if new target ask is not close to bid order or taking bid order.
     const bidBorderPipsSpreadFromAsk = tools.addPipsToPrice(ticker.bidBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
     if(targetAsk < bidBorderPipsSpreadFromAsk) {
@@ -342,7 +338,7 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
             }
         }
     }
-    targetBid = tools.addPipsToPrice(targetBid, pipSize, pair.digitsPrice);
+    targetBid = tools.addPipsToPrice(targetBid, 1, pair.digitsPrice);
 
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
     if(lowestOrder){
@@ -358,7 +354,7 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
             targetBid = bidWithSpread;
             for(let i=0;i<keysCount;i++){
                 if(ticker.bid[i].price <  bidWithSpread){
-                    targetBid = tools.addPipsToPrice(ticker.bid[i].price, pipSize, pair.digitsPrice);
+                    targetBid = tools.addPipsToPrice(ticker.bid[i].price, 1, pair.digitsPrice);
                     break;
                 }
             }
