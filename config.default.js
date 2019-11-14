@@ -73,7 +73,8 @@ let config =
                                 "bagHolderLimit": 0,
                                 "budgetLimit": 0
                             },
-                            "pipsAskBidSpread": 1
+                            "pipsAskBidSpread": 1,
+                            "roundPriceToQuarter": true
                         },
                         "strategy": {
                             "ignoreOrderSize": 0.001,
