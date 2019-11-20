@@ -64,9 +64,9 @@ let doAskOrder = async function(){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
             //Performance optimization, process only if orders book change
             //If last lastTickers is older than 10 minutes
-            console.time('tickersAsk');
+            //console.time('tickersAsk');
             if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name].ask)) {
-                console.timeEnd('tickersAsk');
+                //console.timeEnd('tickersAsk');
                 console.log("!== ask");
                 console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask));
                 console.log(JSON.stringify(tickers[pair.name].ask));
@@ -235,10 +235,10 @@ let doBidOrder = async function (){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
-            console.time('tickersBid');
+            //console.time('tickersBid');
             //Performance optimization, process only if orders book change
             if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name].bid)) {
-                console.timeEnd('tickersBid');
+                //console.timeEnd('tickersBid');
                 console.log("!== bid");
                 console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid));
                 console.log(JSON.stringify(tickers[pair.name].bid));
