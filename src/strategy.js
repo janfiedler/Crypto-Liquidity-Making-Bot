@@ -21,7 +21,7 @@ let init = function (configuration, balance, database, apiExchange){
     for(let i=0;i<config.pairs.length;i++){
         let pair = config.pairs[i];
         lastLogMessage[pair.name+"_"+pair.id] = {"ask": "", "bid": ""};
-        lastTickers[pair.name+"_"+pair.id] = {"ask": "", "bid": "", "timestamp": {"ask": Date.now(), "bid": Date.now()} };
+        lastTickers[pair.name+"_"+pair.id] = {"ask": "", "askBorder": 0, "bid": "", "bidBorder": 0, "timestamp": {"ask": Date.now(), "bid": Date.now()} };
     }
 };
 
@@ -63,9 +63,18 @@ let doAskOrder = async function(){
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
             //Performance optimization, process only if orders book change
-            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name])) {
+            //If last lastTickers is older than 10 minutes
+            console.time('tickersAsk');
+            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name].ask)) {
+                console.timeEnd('tickersAsk');
+                console.log("!== ask");
+                console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask));
+                console.log(JSON.stringify(tickers[pair.name].ask));
                 //Performance optimization, send ask/bid price only when is different
-                if (lastTickers[pair.name+"_"+pair.id].ask.askBorder !== tickers[pair.name].askBorder) {
+                if (lastTickers[pair.name+"_"+pair.id].askBorder !== tickers[pair.name].askBorder) {
+                    console.log("!== askBorder");
+                    console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].askBorder));
+                    console.log(JSON.stringify(tickers[pair.name].askBorder));
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
@@ -73,7 +82,9 @@ let doAskOrder = async function(){
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
-                lastTickers[pair.name+"_"+pair.id].ask = tickers[pair.name];
+                lastTickers[pair.name+"_"+pair.id].ask = tickers[pair.name].ask;
+                lastTickers[pair.name+"_"+pair.id].askBorder = tickers[pair.name].askBorder;
+                lastTickers[pair.name+"_"+pair.id].timestamp.ask = Date.now();
             } else {
                 logMessage += " !!! Price didn't change, skip the loop.\n";
                 await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
@@ -94,8 +105,7 @@ let doAskOrder = async function(){
         if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
             logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
             //If targetAsk dont change after ten minutes, force validate order.
-            if((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || targetAsk !== resultOpenedSellOrder.sell_price){
-                lastTickers[pair.name+"_"+pair.id].timestamp.ask = Date.now();
+            if(targetAsk !== resultOpenedSellOrder.sell_price){
                 //If founded opened sell order, lets check and process
                 const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -225,11 +235,18 @@ let doBidOrder = async function (){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
-
+            console.time('tickersBid');
             //Performance optimization, process only if orders book change
-            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name])) {
+            if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name].bid)) {
+                console.timeEnd('tickersBid');
+                console.log("!== bid");
+                console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid));
+                console.log(JSON.stringify(tickers[pair.name].bid));
                 //Performance optimization, send ask/bid price only when is different
-                if (lastTickers[pair.name+"_"+pair.id].bid.bidBorder !== tickers[pair.name].bidBorder) {
+                if (lastTickers[pair.name+"_"+pair.id].bidBorder !== tickers[pair.name].bidBorder) {
+                    console.log("!== bidBorder");
+                    console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].bidBorder));
+                    console.log(JSON.stringify(tickers[pair.name].bidBorder));
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
@@ -237,13 +254,16 @@ let doBidOrder = async function (){
                         "tick": {"ask": tickers[pair.name].askBorder, "bid": tickers[pair.name].bidBorder}
                     });
                 }
-                lastTickers[pair.name+"_"+pair.id].bid = tickers[pair.name];
+                lastTickers[pair.name+"_"+pair.id].bid = tickers[pair.name].bid;
+                lastTickers[pair.name+"_"+pair.id].bidBorder = tickers[pair.name].bidBorder;
+                lastTickers[pair.name+"_"+pair.id].timestamp.bid = Date.now();
             } else {
                 logMessage += " !!! Price didn't change, skip the loop.\n";
                 await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
                 await tools.sleep(1);
                 continue;
             }
+
         } else {
             //Return false will skip bid process and start ask process.
             return false;
@@ -267,8 +287,7 @@ let doBidOrder = async function (){
         if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
             logMessage += " ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
             //If targetBid dont change after ten minutes, force validate order.
-            if((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || targetBid !== resultOpenedBuyOrder.buy_price) {
-                lastTickers[pair.name+"_"+pair.id].timestamp.bid = Date.now();
+            if(targetBid !== resultOpenedBuyOrder.buy_price) {
                 //If founded opened buy order, lets check and process
                 const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -309,6 +328,11 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
         }
     }
     targetAsk = tools.takePipsFromPrice(targetAsk, 1, pair.digitsPrice);
+
+    if(pair.moneyManagement.roundPriceToPips.active){
+        targetAsk = parseFloat((Math.floor(targetAsk * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
+        console.error("finalPipsRounded targetAsk: " + targetAsk);
+    }
     //Validate if new target ask is not close to bid order or taking bid order.
     const bidBorderPipsSpreadFromAsk = tools.addPipsToPrice(ticker.bidBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
     if(targetAsk < bidBorderPipsSpreadFromAsk) {
@@ -338,7 +362,13 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
             }
         }
     }
+
     targetBid = tools.addPipsToPrice(targetBid, 1, pair.digitsPrice);
+    if(pair.moneyManagement.roundPriceToPips.active){
+        //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
+        targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);
+        console.error("finalPipsRounded targetBid: " + targetBid);
+    }
 
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
     if(lowestOrder){
@@ -357,6 +387,11 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
                     targetBid = tools.addPipsToPrice(ticker.bid[i].price, 1, pair.digitsPrice);
                     break;
                 }
+            }
+            if(pair.moneyManagement.roundPriceToPips.active){
+                //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
+                targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);
+                console.error("bidWithSpread targetBid: " + targetBid);
             }
         }
     }

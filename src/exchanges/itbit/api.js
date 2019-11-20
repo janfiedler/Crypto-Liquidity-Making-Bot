@@ -278,17 +278,6 @@ let parseTicker = function(type, book, pair, order){
 
 let createOrder = async function(pair, type, pendingSellOrder, valueForSize, price){
     let size = "";
-    if(pair.moneyManagement.roundPriceToQuarter){
-        switch(type){
-            case "BUY":
-                price = (Math.ceil(price * 4) / 4).toFixed(2);
-                break;
-            case "SELL":
-                price = (Math.floor(price * 4) / 4).toFixed(2);
-                break;
-        }
-
-    }
     switch(type){
         case "BUY":
             size = tools.getBuyOrderSize(pair, valueForSize, price).toString();
