@@ -232,47 +232,50 @@ let getTicker = async function(pair) {
 let parseTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
-    for(let i=0;i<book.asks.length;i++){
-        if(i===0){
-            ticks.askBorder = parseFloat(book.asks[i][0]);
-        }
-        if(type === "ask"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.asks[i][0]) === order.sell_price){
-                const askSizeDiff = (parseFloat(book.asks[i][1])-order.sell_size);
-                if( askSizeDiff > pair.strategy.ignoreOrderSize){
-                    ticks.ask.push({price: parseFloat(book.asks[i][0]), size: tools.setPrecision(askSizeDiff, pair.digitsSize)});
+    ticks.askBorder = parseFloat(book.asks[0][0]);
+    if(type === "ask"){
+        for(let i=0;i<book.asks.length;i++) {
+            if (typeof order !== 'undefined' && order.hasOwnProperty('sell_price') && parseFloat(book.asks[i][0]) === order.sell_price) {
+                const askSizeDiff = (parseFloat(book.asks[i][1]) - order.sell_size);
+                if (askSizeDiff > pair.strategy.ignoreOrderSize) {
+                    ticks.ask.push({
+                        price: parseFloat(book.asks[i][0]),
+                        size: tools.setPrecision(askSizeDiff, pair.digitsSize)
+                    });
                     ii++;
                 }
-            } else if( parseFloat(book.asks[i][1]) > pair.strategy.ignoreOrderSize){
+            } else if (parseFloat(book.asks[i][1]) > pair.strategy.ignoreOrderSize) {
                 ticks.ask.push({price: parseFloat(book.asks[i][0]), size: parseFloat(book.asks[i][1])});
                 ii++;
             }
-        } else {
-            break;
         }
     }
+
     ii=0;
-    for(let i=0;i<book.bids.length;i++){
-        if(i === 0){
-            ticks.bidBorder = parseFloat(book.bids[i][0]);
-        }
-        if(type === "bid"){
-            if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) === order.buy_price){
-                const bidSizeDiff = (parseFloat(book.bids[i][1])-order.buy_size);
-                if( bidSizeDiff > pair.strategy.ignoreOrderSize){
-                    ticks.bid.push({price: parseFloat(book.bids[i][0]), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
+    ticks.bidBorder = parseFloat(book.bids[0][0]);
+    if(type === "bid"){
+        console.log("book.bids.length: " + book.bids.length);
+        for(let i=0;i<book.bids.length;i++) {
+            if (typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) < order.buy_price) {
+                console.log("brakujeme bidParse: " + i);
+                ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
+                break;
+            } else if (typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) === order.buy_price) {
+                const bidSizeDiff = (parseFloat(book.bids[i][1]) - order.buy_size);
+                if (bidSizeDiff > pair.strategy.ignoreOrderSize) {
+                    ticks.bid.push({
+                        price: parseFloat(book.bids[i][0]),
+                        size: tools.setPrecision(bidSizeDiff, pair.digitsSize)
+                    });
                     ii++;
-                } else {
-                    //console.log("My position "+book.bids[i][0]+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
-            } else if(parseFloat(book.bids[i][1]) > pair.strategy.ignoreOrderSize){
+            } else if (parseFloat(book.bids[i][1]) > pair.strategy.ignoreOrderSize) {
                 ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
                 ii++;
             }
-        } else {
-            break;
         }
     }
+    console.log(JSON.stringify(ticks));
     return ticks;
 };
 

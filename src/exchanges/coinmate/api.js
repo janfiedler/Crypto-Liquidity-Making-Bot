@@ -193,11 +193,12 @@ let parsePusherTicker = function(type, book, pair, order){
         if(type === "bid"){
             if(typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i].price) === order.buy_price){
                 const bidSizeDiff = (parseFloat(book.bids[i].amount)-order.buy_size);
-                if( bidSizeDiff > pair.strategy.ignoreOrderSize){
+                if(book.bids[i].price < order.buy_price){
+                    ticks.bid.push({price: parseFloat(book.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
+                    break;
+                } else if( bidSizeDiff > pair.strategy.ignoreOrderSize){
                     ticks.bid.push({price: parseFloat(book.bids[i].price), size: tools.setPrecision(bidSizeDiff, pair.digitsSize)});
                     ii++;
-                } else {
-                    //console.log("My position "+book.bids[i].price+" was alone (Lets process ask fornot counted ignored), removed from ticks.");
                 }
             } else if(parseFloat(book.bids[i].amount) > pair.strategy.ignoreOrderSize){
                 ticks.bid.push({price: parseFloat(book.bids[i].price), size: parseFloat(book.bids[i].amount)});
