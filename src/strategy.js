@@ -315,7 +315,6 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
 
     if(pair.moneyManagement.roundPriceToPips.active){
         targetAsk = parseFloat((Math.floor(targetAsk * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
-        console.error("finalPipsRounded targetAsk: " + targetAsk);
     }
     //Validate if new target ask is not close to bid order or taking bid order.
     const bidBorderPipsSpreadFromAsk = tools.addPipsToPrice(ticker.bidBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
@@ -351,7 +350,6 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
     if(pair.moneyManagement.roundPriceToPips.active){
         //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
         targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);
-        console.error("finalPipsRounded targetBid: " + targetBid);
     }
 
     //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
@@ -375,7 +373,6 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
             if(pair.moneyManagement.roundPriceToPips.active){
                 //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
                 targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);
-                console.error("bidWithSpread targetBid: " + targetBid);
             }
         }
     }
