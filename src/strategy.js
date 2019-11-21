@@ -64,17 +64,9 @@ let doAskOrder = async function(){
             tickers[pair.name] = await api.parseTicker("ask", resultTicker.data, pair, resultOpenedSellOrder);
             //Performance optimization, process only if orders book change
             //If last lastTickers is older than 10 minutes
-            //console.time('tickersAsk');
             if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.ask) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask) !== JSON.stringify(tickers[pair.name].ask)) {
-                //console.timeEnd('tickersAsk');
-                console.log("!== ask");
-                console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].ask));
-                console.log(JSON.stringify(tickers[pair.name].ask));
                 //Performance optimization, send ask/bid price only when is different
                 if (lastTickers[pair.name+"_"+pair.id].askBorder !== tickers[pair.name].askBorder) {
-                    console.log("!== askBorder");
-                    console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].askBorder));
-                    console.log(JSON.stringify(tickers[pair.name].askBorder));
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
@@ -235,18 +227,10 @@ let doBidOrder = async function (){
         //Parse fetched data to json object.
         if(resultTicker.s){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
-            //console.time('tickersBid');
             //Performance optimization, process only if orders book change
             if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name].bid)) {
-                //console.timeEnd('tickersBid');
-                console.log("!== bid");
-                console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid));
-                console.log(JSON.stringify(tickers[pair.name].bid));
                 //Performance optimization, send ask/bid price only when is different
                 if (lastTickers[pair.name+"_"+pair.id].bidBorder !== tickers[pair.name].bidBorder) {
-                    console.log("!== bidBorder");
-                    console.log(JSON.stringify(lastTickers[pair.name+"_"+pair.id].bidBorder));
-                    console.log(JSON.stringify(tickers[pair.name].bidBorder));
                     process.send({
                         "type": "ticker",
                         "exchange": config.name,
