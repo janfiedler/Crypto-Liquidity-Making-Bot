@@ -244,9 +244,9 @@ let doBidOrder = async function (){
             }
             console.timeEnd('stringify');
             console.time('loop');
-            const lastTickersCount = Object.keys(lastTickers[pair.name+"_"+pair.id].bid).length;
+            const lastTickersCount = lastTickers[pair.name+"_"+pair.id].bid.length;
             console.log("lastTickersCount: " + lastTickersCount);
-            const tickersCount = Object.keys(tickers[pair.name].bid).length;
+            const tickersCount = tickers[pair.name].bid.length;
             console.log("tickersCount: " + tickersCount);
 
             if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder.hasOwnProperty('buy_price')){

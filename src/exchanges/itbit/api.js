@@ -255,27 +255,34 @@ let parseTicker = function(type, book, pair, order){
     ticks.bidBorder = parseFloat(book.bids[0][0]);
     if(type === "bid"){
         console.log("book.bids.length: " + book.bids.length);
-        for(let i=0;i<book.bids.length;i++) {
-            if (typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) < order.buy_price) {
-                console.log("brakujeme bidParse: " + i);
-                ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
-                break;
-            } else if (typeof order !== 'undefined' && order.hasOwnProperty('buy_price') && parseFloat(book.bids[i][0]) === order.buy_price) {
-                const bidSizeDiff = (parseFloat(book.bids[i][1]) - order.buy_size);
-                if (bidSizeDiff > pair.strategy.ignoreOrderSize) {
-                    ticks.bid.push({
-                        price: parseFloat(book.bids[i][0]),
-                        size: tools.setPrecision(bidSizeDiff, pair.digitsSize)
-                    });
+        if (typeof order !== 'undefined' && order.hasOwnProperty('buy_price')){
+            for(let i=0;i<book.bids.length;i++) {
+                if (parseFloat(book.bids[i][0]) < order.buy_price) {
+                    console.log("brakujeme bidParse: " + i);
+                    ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
+                    break;
+                } else if (parseFloat(book.bids[i][0]) === order.buy_price) {
+                    const bidSizeDiff = (parseFloat(book.bids[i][1]) - order.buy_size);
+                    if (bidSizeDiff > pair.strategy.ignoreOrderSize) {
+                        ticks.bid.push({
+                            price: parseFloat(book.bids[i][0]),
+                            size: tools.setPrecision(bidSizeDiff, pair.digitsSize)
+                        });
+                        ii++;
+                    }
+                }
+            }
+        } else {
+            console.error("komplet");
+            for(let i=0;(i<book.bids.length) && (i<25);i++) {
+                if (parseFloat(book.bids[i][1]) > pair.strategy.ignoreOrderSize) {
+                    ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
                     ii++;
                 }
-            } else if (parseFloat(book.bids[i][1]) > pair.strategy.ignoreOrderSize) {
-                ticks.bid.push({price: parseFloat(book.bids[i][0]), size: parseFloat(book.bids[i][1])});
-                ii++;
             }
         }
     }
-    console.log(JSON.stringify(ticks));
+    //console.log(JSON.stringify(ticks));
     return ticks;
 };
 
