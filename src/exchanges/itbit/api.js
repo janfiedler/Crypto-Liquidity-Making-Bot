@@ -202,6 +202,7 @@ function executeRequest(options) {
 let getBalance = async function(){
     if(config.walletId === null){
         const wallets = await getWallets(config.userId);
+        console.log(JSON.stringify(wallets));
         if(!wallets.error && wallets.statusCode === 200){
             walletId = wallets.data[0].id;
             return wallets.data[0];
