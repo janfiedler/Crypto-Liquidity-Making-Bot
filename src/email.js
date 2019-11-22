@@ -1,4 +1,5 @@
 let config = require('../config');
+const tool = require('./tools');
 const nodemailer = require('nodemailer');
 
 let sendEmail = function(subject, text){
@@ -9,7 +10,7 @@ let sendEmail = function(subject, text){
 
         let transporter = nodemailer.createTransport(config.mail.setting);
 
-        transporter.verify(function(error, success) {
+        transporter.verify(async function(error, success) {
             if (error) {
                 console.log(error);
             } else {
@@ -21,6 +22,8 @@ let sendEmail = function(subject, text){
                     }
                 });
             }
+            await tool.sleep(10000);
+            resolve(true);
         });
     });
 };
