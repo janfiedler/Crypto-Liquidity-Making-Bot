@@ -409,7 +409,9 @@ async function validateOrder(type, id, pair, openedOrder){
                 logMessage +=  " !!! Internal Server Error 500 when validate canceled order "+id+" !\n";
                 return false;
             } else {
-                await email.sendEmail("API Timeout validateOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + detailOrder.data.error);
+                await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
+                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                return false;
             }
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
@@ -417,9 +419,9 @@ async function validateOrder(type, id, pair, openedOrder){
         logMessage += " !!! Catched cancelOrder has wrong status\n";
         return false;
     } else {
-        //logMessage += " !!! Catched cancelOrder error\n";
-        //return false;
-        await email.sendEmail("API Timeout validateOrder", pair.name +" #"+ pair.id +" need manual validate last orders");
+        await email.sendEmail("API Timeout validateOrder/cancelOrder", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(canceledOrder));
+        logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
+        return false;
     }
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
@@ -727,7 +729,9 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     return false;
                 }  else {
                     console.error(createdOrder.errorMessage);
-                    await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders");
+                    await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(createdOrder));
+                    logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
+                    return false;
                 }
             }
         } else {
@@ -828,7 +832,9 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 logMessage += " !!! Order would immediately match and take!\n";
                 return false;
             } else {
-                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last orders");
+                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(createdOrder));
+                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                return false;
             }
         }
     }
