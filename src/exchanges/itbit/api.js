@@ -125,22 +125,22 @@ function executeRequest(options) {
     }
     return new Promise(function (resolve, reject) {
         request(options, function (err, res, body) {
-            //console.log(err);
-            //console.log(res.statusCode);
-            //console.log(body);
+            console.log(err);
+            console.log(res.statusCode);
+            console.log(body);
             let error = null;   // default to no errors
             let errorMessage = null;
 
             if (err) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
                 error = {error: true, statusCode: -1, data: errorMessage};
-                console.log(new Date().toISOString() + "\n" + JSON.stringify(error));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
             }
             else if (!body) {
                 errorMessage = util.format('%s failed %s. Not response from server', functionName, requestDesc);
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
-                console.log(new Date().toISOString() + "\n" + JSON.stringify(error));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
             }
             // if request was not able to parse json response into an object
@@ -176,6 +176,7 @@ function executeRequest(options) {
                 errorMessage = util.format('%s failed %s. Error code %s, description: %s', functionName,
                     requestDesc, body.code, body.description);
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
             }
             else if (!(res.statusCode === 200 || res.statusCode === 201 || res.statusCode === 202)) {
