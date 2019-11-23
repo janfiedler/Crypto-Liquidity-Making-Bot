@@ -125,6 +125,7 @@ function executeRequest(options) {
     }
     return new Promise(function (resolve, reject) {
         request(options, function (err, res, body) {
+            console.log("### executeRequest");
             console.log(err);
             console.log(res.statusCode);
             console.log(body);
@@ -306,8 +307,8 @@ let limitOrder = function (type, pair, size, price) {
             "postOnly": true
         };
         const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
-        console.log("limitOrder");
-        console.log(limitOrderResult);
+        //console.log("limitOrder");
+        //console.log(limitOrderResult);
         if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.id;
@@ -326,8 +327,8 @@ let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
         if(!getOrderResult.error && getOrderResult.statusCode === 200){
-            console.log("getOrder");
-            console.log(getOrderResult);
+            //console.log("getOrder");
+            //console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;
             detailOrder.id = getOrderResult.data.id;
             detailOrder.pair = pair.name;
@@ -340,13 +341,13 @@ let getOrder = function(pair, id, type, openedOrder){
 
             if(parseFloat(getOrderResult.data.amountFilled) > 0){
                 const trades = await makePrivateRequest("GET", "/wallets/" + walletId + "/trades", {orderId:id});
-                console.log("getTrades");
-                console.log(trades);
+                //console.log("getTrades");
+                //console.log(trades);
                 if(!trades.error){
                     if(trades.data.tradingHistory.length > 0){
                         for(let i=0;i<trades.data.tradingHistory.length;i++){
-                            console.log("fee");
-                            console.log(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
+                            //console.log("fee");
+                            //console.log(parseFloat(trades.data.tradingHistory[i].rebatesApplied));
                             detailOrder.fee -= (parseFloat(trades.data.tradingHistory[i].rebatesApplied));
                         }
                         detailOrder.fee = tools.setPrecision(detailOrder.fee, 8);
@@ -380,8 +381,8 @@ let cancelOrder = function (pair, id, type, openedOrder){
         console.log(trades);
          */
         const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
-        console.log("cancelOrder");
-        console.log(cancelResult);
+        //console.log("cancelOrder");
+        //console.log(cancelResult);
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
