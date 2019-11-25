@@ -293,7 +293,7 @@ let createOrder = async function(pair, type, pendingSellOrder, valueForSize, pri
             if(size > 0){
                 return await limitOrder(type, pair, size, price);
             } else {
-                return {s:0, errorMessage: "Size order not set in config."};
+                return {s:0, data: {error: "Size order not set in config."}};
             }
         case "SELL":
             size = pendingSellOrder.sell_size.toString();
@@ -323,7 +323,7 @@ let limitOrder = function (type, pair, size, price) {
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
             resolve({s:1, counter:1, data: createdOrder});
         } else if(limitOrderResult.error) {
-            resolve({s:0, counter:30, errorMessage: limitOrderResult.data});
+            resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
         }
 
     });

@@ -149,7 +149,7 @@ let createOrder = async function(pair, type, pendingSellOrder, valueForSize, pri
             if(size > 0){
                 return await limitOrder(type, pair, size, price);
             } else {
-                return {s:0, errorMessage: "Size order not set in config."};
+                return {s:0, data:{error: "Size order not set in config."}};
             }
         case "SELL":
             size = pendingSellOrder.sell_size.toString();
@@ -177,12 +177,12 @@ let limitOrder = function(type, pair, size, price){
                 } else {
                     console.error("binance limitOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, errorMessage: result.msg});
+                    resolve({s:0, counter:1, data: {error: JSON.stringify(result.msg)}});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, errorMessage: "createOrder"});
+                resolve({s:0, counter:1, data: {error: body}});
             }
         });
     });

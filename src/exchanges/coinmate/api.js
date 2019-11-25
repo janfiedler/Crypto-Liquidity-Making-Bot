@@ -307,7 +307,7 @@ let createOrder = async function (pair, type, pendingSellOrder, valueForSize, pr
             if(size > 0){
                 return await buyLimitOrder(pair.name, size, price);
             } else {
-                return {s:0, errorMessage: "Size order not set in config."};
+                return {s:0, data: {error: "Size order not set in config."}};
             }
         case "SELL":
             size = pendingSellOrder.sell_size.toString();
@@ -329,9 +329,9 @@ let buyLimitOrder = function (currencyPair, amount, price){
                 if (!error && response.statusCode === 200) {
                     if(result.error){
                         if(result.errorMessage.includes("Minimum Order Size")){
-                            resolve({s:0, counter:1, errorMessage: "insufficient size"});
+                            resolve({s:0, counter:1, data: {error: "insufficient size"}});
                         } else {
-                            resolve({s:0, counter:1, errorMessage: result.errorMessage});
+                            resolve({s:0, counter:1, data: {error: JSON.stringify(result.errorMessage)}});
                         }
                     } else {
                         let createdOrder = new tools.orderCreatedForm;
@@ -344,12 +344,12 @@ let buyLimitOrder = function (currencyPair, amount, price){
                 } else {
                     console.error("coinmate buyLimitOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, errorMessage: body});
+                    resolve({s:0, counter:1, data:{error: body}});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, errorMessage: e.toString()});
+                resolve({s:0, counter:1, data:{error: e.toString()}});
             }
         });
     });
@@ -370,9 +370,9 @@ let sellLimitOrder = function (currencyPair, amount, price){
                 if (!error && response.statusCode === 200) {
                     if(result.error){
                         if(result.errorMessage.includes("Minimum Order Size")){
-                            resolve({s:0, counter:1, errorMessage: "insufficient size"});
+                            resolve({s:0, counter:1, data: {error: "insufficient size"}});
                         } else {
-                            resolve({s:0, counter:1, errorMessage: result.errorMessage});
+                            resolve({s:0, counter:1, data: {error: JSON.stringify(result.errorMessage)}});
                         }
                     } else {
                         let createdOrder = new tools.orderCreatedForm;
@@ -385,12 +385,12 @@ let sellLimitOrder = function (currencyPair, amount, price){
                 } else {
                     console.error("coinmate sellLimitOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, errorMessage: body});
+                    resolve({s:0, counter:1, data: {error: body}});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, errorMessage: "sellLimitOrder"});
+                resolve({s:0, counter:1, data: {error: body}});
             }
         });
     });
@@ -412,14 +412,14 @@ let getTradeHistory = function (orderId ){
                     if (result.error) {
                         console.error("coinmate getTradeHistory #1");
                         console.error(result);
-                        resolve({ s: 0, errorMessage: result.errorMessage });
+                        resolve({ s: 0, data: {error: JSON.stringify(result.errorMessage)}});
                     } else {
                         resolve({ s: 1, data: result.data });
                     }
                 } else {
                     console.error("coinmate getTradeHistory #2");
                     console.error(body);
-                    resolve({s:0, data: result.errorMessage});
+                    resolve({s:0, data: {error: JSON.stringify(result.errorMessage)}});
                 }
             } catch (e) {
                 console.error("getTradeHistory:");
@@ -448,7 +448,7 @@ let getTransactionHistory = function (limit){
                     if (result.error) {
                         console.error("coinmate getTransactionHistory");
                         console.error(result);
-                        resolve({ s: 0, errorMessage: result.errorMessage });
+                        resolve({ s: 0, data: {error: JSON.stringify(result.errorMessage)}});
                     } else {
                         resolve({ s: 1, data: result.data });
                     }

@@ -405,14 +405,9 @@ async function validateOrder(type, id, pair, openedOrder){
             logMessage += " ### orderDetail = api.getOrder(id)\n";
             orderDetail = detailOrder.data;
         } else {
-            if(detailOrder.data.error.includes('Internal Server Error 500')){
-                logMessage +=  " !!! Internal Server Error 500 when validate canceled order "+id+" !\n";
-                return false;
-            } else {
-                await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
-                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                return false;
-            }
+            await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
+            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+            return false;
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
         //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
@@ -718,17 +713,17 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
                 return false;
             } else {
-                if(createdOrder.errorMessage.includes("insufficient size") || createdOrder.errorMessage.includes("Filter failure: MIN_NOTIONAL")){
+                if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
                     const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
                     await db.setFailedSellOrder(failedSellOrder);
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
-                } else if(createdOrder.errorMessage.includes("Order would immediately match and take")){
+                } else if(createdOrder.data.error.includes("Order would immediately match and take")){
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to order would immediately match and take!\n";
-                    console.error(createdOrder.errorMessage);
+                    console.error(createdOrder);
                     return false;
                 }  else {
-                    console.error(createdOrder.errorMessage);
+                    console.error(createdOrder);
                     await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(createdOrder));
                     logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
                     return false;
@@ -823,12 +818,12 @@ async function processBidOrder(pair, valueForSize, targetBid){
             await db.saveOpenedBuyOrder(config.name, pair, createdOrder);
             return true;
         } else {
-            if(createdOrder.errorMessage.includes("insufficient size") || createdOrder.errorMessage.includes("Filter failure: MIN_NOTIONAL")){
+            if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
                 console.error("Minimum Order Size: insufficient buy size!");
-            } else if(createdOrder.errorMessage.includes("Size order not set in config.")){
+            } else if(createdOrder.data.error.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
-            } else if(createdOrder.errorMessage.includes("Order would immediately match and take")){
-                console.error(createdOrder.errorMessage);
+            } else if(createdOrder.data.error.includes("Order would immediately match and take")){
+                console.error(createdOrder);
                 logMessage += " !!! Order would immediately match and take!\n";
                 return false;
             } else {
