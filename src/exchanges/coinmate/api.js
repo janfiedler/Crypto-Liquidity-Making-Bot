@@ -278,22 +278,22 @@ let cancelOrder = function (pair, id, type, openedOrder){
                 if (!error && response.statusCode === 200) {
                     if(result.data){
                         //Because success cancel order do not response with order detail, we need request order detail in next step
-                        resolve({s:0, data: {error: "not found"}});
+                        resolve({s:0, counter:1, data: {error: "not found"}});
                     } else if(!result.data) {
                         //Because faild cancel order, we need response with order detail, we need request order detail in next step
-                        resolve({s:0, data: {error: "not found"}});
+                        resolve({s:0, counter:1, data: {error: "not found"}});
                     } else {
-                        resolve({s:0, data: {error: "cancelOrder failed"}});
+                        resolve({s:0, counter:1, data: {error: "cancelOrder failed"}});
                     }
                 } else {
                     console.error("coinmate cancelOrder");
                     console.error(body);
-                    resolve({s:0, data: {"error": response.statusCode}});
+                    resolve({s:0, counter:1, data: {"error": response.statusCode}});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "coinmate cancelOrder"}});
+                resolve({s:0, counter:1, data: {error: "coinmate cancelOrder"}});
             }
         });
     });
@@ -329,9 +329,9 @@ let buyLimitOrder = function (currencyPair, amount, price){
                 if (!error && response.statusCode === 200) {
                     if(result.error){
                         if(result.errorMessage.includes("Minimum Order Size")){
-                            resolve({s:0, errorMessage: "insufficient size"});
+                            resolve({s:0, counter:1, errorMessage: "insufficient size"});
                         } else {
-                            resolve({s:0, errorMessage: result.errorMessage});
+                            resolve({s:0, counter:1, errorMessage: result.errorMessage});
                         }
                     } else {
                         let createdOrder = new tools.orderCreatedForm;
@@ -339,17 +339,17 @@ let buyLimitOrder = function (currencyPair, amount, price){
                         createdOrder.price = price;
                         createdOrder.size = amount;
                         createdOrder.funds = amount * price;
-                        resolve({s: 1, data: createdOrder});
+                        resolve({s: 1, counter:1, data: createdOrder});
                     }
                 } else {
                     console.error("coinmate buyLimitOrder");
                     console.error(body);
-                    resolve({s:0, errorMessage: body});
+                    resolve({s:0, counter:1, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, errorMessage: e.toString()});
+                resolve({s:0, counter:1, errorMessage: e.toString()});
             }
         });
     });
@@ -370,9 +370,9 @@ let sellLimitOrder = function (currencyPair, amount, price){
                 if (!error && response.statusCode === 200) {
                     if(result.error){
                         if(result.errorMessage.includes("Minimum Order Size")){
-                            resolve({s:0, errorMessage: "insufficient size"});
+                            resolve({s:0, counter:1, errorMessage: "insufficient size"});
                         } else {
-                            resolve({s:0, errorMessage: result.errorMessage});
+                            resolve({s:0, counter:1, errorMessage: result.errorMessage});
                         }
                     } else {
                         let createdOrder = new tools.orderCreatedForm;
@@ -380,17 +380,17 @@ let sellLimitOrder = function (currencyPair, amount, price){
                         createdOrder.price = price;
                         createdOrder.size = amount;
                         createdOrder.funds = amount*price;
-                        resolve({s:1, data: createdOrder});
+                        resolve({s:1, counter:1, data: createdOrder});
                     }
                 } else {
                     console.error("coinmate sellLimitOrder");
                     console.error(body);
-                    resolve({s:0, errorMessage: body});
+                    resolve({s:0, counter:1, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, errorMessage: "sellLimitOrder"});
+                resolve({s:0, counter:1, errorMessage: "sellLimitOrder"});
             }
         });
     });

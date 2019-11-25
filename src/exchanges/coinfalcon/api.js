@@ -177,16 +177,16 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     detailOrder.size_filled = parseFloat(result.data.size_filled);
                     detailOrder.fee = parseFloat(result.data.fee);
                     detailOrder.status = result.data.status;
-                    resolve({s:1, data: detailOrder});
+                    resolve({s:1, counter:1, data: detailOrder});
                 } else {
                     console.error("coinfalcon cancelOrder");
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, counter:1, data: result});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "cancelOrder"}});
+                resolve({s:0, counter:1, data: {error: "cancelOrder"}});
             }
         });
 
@@ -227,16 +227,16 @@ let limitOrder = function(type, currencyPair, size, price){
                     createdOrder.price = parseFloat(result.data.price);
                     createdOrder.size = parseFloat(result.data.size);
                     createdOrder.funds = parseFloat(result.data.funds);
-                    resolve({s:1, data: createdOrder});
+                    resolve({s:1, counter:1, data: createdOrder});
                 } else {
                     console.error("coinfalcon limitOrder");
                     console.error(body);
-                    resolve({s:0, errorMessage: body});
+                    resolve({s:0, counter:1, errorMessage: body});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, errorMessage: "createOrder"});
+                resolve({s:0, counter:1, errorMessage: "createOrder"});
             }
         });
     });

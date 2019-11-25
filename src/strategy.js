@@ -392,7 +392,7 @@ async function validateOrder(type, id, pair, openedOrder){
     let orderDetail;
     //Before validate order, first we need cancel opened order to avoid changes in data while validating.
     const canceledOrder = await api.cancelOrder(pair, id, type, openedOrder);
-    apiCounter++;
+    apiCounter += canceledOrder.counter;
     if (canceledOrder.s){
         logMessage += " ### orderDetail = api.cancelOrder(id)\n";
         orderDetail = canceledOrder.data;
@@ -712,7 +712,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
         if(pendingSellOrder.sell_target_price === 0 || tools.calculatePendingProfit(pendingSellOrder, targetAsk) > 0){
             logMessage += " ### Let´go open new sell order!\n";
             const createdOrder = await api.createOrder(pair, "SELL", pendingSellOrder, null, targetAsk);
-            apiCounter++;
+            apiCounter += createdOrder.counter;
             if(createdOrder.s){
                 myAccount.available[pair.name.split(pair.separator)[0]] -= createdOrder.data.size;
                 await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);

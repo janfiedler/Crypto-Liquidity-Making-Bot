@@ -173,16 +173,16 @@ let limitOrder = function(type, pair, size, price){
                     createdOrder.price = parseFloat(result.price);
                     createdOrder.size = parseFloat(result.origQty);
                     createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
-                    resolve({s:1, data: createdOrder});
+                    resolve({s:1, counter:1, data: createdOrder});
                 } else {
                     console.error("binance limitOrder");
                     console.error(body);
-                    resolve({s:0, errorMessage: result.msg});
+                    resolve({s:0, counter:1, errorMessage: result.msg});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, errorMessage: "createOrder"});
+                resolve({s:0, counter:1, errorMessage: "createOrder"});
             }
         });
     });
@@ -243,16 +243,16 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     detailOrder.size_filled = parseFloat(result.executedQty);
                     detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), 10);
                     detailOrder.status = result.status;
-                    resolve({s:1, data: detailOrder});
+                    resolve({s:1, counter:1, data: detailOrder});
                 } else {
                     console.error("binance cancelOrder");
                     console.error(body);
-                    resolve({s:0, data: {"error": "not found"}});
+                    resolve({s:0, counter:1, data: {"error": "not found"}});
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "cancelOrder"}});
+                resolve({s:0, counter:1, data: {error: "cancelOrder"}});
             }
         });
 

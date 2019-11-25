@@ -132,8 +132,8 @@ function executeRequest(options) {
             let errorMessage = null;
 
             if (err) {
-                console.log(err);
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
+                console.log(errorMessage);
                 error = {error: true, statusCode: -1, data: errorMessage};
                 console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
@@ -321,9 +321,9 @@ let limitOrder = function (type, pair, size, price) {
             createdOrder.price = parseFloat(limitOrderResult.data.price);
             createdOrder.size = parseFloat(limitOrderResult.data.amount);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
-            resolve({s:1, data: createdOrder});
+            resolve({s:1, counter:1, data: createdOrder});
         } else if(limitOrderResult.error) {
-            resolve({s:0, errorMessage: limitOrderResult.data});
+            resolve({s:0, counter:30, errorMessage: limitOrderResult.data});
         }
 
     });
@@ -376,6 +376,8 @@ let getOrder = function(pair, id, type, openedOrder){
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
         } else if(getOrderResult.error && getOrderResult.statusCode === 500){
             resolve({s:0, counter: 30, data: {error: "Internal Server Error 500"}});
+        } else if(getOrderResult.error) {
+            resolve({s:0, counter: 30, errorMessage: getOrderResult.data});
         }
     });
 };
@@ -392,17 +394,19 @@ let cancelOrder = function (pair, id, type, openedOrder){
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
-                resolve({s:0, data: {error: "not found"}});
+                resolve({s:0, counter:1, data: {error: "not found"}});
             } else {
-                resolve({s:0, data: {error: "itbit cancelOrder failed"}});
+                resolve({s:0, counter:1, data: {error: "itbit cancelOrder failed"}});
             }
 
         } else if(cancelResult.error && cancelResult.statusCode === 422) {
             //The order matching the provided id is not open
-            resolve({s:0, data: {error: "not found"}});
+            resolve({s:0, counter:1, data: {error: "not found"}});
         } else if(cancelResult.error && cancelResult.statusCode === 404) {
             //The order matching the provided id is not open
-            resolve({s:0, data: {error: "itbit cancelOrder failed"}});
+            resolve({s:0, counter:1, data: {error: "itbit cancelOrder failed"}});
+        } else if(cancelResult.error) {
+            resolve({s:0, counter: 30, errorMessage: cancelResult.data});
         }
     });
 };
