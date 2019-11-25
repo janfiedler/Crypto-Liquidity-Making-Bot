@@ -128,16 +128,18 @@ function executeRequest(options) {
     console.log(requestDesc);
     return new Promise(function (resolve, reject) {
         request(options, function (err, res, body) {
-            console.log(err);
-            if(res.statusCode !== undefined){
-                console.log(res.statusCode);
-            }
-            console.log(body);
             let error = null;   // default to no errors
             let errorMessage = null;
 
             if (err) {
+                console.log(err);
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
+                error = {error: true, statusCode: -1, data: errorMessage};
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                resolve(error);
+            }
+            else if(!res){
+                errorMessage = util.format('%s failed %s. Invalid response from server', functionName, requestDesc);
                 error = {error: true, statusCode: -1, data: errorMessage};
                 console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
                 resolve(error);
