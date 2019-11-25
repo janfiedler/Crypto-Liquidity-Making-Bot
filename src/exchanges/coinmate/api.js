@@ -257,9 +257,9 @@ let getOrder = async function (pair, id, type, openedOrder){
         } else {
             orderDetail.status = "canceled";
         }
-        return {s: true, counter: 1, data: orderDetail};
+        return {s: 1, counter: 1, data: orderDetail};
     } else {
-        return {s: false, counter: 1};
+        return {s: 0, counter: 1, data: {error: JSON.stringify(rTH.errorMessage)}};
     }
 };
 

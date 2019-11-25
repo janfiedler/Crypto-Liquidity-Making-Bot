@@ -212,7 +212,7 @@ let getOrder = function(pair, id, type, openedOrder){
                 } else {
                     console.error("binance getOrder");
                     console.error(body);
-                    resolve({s:0, counter: 1, data: result});
+                    resolve({s:0, counter: 1, data: {error: JSON.stringify(result)}});
                 }
             } catch (e) {
                 console.error(body);
