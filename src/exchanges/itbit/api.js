@@ -374,10 +374,8 @@ let getOrder = function(pair, id, type, openedOrder){
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
-        } else if(getOrderResult.error && getOrderResult.statusCode === 500){
-            resolve({s:0, counter: 30, data: {error: "Internal Server Error 500"}});
         } else if(getOrderResult.error) {
-            resolve({s:0, counter: 30, errorMessage: getOrderResult.data});
+            resolve({s:0, counter: 30, data: {error: JSON.stringify(getOrderResult.data)}});
         }
     });
 };
@@ -406,7 +404,7 @@ let cancelOrder = function (pair, id, type, openedOrder){
             //The order matching the provided id is not open
             resolve({s:0, counter:1, data: {error: "itbit cancelOrder failed"}});
         } else if(cancelResult.error) {
-            resolve({s:0, counter: 30, errorMessage: cancelResult.data});
+            resolve({s:0, counter: 30, data: {error: JSON.stringify(cancelResult.data)}});
         }
     });
 };

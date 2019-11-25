@@ -288,7 +288,7 @@ let cancelOrder = function (pair, id, type, openedOrder){
                 } else {
                     console.error("coinmate cancelOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, data: {"error": response.statusCode}});
+                    resolve({s:0, counter:1, data: {error: JSON.stringify(response.statusCode)}});
                 }
             } catch (e) {
                 console.error(body);
