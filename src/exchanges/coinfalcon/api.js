@@ -236,7 +236,7 @@ let limitOrder = function(type, currencyPair, size, price){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, data: {error: body});
+                resolve({s:0, counter:1, data: {error: body}});
             }
         });
     });
