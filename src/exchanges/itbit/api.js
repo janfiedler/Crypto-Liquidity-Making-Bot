@@ -1,6 +1,7 @@
 var request = require('request');
 const crypto = require('crypto');
 let _ = require("underscore"),
+    cheerio = require('cheerio'),
     util = require('util');
 const tools = require('../../tools');
 let config;
