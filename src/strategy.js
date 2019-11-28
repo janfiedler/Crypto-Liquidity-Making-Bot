@@ -225,7 +225,7 @@ let doBidOrder = async function (){
             apiCounter++;
         }
         //Parse fetched data to json object.
-        if(resultTicker.s){
+        if(resultTicker.s && resultTicker.data){
             tickers[pair.name] = await api.parseTicker("bid", resultTicker.data, pair, resultOpenedBuyOrder);
             //Performance optimization, process only if orders book change
             if ((Date.now() - lastTickers[pair.name+"_"+pair.id].timestamp.bid) > 600000 || JSON.stringify(lastTickers[pair.name+"_"+pair.id].bid) !== JSON.stringify(tickers[pair.name].bid)) {
