@@ -160,8 +160,13 @@ let getBuyOrderSize = function(pair, valueForSize, price){
     } else if (pair.moneyManagement.buySize.active){
         size = pair.moneyManagement.buySize.value;
     }
-    if(size < pair.minSize){
-        size = pair.minSize;
+    //Fix size if minTradeAmount is lower than size what we want buy
+    if(size < pair.minTradeAmount){
+        size = pair.minTradeAmount;
+    }
+    //Fix size if (size*price) is lower is lower than minSpendAmount (we spend amount of myAccount.available[pair.name.split(pair.separator)[1]])
+    if((size*price) < pair.minSpendAmount){
+        size = setPrecisionUp((pair.minSpendAmount/price), pair.digitsSize);
     }
     return size;
 };

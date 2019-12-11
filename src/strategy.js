@@ -791,9 +791,10 @@ async function sellOldestOrderWithLossWhenProfit(config_name, pair, targetAsk){
 
     const oldestOrder = await db.getOldestPendingSellOrder(config_name, pair);
     const pl = tools.calculatePendingProfit(oldestOrder, targetAsk);
+    const so = await db.getAllSellOrders(config_name, pair.name, pair.id);
     if(pl < 0) {
         //console.error("pl: " + pl);
-        if ((availableProfitForLosses - Math.abs(pl)) > 0) {
+        if ((availableProfitForLosses - Math.abs(pl)) > 0 && so.length >= pair.strategy.sellOldestOrderWithLossWhenProfit.minPendingSellOrders) {
             await db.setSellTargetPrice(config_name, pair, oldestOrder.buy_id, 0);
             return true;
         } else {
@@ -806,7 +807,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSize*targetBid){
+    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < (pair.minTradeAmount*targetBid) || myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSpendAmount){
         logMessage += " !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {

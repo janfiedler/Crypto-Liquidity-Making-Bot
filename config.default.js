@@ -39,7 +39,8 @@ let config =
                         "separator": "-",
                         "digitsPrice": 4,
                         "digitsSize": 5,
-                        "minSize": 0.0002,
+                        "minTradeAmount": 1,
+                        "minSpendAmount": 0.0001,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -101,7 +102,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     },
@@ -115,7 +117,8 @@ let config =
                         "separator": "-",
                         "digitsPrice": 2,
                         "digitsSize": 8,
-                        "minSize": 0.0002,
+                        "minTradeAmount": 0.0001,
+                        "minSpendAmount": 1,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -175,7 +178,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     }
@@ -204,7 +208,8 @@ let config =
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
-                        "minSize": 0.0002,
+                        "minTradeAmount": 0.0002,
+                        "minSpendAmount": 1,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -265,7 +270,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     },
@@ -279,7 +285,8 @@ let config =
                         "separator": "_",
                         "digitsPrice": 2,
                         "digitsSize": 4,
-                        "minSize": 0.0002,
+                        "minTradeAmount": 0.0002,
+                        "minSpendAmount": 1,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -340,7 +347,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     }
@@ -368,7 +376,8 @@ let config =
                         "separator": "-",
                         "digitsPrice": 8,
                         "digitsSize": 0,
-                        "minSize": 0.001,
+                        "minTradeAmount": 1,
+                        "minSpendAmount": 0.0001,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -429,7 +438,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     },
@@ -443,7 +453,8 @@ let config =
                         "separator": "-",
                         "digitsPrice": 7,
                         "digitsSize": 2,
-                        "minSize": 0.001,
+                        "minTradeAmount": 0.01,
+                        "minSpendAmount": 0.0001,
                         "moneyManagement": {
                             "autopilot": {
                                 "active": false,
@@ -504,7 +515,8 @@ let config =
                             "sellOldestOrderWithLoss": false,
                             "sellOldestOrderWithLossWhenProfit": {
                                 "active": false,
-                                "keepPercentageOfProfit" : 25
+                                "keepPercentageOfProfit" : 25,
+                                "minPendingSellOrders": 21
                             }
                         }
                     }
