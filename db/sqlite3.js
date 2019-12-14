@@ -388,6 +388,20 @@ let getAllSellOrders = function(exchange, pair, pairId){
     });
 };
 
+let getAllNonFrozenSellOrdersCount  = function(exchange, pair, pairId){
+    return new Promise(function (resolve) {
+        db.all(`SELECT COUNT(*) as count FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = ? ORDER BY exchange, pair, buy_price DESC`, exchange, pair, pairId, "sell", 0, (err, rows) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                console.error(rows[0]);
+                resolve(rows[0]);
+            }
+        });
+    });
+};
+
+
 
 let getAllCompletedOrders = function(){
     return new Promise(function (resolve) {
@@ -490,6 +504,7 @@ module.exports = {
     getDailyProfit: getDailyProfit,
     getTotalSellSize: getTotalSellSize,
     getAllSellOrders: getAllSellOrders,
+    getAllNonFrozenSellOrdersCount: getAllNonFrozenSellOrdersCount,
     getAllCompletedOrders: getAllCompletedOrders,
     getCompletedOrder: getCompletedOrder,
     updateProfit: updateProfit,
