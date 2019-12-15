@@ -124,9 +124,9 @@ function executeRequest(options) {
         requestDesc = util.format('%s request to url %s with nonce %s and data %s',
             options.method, options.uri, options.headers["X-Auth-Nonce"], JSON.stringify(options.json));
     }
-    console.log("### executeRequest");
-    console.log(options);
-    console.log(requestDesc);
+    //console.log("### executeRequest");
+    //console.log(options);
+    //console.log(requestDesc);
     return new Promise(function (resolve, reject) {
         request(options, function (err, res, body) {
             let error = null;   // default to no errors
