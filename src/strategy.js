@@ -96,8 +96,9 @@ let doAskOrder = async function(){
         let targetAsk = await findSpotForAskOrder(pendingSellOrder, tickers[pair.name] , pair);
         if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
             logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
+            const sellTimeBetween = tools.getTimeBetween(resultOpenedSellOrder.sell_created, new Date().toISOString());
             //If targetAsk dont change after ten minutes, force validate order.
-            if(targetAsk !== resultOpenedSellOrder.sell_price){
+            if(targetAsk !== resultOpenedSellOrder.sell_price || sellTimeBetween.minutes >= 10){
                 //If founded opened sell order, lets check and process
                 const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -109,6 +110,7 @@ let doAskOrder = async function(){
                 }
             } else {
                 logMessage += " ### We already have opened ask order at " + targetAsk + " skipping validateOrder\n";
+                logMessage += " ### " + JSON.stringify(sellTimeBetween)+"\n";
             }
         } else {
             logMessage += " !!! This will be first opened sell order!\n";
@@ -270,8 +272,10 @@ let doBidOrder = async function (){
 
         if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
             logMessage += " ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
+
+            const buyTimeBetween = tools.getTimeBetween(resultOpenedBuyOrder.buy_created, new Date().toISOString());
             //If targetBid dont change after ten minutes, force validate order.
-            if(targetBid !== resultOpenedBuyOrder.buy_price) {
+            if(targetBid !== resultOpenedBuyOrder.buy_price || buyTimeBetween.minutes >= 10) {
                 //If founded opened buy order, lets check and process
                 const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
                 // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
@@ -283,6 +287,7 @@ let doBidOrder = async function (){
                 }
             } else {
                 logMessage += " ### We already have opened bid order at " + targetBid + " skipping validateOrder\n";
+                logMessage += " ### " + JSON.stringify(buyTimeBetween)+"\n";
             }
         } else {
             logMessage += " !!! This will be first opened buy order!\n";

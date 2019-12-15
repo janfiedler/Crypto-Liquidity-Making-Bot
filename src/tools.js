@@ -240,6 +240,24 @@ let getAmountSpent = async function(db, exchange, pair){
     });
 };
 
+let getTimeBetween = function(date1, date2){
+    // Convert both dates in string to milliseconds
+    let date1_ms = new Date(date1).getTime();
+    let date2_ms = new Date(date2).getTime();
+
+    // Calculate the difference in milliseconds
+    let difference_ms = date2_ms - date1_ms;
+    //take out milliseconds
+    difference_ms = difference_ms/1000;
+    let seconds = Math.floor(difference_ms % 60);
+    difference_ms = difference_ms/60;
+    let minutes = Math.floor(difference_ms % 60);
+    difference_ms = difference_ms/60;
+    let hours = Math.floor(difference_ms % 24);
+    let days = Math.floor(difference_ms/24);
+    return {days: days, hours: hours, minutes: minutes, seconds: seconds};
+};
+
 /*
 const completedOrders = await db.getAllCompletedOrders();
 console.log(completedOrders.length);
@@ -276,5 +294,6 @@ module.exports = {
     orderCreatedForm: orderCreatedForm,
     calculateProfit: calculateProfit,
     calculatePendingProfit: calculatePendingProfit,
-    getAmountSpent: getAmountSpent
+    getAmountSpent: getAmountSpent,
+    getTimeBetween: getTimeBetween
 };
