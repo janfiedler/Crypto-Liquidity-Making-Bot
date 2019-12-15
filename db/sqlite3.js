@@ -394,7 +394,6 @@ let getAllNonFrozenSellOrdersCount  = function(exchange, pair, pairId){
             if (err) {
                 console.error(err.message);
             } else {
-                console.error(rows[0]);
                 resolve(rows[0]);
             }
         });
