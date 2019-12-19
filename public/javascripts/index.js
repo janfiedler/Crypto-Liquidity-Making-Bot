@@ -161,6 +161,8 @@ $( document ).ready(function() {
 
         const target = $(ev.target);
         const orderId = target.closest('td').attr('id');
+        //Remove buttons in action before confirmation and reload
+        target.closest('td').html("");
         if( target.is(".freeze_order") ) {
             emitFreeze(ev, "freezeOrder", orderId);
 
