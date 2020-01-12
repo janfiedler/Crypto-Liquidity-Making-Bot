@@ -17,15 +17,17 @@ $( document ).ready(function() {
             console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]);
             */
             let tP = document.getElementById("totalProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            $(tP).text(data.tP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: totalDigits
-            }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
-            let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            $(dP).text(data.dP.total.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: totalDigits
-            }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            if(tP){
+                $(tP).text(data.tP.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: totalDigits
+                }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+                let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+                $(dP).text(data.dP.total.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: totalDigits
+                }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            }
             let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             $(tS).text(data.tS + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
             let tA = document.getElementById("amountSpent_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
