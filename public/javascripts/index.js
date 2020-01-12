@@ -17,7 +17,7 @@ $( document ).ready(function() {
             console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]);
             */
             let tP = document.getElementById("totalProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            if(tP){
+            if(data.tP){
                 $(tP).text(data.tP.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
