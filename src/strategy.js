@@ -188,7 +188,9 @@ let doBidOrder = async function (){
         //let buyCurrency = pair.name.split(pair.separator)[0];
 
         //Get lowest already filled buy order = pending sell order
-        const lowestFilledBuyOrder = await db.getLowestFilledBuyOrder(config.name, pair);
+        const lowestFilledBuyOrder = await db.getFilledBuyOrder(config.name, pair, "ASC");
+        //Get highest already filled buy order = pending sell order
+        const highestFilledBuyOrder = await db.getFilledBuyOrder(config.name, pair, "DESC");
         // Check for actual opened buy order
         const resultOpenedBuyOrder = await db.getOpenedBuyOrder(config.name, pair);
         //Get valueForSize by strategy
@@ -262,12 +264,15 @@ let doBidOrder = async function (){
         }
 
         let targetBid;
-        if(lowestFilledBuyOrder){
-            targetBid = await findSpotForBidOrder(false, true, lowestFilledBuyOrder, tickers[pair.name] , pair);
+        if(pair.strategy.buySpread.buyForHigherPrice && lowestFilledBuyOrder && highestFilledBuyOrder){
+            //Get highest already filled buy order = pending sell order
+            targetBid = await findSpotForBidOrder("bothDirection", {l:lowestFilledBuyOrder, h:highestFilledBuyOrder}, tickers[pair.name] , pair);
+        } else if(lowestFilledBuyOrder){
+            targetBid = await findSpotForBidOrder("lowestOrder", {l:lowestFilledBuyOrder, h:null}, tickers[pair.name] , pair);
         } else if(resultOpenedBuyOrder){
-            targetBid = await findSpotForBidOrder(false, false, resultOpenedBuyOrder, tickers[pair.name] , pair);
+            targetBid = await findSpotForBidOrder("openedOrder", {l:resultOpenedBuyOrder, h:null}, tickers[pair.name] , pair);
         } else {
-            targetBid = await findSpotForBidOrder(true,  false, null, tickers[pair.name] , pair);
+            targetBid = await findSpotForBidOrder("firstOrder", null, tickers[pair.name] , pair);
         }
 
         if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
@@ -332,18 +337,17 @@ let findSpotForAskOrder = async function (pendingOrder, ticker, pair){
     return targetAsk;
 };
 
-let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, ticker, pair){
+let findSpotForBidOrder = async function (orderType, buyOrder, ticker, pair){
     const keysCount = Object.keys(ticker.bid).length;
-    let targetBid = 0;
+    let targetBid = ticker.bid[0].price;
 
-    if(firstOrder || !config.stickToBigOrders){
-        targetBid = ticker.bid[0].price;
-    } else {
+    // Find targetBid following big orders if is allowed
+    if(config.stickToBigOrders){
         for(let i=0;i<keysCount;i++){
             if ((i+2) >= keysCount){
                 break
             }
-            if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.buy_size){
+            if(ticker.bid[i].size > (ticker.bid[(i+1)].size+ticker.bid[(i+2)].size) && ticker.bid[i].size > buyOrder.l.buy_size){
                 logMessage += " ### "+ticker.bid[i].price + " is my target price with size: " + ticker.bid[i].size+"\n";
                 targetBid = ticker.bid[i].price;
                 break;
@@ -352,29 +356,61 @@ let findSpotForBidOrder = async function (firstOrder, lowestOrder, buyOrder, tic
     }
 
     targetBid = tools.addPipsToPrice(targetBid, 1, pair.digitsPrice);
+    // This is for itbit exchange where is smallest price change per 0.25 USD on bitcoin
     if(pair.moneyManagement.roundPriceToPips.active){
-        //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
         targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);
     }
 
-    //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
-    if(lowestOrder){
-        let bidWithSpread;
-        if(pair.strategy.buySpread.percentage.active){
-            bidWithSpread = tools.getPercentageBuySpread(buyOrder.buy_price, pair.strategy.buySpread.percentage.value, pair.digitsPrice);
-        } else if(pair.strategy.buySpread.pips.active){
-            bidWithSpread = tools.takePipsFromPrice( buyOrder.buy_price, pair.strategy.buySpread.pips.value, pair.digitsPrice);
+    //Choose if is time buy cheaper or for higher price
+    if(orderType === "bothDirection"){
+        if(targetBid > buyOrder.h.buy_price){
+            let higherBidWithSpread;
+            if(pair.strategy.buySpread.percentage.active){
+                higherBidWithSpread = tools.getProfitTargetPrice(buyOrder.h.buy_price, pair.strategy.buySpread.percentage.value, pair.digitsPrice);
+            } else if(pair.strategy.buySpread.pips.active){
+                higherBidWithSpread = tools.addPipsToPrice( buyOrder.h.buy_price, pair.strategy.buySpread.pips.value, pair.digitsPrice);
+            }
+            //Validate if new target ask is not close to bid order or taking bid order.
+            const askBorderPipsSpreadFromBid = tools.takePipsFromPrice(ticker.askBorder, pair.moneyManagement.pipsAskBidSpread, pair.digitsPrice);
+            if(higherBidWithSpread > askBorderPipsSpreadFromBid) {
+                logMessage += " ### New higher target bid "+higherBidWithSpread+" is in danger zone of ask border "+ticker.askBorder+". Target bid = orderType => lowestOrder \n";
+                orderType = "lowestOrder";
+            } else if (targetBid > higherBidWithSpread) {
+                logMessage += " ### targetBid: " + targetBid+"\n";
+                return targetBid;
+            } else {
+                //Price is higher, but not enough for buy spread
+                orderType = "lowestOrder";
+            }
+        } else if (targetBid < buyOrder.l.buy_price){
+            orderType = "lowestOrder";
+        } else if (targetBid <= buyOrder.h.buy_price && targetBid >= buyOrder.l.buy_price){
+            //If targetBid is in middle ob hi and low buy_price akt like with lowestOrder
+            orderType = "lowestOrder";
         }
 
+    }
+
+    //Validate if targetBid have pips spread between previous lowest filled buy order. (DO NOT BUY for higher price, until this buy order is sold)
+    if(orderType === "lowestOrder"){
+        let bidWithSpread;
+        if(pair.strategy.buySpread.percentage.active){
+            bidWithSpread = tools.getPercentageBuySpread(buyOrder.l.buy_price, pair.strategy.buySpread.percentage.value, pair.digitsPrice);
+        } else if(pair.strategy.buySpread.pips.active){
+            bidWithSpread = tools.takePipsFromPrice( buyOrder.l.buy_price, pair.strategy.buySpread.pips.value, pair.digitsPrice);
+        }
+
+        //Validate if target price is lower than last filled buy order
         if(targetBid > bidWithSpread){
             logMessage += " ### Target bid " +targetBid+" is higher than previous filled buy order with spread "+bidWithSpread+" !\n";
             targetBid = bidWithSpread;
             for(let i=0;i<keysCount;i++){
-                if(ticker.bid[i].price <  bidWithSpread){
+                if(ticker.bid[i].price < bidWithSpread){
                     targetBid = tools.addPipsToPrice(ticker.bid[i].price, 1, pair.digitsPrice);
                     break;
                 }
             }
+            // This is for itbit exchange where is smallest price change per 0.25 USD on bitcoin
             if(pair.moneyManagement.roundPriceToPips.active){
                 //targetBid = parseFloat((Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value)).toFixed(pair.digitsPrice));
                 targetBid = Math.ceil(targetBid * (100/pair.moneyManagement.roundPriceToPips.value)) / (100/pair.moneyManagement.roundPriceToPips.value);

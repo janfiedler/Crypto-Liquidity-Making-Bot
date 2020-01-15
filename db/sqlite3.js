@@ -145,9 +145,9 @@ let deleteOpenedBuyOrder = function(id){
     });
 };
 
-let getLowestFilledBuyOrder = function(exchange, pair){
+let getFilledBuyOrder = function(exchange, pair, order){
     return new Promise(function (resolve) {
-        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = 0 ORDER BY buy_price ASC LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND frozen = 0 ORDER BY buy_price `+order+` LIMIT ?`,exchange, pair.name, pair.id, "sell", 1, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
@@ -486,7 +486,7 @@ module.exports = {
     getOpenedSellOrder: getOpenedSellOrder,
     saveOpenedBuyOrder: saveOpenedBuyOrder,
     deleteOpenedBuyOrder: deleteOpenedBuyOrder,
-    getLowestFilledBuyOrder: getLowestFilledBuyOrder,
+    getFilledBuyOrder: getFilledBuyOrder,
     getLowestSellTargetPrice: getLowestSellTargetPrice,
     getOldestPendingSellOrder: getOldestPendingSellOrder,
     setOldestOrderWithLossForSell: setOldestOrderWithLossForSell,
