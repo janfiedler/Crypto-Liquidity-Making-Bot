@@ -32,11 +32,17 @@ websocket.emitPendingOrders = async function(data){
         let pendingOrders = [];
         let totalAmount = 0;
         let frozenAmount = 0;
+        let frozenSize = 0;
         for(let i=0;i<po.length;i++){
             const orderAmount = (po[i].buy_price * po[i].sell_size);
             totalAmount += (orderAmount+po[i].buy_fee);
             if(po[i].frozen){
-                frozenAmount += (orderAmount+po[i].buy_fee);
+                if(po[i].buy_fee > 0){
+                    frozenAmount += (orderAmount+po[i].buy_fee);
+                } else {
+                    frozenAmount += orderAmount;
+                }
+                frozenSize += po[i].sell_size;
             }
             const pl = tools.calculatePendingProfit(po[i], data.tick.ask);
             pendingOrders.push({"buy_id": po[i].buy_id, "buy_price": po[i].buy_price, "sell_size":po[i].sell_size, "sell_target_price": po[i].sell_target_price, "pl": pl, "oA": orderAmount, "f": po[i].frozen});
@@ -55,7 +61,7 @@ websocket.emitPendingOrders = async function(data){
         } else if (data.pair.moneyManagement.buySize.active){
             budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
-        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "fS": frozenSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
     }
 };
 

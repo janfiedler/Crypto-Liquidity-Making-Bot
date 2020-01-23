@@ -29,7 +29,15 @@ $( document ).ready(function() {
                 }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
             }
             let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            $(tS).text(data.tS + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
+            if(data.fS > 0){
+                $(tS).html(data.tS + ' ' + ' <i title="Frozen size" class="text-primary">('+ data.fS.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
+                })  +')</i> ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
+            } else {
+                $(tS).text(data.tS + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
+            }
+
             let tA = document.getElementById("amountSpent_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.fA > 0){
                 $(tA).html(data.tA.toLocaleString(undefined, {
