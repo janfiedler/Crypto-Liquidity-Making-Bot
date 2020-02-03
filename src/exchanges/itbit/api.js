@@ -310,13 +310,20 @@ let limitOrder = function (type, pair, size, price) {
         const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
         //console.log("limitOrder");
         //console.log(limitOrderResult);
-        if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
+        if(!limitOrderResult.error && limitOrderResult.statusCode === 201 && limitOrderResult.data.status === "submitted"){
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.id;
             createdOrder.price = parseFloat(limitOrderResult.data.price);
             createdOrder.size = parseFloat(limitOrderResult.data.amount);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
             resolve({s:1, counter:1, data: createdOrder});
+        } else if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
+            let createdOrder = new tools.orderCreatedForm;
+            createdOrder.id = limitOrderResult.data.id;
+            createdOrder.price = parseFloat(limitOrderResult.data.price);
+            createdOrder.size = parseFloat(limitOrderResult.data.amount);
+            createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
+            resolve({s:0, counter:30, data: {error: "not_submitted", status: JSON.stringify(limitOrderResult.data), data: createdOrder}});
         } else if(limitOrderResult.error) {
             resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
         }
