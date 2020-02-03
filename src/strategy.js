@@ -769,6 +769,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     return false;
                 } else if(createdOrder.data.error.includes("not_submitted")){
                     //Save order ID and make manual validate what happened
+                    console.error("sell order not submitted");
                     await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder.data.error.data);
                     await email.sendEmail("API Timeout - sell order not_submitted", pair.name +" #"+ pair.id +" need manual validate last sell order: " + JSON.stringify(createdOrder));
                     logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
@@ -884,6 +885,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 return false;
             } else if(createdOrder.data.error.includes("not_submitted")){
                 //Save order ID and make manual validate what happened
+                console.error("buy order not submitted");
                 await db.saveOpenedBuyOrder(config.name, pair, createdOrder.data.error.data);
                 await email.sendEmail("API Timeout - buy order not_submitted", pair.name +" #"+ pair.id +" need manual validate last buy order: " + JSON.stringify(createdOrder));
                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
