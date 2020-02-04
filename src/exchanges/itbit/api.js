@@ -328,6 +328,9 @@ let limitOrder = function (type, pair, size, price) {
             resolve({s:0, counter:30, data: {error: "not_submitted", status: JSON.stringify(limitOrderResult.data), data: createdOrder}});
         } else if(limitOrderResult.error) {
             resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
+        } else {
+            console.error(limitOrderResult.statusCode);
+            console.error(JSON.stringify(limitOrderResult.data));
         }
 
     });
