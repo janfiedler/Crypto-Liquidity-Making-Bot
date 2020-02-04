@@ -325,7 +325,7 @@ let limitOrder = function (type, pair, size, price) {
             createdOrder.price = parseFloat(limitOrderResult.data.price);
             createdOrder.size = parseFloat(limitOrderResult.data.amount);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
-            resolve({s:0, counter:30, data: {error: "not_submitted", status: JSON.stringify(limitOrderResult.data), data: createdOrder}});
+            resolve({s:0, counter:10, data: {error: "not_submitted", status: JSON.stringify(limitOrderResult.data), data: createdOrder}});
         } else if(limitOrderResult.error) {
             resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
         } else {
