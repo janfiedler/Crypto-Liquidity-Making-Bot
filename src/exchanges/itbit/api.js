@@ -318,6 +318,8 @@ let limitOrder = function (type, pair, size, price) {
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
             resolve({s:1, counter:1, data: createdOrder});
         } else if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
+            //Not submitted yet, need handle it
+            console.error(new Date().toISOString() + "\n" + JSON.stringify(limitOrderResult.data));
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.id;
             createdOrder.price = parseFloat(limitOrderResult.data.price);
@@ -334,7 +336,11 @@ let limitOrder = function (type, pair, size, price) {
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
-        if(!getOrderResult.error && getOrderResult.statusCode === 200){
+        if(!getOrderResult.error && getOrderResult.statusCode === 200 && getOrderResult.data.status === "pendingsubmission"){
+            //Order not cancelled yet, need handle it again!
+            console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
+            resolve({s:0, counter:10, data: {error: "not_cancelled", data: getOrderResult.data}});
+        } else if(!getOrderResult.error && getOrderResult.statusCode === 200){
             //console.log("getOrder");
             //console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;

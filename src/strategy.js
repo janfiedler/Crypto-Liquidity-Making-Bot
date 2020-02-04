@@ -442,14 +442,22 @@ async function validateOrder(type, id, pair, openedOrder){
         const detailOrder = await api.getOrder(pair, id, type, openedOrder);
         apiCounter += detailOrder.counter;
 
-        if(detailOrder.s){
+        if(detailOrder.s) {
             logMessage += " ### orderDetail = api.getOrder(id)\n";
             orderDetail = detailOrder.data;
         } else {
-            await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
-            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-            if(!config.stopTradingOnError){
+            if(detailOrder.data.error.includes("not_cancelled")){
+                //Save order ID and make manual validate what happened
+                await email.sendEmail("API Timeout - getOrder " + detailOrder.data.data.status, pair.name +" #"+ pair.id +" need manual validate last getOrder: " + JSON.stringify(detailOrder.data));
+                logMessage += " !!! not_cancelled !!!!\n";
+                logMessage += JSON.stringify(detailOrder.data.data)+"\n";
                 return false;
+            } else {
+                await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
+                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                if(!config.stopTradingOnError){
+                    return false;
+                }
             }
         }
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
@@ -769,7 +777,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     return false;
                 } else if(createdOrder.data.error.includes("not_submitted")){
                     //Save order ID and make manual validate what happened
-                    await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder.data.error.data);
+                    await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder.data.data);
                     await email.sendEmail("API Timeout - sell order not_submitted", pair.name +" #"+ pair.id +" need manual validate last sell order: " + JSON.stringify(createdOrder));
                     logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                     if(!config.stopTradingOnError){
@@ -884,7 +892,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 return false;
             } else if(createdOrder.data.error.includes("not_submitted")){
                 //Save order ID and make manual validate what happened
-                await db.saveOpenedBuyOrder(config.name, pair, createdOrder.data.error.data);
+                await db.saveOpenedBuyOrder(config.name, pair, createdOrder.data.data);
                 await email.sendEmail("API Timeout - buy order not_submitted", pair.name +" #"+ pair.id +" need manual validate last buy order: " + JSON.stringify(createdOrder));
                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                 if(!config.stopTradingOnError){
