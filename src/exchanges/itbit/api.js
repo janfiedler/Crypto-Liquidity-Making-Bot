@@ -310,6 +310,9 @@ let limitOrder = function (type, pair, size, price) {
         const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
         //console.log("limitOrder");
         //console.log(limitOrderResult);
+        console.error("### createOrder " + type);
+        console.error(limitOrderResult.statusCode);
+        console.error(limitOrderResult.data);
         if(!limitOrderResult.error && limitOrderResult.statusCode === 201 && limitOrderResult.data.status === "submitted"){
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.id;
@@ -317,15 +320,10 @@ let limitOrder = function (type, pair, size, price) {
             createdOrder.size = parseFloat(limitOrderResult.data.amount);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
             resolve({s:1, counter:1, data: createdOrder});
+        } else if(!limitOrderResult.error && limitOrderResult.statusCode === 201 && limitOrderResult.data.status === "rejected"){
+            resolve({s:0, counter:1, data: {error: "rejected", status: limitOrderResult.data.status, data: limitOrderResult.data}});
         } else if(!limitOrderResult.error && limitOrderResult.statusCode === 201){
-            //Not submitted yet, need handle it
-            console.error(new Date().toISOString() + "\n" + JSON.stringify(limitOrderResult.data));
-            let createdOrder = new tools.orderCreatedForm;
-            createdOrder.id = limitOrderResult.data.id;
-            createdOrder.price = parseFloat(limitOrderResult.data.price);
-            createdOrder.size = parseFloat(limitOrderResult.data.amount);
-            createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
-            resolve({s:0, counter:10, data: {error: "not_submitted", status: JSON.stringify(limitOrderResult.data), data: createdOrder}});
+            resolve({s:0, counter:30, data: {error: "not_submitted", data: limitOrderResult.data}});
         } else if(limitOrderResult.error) {
             resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
         } else {
@@ -339,10 +337,13 @@ let limitOrder = function (type, pair, size, price) {
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
+        console.error("### getOrder");
+        console.error(getOrderResult.statusCode);
+        console.error(getOrderResult.data);
         if(!getOrderResult.error && getOrderResult.statusCode === 200 && getOrderResult.data.status === "pendingsubmission"){
             //Order not cancelled yet, need handle it again!
             console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
-            resolve({s:0, counter:10, data: {error: "not_cancelled", data: getOrderResult.data}});
+            resolve({s:0, counter:10, data: {error: "not_processed", data: getOrderResult.data}});
         } else if(!getOrderResult.error && getOrderResult.statusCode === 200){
             //console.log("getOrder");
             //console.log(getOrderResult);
@@ -399,7 +400,9 @@ let cancelOrder = function (pair, id, type, openedOrder){
          */
         const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
         //console.log("cancelOrder");
-        //console.log(cancelResult);
+        console.error("### cancelOrder");
+        console.error(cancelResult.statusCode);
+        console.error(cancelResult.data);
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step

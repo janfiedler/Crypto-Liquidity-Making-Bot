@@ -177,7 +177,13 @@ let limitOrder = function(type, pair, size, price){
                 } else {
                     console.error("binance limitOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, data: {error: JSON.stringify(result.msg)}});
+                    const errMsg = JSON.stringify(result.msg);
+                    if(errMsg.includes("Order would immediately match and take")){
+                        resolve({s:0, counter:1, data: {error: "rejected"}});
+                    } else {
+                        resolve({s:0, counter:1, data: {error: errMsg}});
+                    }
+
                 }
             } catch (e) {
                 console.error(body);
