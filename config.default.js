@@ -33,9 +33,19 @@ let config =
                     {
                         "name": "IOT-EUR",
                         "id": 1,
-                        "active":  {
+                        "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "-",
                         "digitsPrice": 4,
@@ -113,7 +123,17 @@ let config =
                         "id": 2,
                         "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "-",
                         "digitsPrice": 2,
@@ -205,7 +225,17 @@ let config =
                         "id": 1,
                         "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "_",
                         "digitsPrice": 2,
@@ -282,7 +312,17 @@ let config =
                         "id": 2,
                         "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "_",
                         "digitsPrice": 2,
@@ -374,7 +414,17 @@ let config =
                         "id": 1,
                         "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "-",
                         "digitsPrice": 8,
@@ -451,7 +501,17 @@ let config =
                         "id": 2,
                         "active": {
                             "buy": true,
-                            "sell": true
+                            "buyRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
+                            "sell": true,
+                            "sellRange": {
+                                "active": false,
+                                "from": 0,
+                                "to": 0,
+                            },
                         },
                         "separator": "-",
                         "digitsPrice": 7,

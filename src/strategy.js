@@ -94,29 +94,32 @@ let doAskOrder = async function(){
         }
 
         let targetAsk = await findSpotForAskOrder(pendingSellOrder, tickers[pair.name] , pair);
-        if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
-            logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
-            const sellTimeBetween = tools.getTimeBetween(resultOpenedSellOrder.sell_created, new Date().toISOString());
-            //If targetAsk dont change after ten minutes, force validate order.
-            if(targetAsk !== resultOpenedSellOrder.sell_price || sellTimeBetween.minutes >= 10){
-                //If founded opened sell order, lets check and process
-                const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
-                // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
-                if(resultValidateOrder){
-                    await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
+        if((!pair.active.sellRange.active) || (pair.active.sellRange.active && targetAsk >= pair.active.sellRange.from &&  targetAsk <= pair.active.sellRange.to)){
+            if(typeof resultOpenedSellOrder !== 'undefined' && resultOpenedSellOrder){
+                logMessage += " ### Found opened sell order " + resultOpenedSellOrder.sell_id + "\n";
+                const sellTimeBetween = tools.getTimeBetween(resultOpenedSellOrder.sell_created, new Date().toISOString());
+                //If targetAsk dont change after ten minutes, force validate order.
+                if(targetAsk !== resultOpenedSellOrder.sell_price || sellTimeBetween.minutes >= 10){
+                    //If founded opened sell order, lets check and process
+                    const resultValidateOrder = await validateOrder("SELL", resultOpenedSellOrder.sell_id, pair, resultOpenedSellOrder);
+                    // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
+                    if(resultValidateOrder){
+                        await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
+                    } else {
+                        await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
+                        return false;
+                    }
                 } else {
-                    await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
-                    return false;
+                    logMessage += " ### We already have opened ask order at " + targetAsk + " skipping validateOrder\n";
+                    logMessage += " ### " + JSON.stringify(sellTimeBetween)+"\n";
                 }
             } else {
-                logMessage += " ### We already have opened ask order at " + targetAsk + " skipping validateOrder\n";
-                logMessage += " ### " + JSON.stringify(sellTimeBetween)+"\n";
+                logMessage += " !!! This will be first opened sell order!\n";
+                await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
             }
         } else {
-            logMessage += " !!! This will be first opened sell order!\n";
-            await processAskOrder(pair, tickers[pair.name], targetAsk, pendingSellOrder);
+            logMessage += " !!! Target Ask at " + targetAsk + " is outside sellRange "+pair.active.sellRange.from+"-"+pair.active.sellRange.to+" !!!\n";
         }
-
         await processFinishLoop(apiCounter, pair, "ask", lastLogMessage[pair.name+"_"+pair.id].ask, logMessage);
     }
     return true;
@@ -275,28 +278,32 @@ let doBidOrder = async function (){
             targetBid = await findSpotForBidOrder("firstOrder", null, tickers[pair.name] , pair);
         }
 
-        if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
-            logMessage += " ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
+        if((!pair.active.buyRange.active) || (pair.active.buyRange.active && targetBid >= pair.active.buyRange.from &&  targetBid <= pair.active.buyRange.to)){
+            if(typeof resultOpenedBuyOrder !== 'undefined' && resultOpenedBuyOrder){
+                logMessage += " ### Found opened bid order " + resultOpenedBuyOrder.buy_id+"\n";
 
-            const buyTimeBetween = tools.getTimeBetween(resultOpenedBuyOrder.buy_created, new Date().toISOString());
-            //If targetBid dont change after ten minutes, force validate order.
-            if(targetBid !== resultOpenedBuyOrder.buy_price || buyTimeBetween.minutes >= 10) {
-                //If founded opened buy order, lets check and process
-                const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
-                // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
-                if(resultValidateOrder){
-                    await processBidOrder(pair, valueForSize, targetBid);
+                const buyTimeBetween = tools.getTimeBetween(resultOpenedBuyOrder.buy_created, new Date().toISOString());
+                //If targetBid dont change after ten minutes, force validate order.
+                if(targetBid !== resultOpenedBuyOrder.buy_price || buyTimeBetween.minutes >= 10) {
+                    //If founded opened buy order, lets check and process
+                    const resultValidateOrder = await validateOrder("BUY", resultOpenedBuyOrder.buy_id, pair, resultOpenedBuyOrder);
+                    // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
+                    if(resultValidateOrder){
+                        await processBidOrder(pair, valueForSize, targetBid);
+                    } else {
+                        await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
+                        return false;
+                    }
                 } else {
-                    await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
-                    return false;
+                    logMessage += " ### We already have opened bid order at " + targetBid + " skipping validateOrder\n";
+                    logMessage += " ### " + JSON.stringify(buyTimeBetween)+"\n";
                 }
             } else {
-                logMessage += " ### We already have opened bid order at " + targetBid + " skipping validateOrder\n";
-                logMessage += " ### " + JSON.stringify(buyTimeBetween)+"\n";
+                logMessage += " !!! This will be first opened buy order!\n";
+                await processBidOrder(pair, valueForSize, targetBid);
             }
         } else {
-            logMessage += " !!! This will be first opened buy order!\n";
-            await processBidOrder(pair, valueForSize, targetBid);
+            logMessage += " !!! Target Bid at " + targetBid + " is outside buyRange "+pair.active.buyRange.from+"-"+pair.active.buyRange.to+" !!!\n";
         }
 
         await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
