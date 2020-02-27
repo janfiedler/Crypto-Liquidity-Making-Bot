@@ -167,13 +167,17 @@ let limitOrder = function(type, pair, size, price){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
+                console.error("### createOrder " + type);
+                console.error(result);
+                if (!error && response.statusCode === 200 && result.status === "NEW") {
                     let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.clientOrderId;
                     createdOrder.price = parseFloat(result.price);
                     createdOrder.size = parseFloat(result.origQty);
                     createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
                     resolve({s:1, counter:1, data: createdOrder});
+                } else if(!error && response.statusCode === 200){
+                    resolve({s:0, counter:1, data: {"error": "unknown status"}});
                 } else {
                     console.error("binance limitOrder");
                     console.error(body);
@@ -238,7 +242,9 @@ let cancelOrder = function(pair, id, type, openedOrder){
         request.delete({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
+                console.error("### cancelOrder");
+                console.error(result);
+                if (!error && response.statusCode === 200 && result.status === "CANCELED") {
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.origClientOrderId;
                     detailOrder.pair = pair.name;
@@ -250,6 +256,8 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), 10);
                     detailOrder.status = result.status;
                     resolve({s:1, counter:1, data: detailOrder});
+                } else if(!error && response.statusCode === 200){
+                    resolve({s:0, counter:1, data: {"error": "unknown status"}});
                 } else {
                     console.error("binance cancelOrder");
                     console.error(body);
