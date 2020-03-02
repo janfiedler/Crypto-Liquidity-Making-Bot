@@ -3,10 +3,12 @@ const crypto = require('crypto');
 const tools = require('../../tools');
 let config;
 let options = {};
+let db;
 
-let setConfig = function(data){
+let setConfig = function(data, database){
     return new Promise(async function (resolve) {
         config = data;
+        db = database;
         request.get({url: config.url + "/api/v1/time"}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
@@ -79,6 +81,8 @@ let getTicker = function(pair) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
+                    //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromSpot");
+                    //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromMargin");
                     resolve({s:1, data: result, counter: 1});
                 } else {
                     console.error("binance getTicker");
@@ -273,6 +277,39 @@ let cancelOrder = function(pair, id, type, openedOrder){
     });
 };
 
+let accountTransfer = function(exchange, pair, asset, amount, type){
+    return new Promise(async function (resolve) {
+        let url = config.url + "/sapi/v1/margin/transfer";
+        if(type === "fromSpot"){
+            // Transfer from spot to margin.
+            type = 1;
+        } else if(type === "fromMargin"){
+            // Transfer from margin to spot.
+            type = 2;
+        }
+        let body = { "asset": asset, "amount": amount, "type": type};
+        const signed = sign(body);
+
+        request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                console.error("### accountTransfer " + type);
+                console.error(result);
+                if(result.tranId){
+                    await db.saveFundTransferHistory(exchange, pair, asset, amount, type, result.tranId, new Date().toISOString());
+                    resolve(true);
+                } else {
+                    console.error(body);
+                    console.error(e);
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+            }
+        });
+    });
+};
+
 module.exports = {
     setConfig: setConfig,
     getBalance: getBalance,
@@ -281,6 +318,7 @@ module.exports = {
     createOrder: createOrder,
     getOrder: getOrder,
     cancelOrder: cancelOrder,
+    accountTransfer: accountTransfer,
 };
 
 

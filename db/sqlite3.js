@@ -23,6 +23,7 @@ let createTables = function(){
     return new Promise(async function (resolve) {
         await createTableOrders();
         await createTableCondition();
+        await createTableFundingTransferHistory();
         resolve(true);
     });
 };
@@ -58,6 +59,31 @@ function createTableCondition(){
         });
     });
 }
+
+function createTableFundingTransferHistory(){
+    return new Promise(function (resolve) {
+        db.run(`CREATE TABLE IF NOT EXISTS funding_transfer_history (exchange TEXT, pair TEXT, pair_id INTEGER, asset TEXT, amount REAL, type TEXT, tranId INTEGER, created TEXT);`, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                console.log("Table funding_transfer_history OK!");
+                resolve(true);
+            }
+        });
+    });
+}
+
+let saveFundTransferHistory = function(exchange, pair, asset, amount, type, tranId, created){
+    return new Promise(function (resolve) {
+        db.run(`insert INTO funding_transfer_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, asset, amount, type, tranId, created, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
 
 let getCondition = function(condition){
     return new Promise(function (resolve) {
@@ -509,5 +535,6 @@ module.exports = {
     updateProfit: updateProfit,
     setFreeze: setFreeze,
     killOrder: killOrder,
+    saveFundTransferHistory: saveFundTransferHistory,
     close: close
 };

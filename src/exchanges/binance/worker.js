@@ -13,7 +13,8 @@ process.on('message', async function(data) {
     switch (data.type) {
         case "init":
             config = data.config;
-            await binance.setConfig(data.config);
+            await db.connect();
+            await binance.setConfig(data.config, db);
             init();
             break;
         case "stop":
@@ -27,7 +28,6 @@ process.on('SIGINT', () => {
 });
 
 let init = async function(){
-    await db.connect();
     await recalculateProfitTarget();
     myAccount = await getBalance();
     await strategy.init(config,myAccount[config.name], db, binance);
