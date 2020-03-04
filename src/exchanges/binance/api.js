@@ -294,7 +294,7 @@ let accountTransfer = function(exchange, pair, amount, type){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### accountTransfer " + type);
+                console.error("### accountTransfer");
                 console.error(result);
                 if(result.tranId){
                     resolve(result.tranId);
@@ -319,7 +319,7 @@ let marginBorrow = function(exchange, pair, amount){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### accountTransfer " + type);
+                console.error("### marginBorrow" );
                 console.error(result);
                 if(result.tranId){
                     resolve(result.tranId);
@@ -344,7 +344,7 @@ let marginRepay  = function(exchange, pair, amount){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### accountTransfer " + type);
+                console.error("### marginRepay");
                 console.error(result);
                 if(result.tranId){
                     resolve(result.tranId);

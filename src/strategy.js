@@ -228,40 +228,65 @@ let doBidOrder = async function (){
 
             //Get total spent amount
             const spentAmount = await tools.getAmountSpent(db, config.name, pair);
-            console.error("spentAmount: " + spentAmount);
+                //console.error("spentAmount: " + spentAmount);
             //Get total borrowed amount
             const borrowed = await db.getFunding(config.name, pair);
             const borrowedAmount = borrowed.amount;
-            console.error("borrowedAmount: "+borrowedAmount);
+                //console.error("borrowedAmount: "+borrowedAmount);
             //Set what amount will be spend in next order
             const spendAmount = pair.moneyManagement.buyForAmount.value;
 
             if( (spentAmount+spendAmount) > borrowedAmount){
                 //Need more amount then we have, let´s borrow
-                const borrowAmount =  (spentAmount+spendAmount) - borrowedAmount;
-                myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
-                myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
-                console.error("borrowAmount: " + borrowAmount);
-                console.error("borrowAmount: " + tools.setPrecision(borrowAmount, pair.digitsPrice));
-                //await api.marginBorrow(config.name, pair, borrowAmount);
-                //await db.saveFundTransferHistory(config.name, pair, asset, amount, type, result.tranId, new Date().toISOString());
-                //await api.accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromSpot");
-                //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromMargin");
-                //db.updateFunding(config.name, pair, 1, "borrow");
+                const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , pair.digitsPrice);
+                    //console.error("borrowAmount: " + borrowAmount);
+                if(borrowAmount > 0){
+                    //Request borrow funding with margin
+                    const marginBorrowId = await api.marginBorrow(config.name, pair, borrowAmount);
+                    if(marginBorrowId > 0){
+                        //Update balance and available on margin borrow success
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
+                        //Save margin borrow funding to history
+                        await db.saveFundingHistory(config.name, pair, borrowAmount, "borrow", marginBorrowId);
+                        //Transfer borrowed funding from margin to spot account
+                        const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
+                        //Save fund transfer to history
+                        await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
+                        //Update actual state of funding for current pair to database
+                        await db.updateFunding(config.name, pair, borrowAmount, "borrow");
+                    }
+                    //Up-to two api calls was made, add to counter
+                    apiCounter += 2;
+                }
             } else if ( (spentAmount+spendAmount) < borrowedAmount){
                 //Wee have more amount then we need, let´s repay!
-                const repayAmount = borrowedAmount - (spentAmount+spendAmount);
-                console.error("repayAmount: " + repayAmount);
-                console.error("repayAmount: " + tools.setPrecision(repayAmount, pair.digitsPrice));
-                //Check if we have availabe fund for repay on spot account
-                if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
-                    console.error("GO REPAY!!!");
-                    myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
-                    myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
+                const repayAmount = tools.setPrecision(borrowedAmount - (spentAmount+spendAmount), pair.digitsPrice);
+                    //console.error("repayAmount: " + repayAmount);
+                if(repayAmount > 0){
+                    //Check if we have available fund on spot account for repay margin funding
+                    if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
+                        //First we need transfer fund from spot to margin account to be repaid
+                        const accountTransferId = await api.accountTransfer(config.name, pair, repayAmount , "fromSpot");
+                        if(accountTransferId > 0){
+                            //Save fund transfer to history
+                            await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId);
+                            //Request repay borrowed fund
+                            const marginRepayId = await api.marginRepay(config.name, pair, repayAmount);
+                            //Save repay borrowed funding to history
+                            await db.saveFundingHistory(config.name, pair, repayAmount, "repay", marginRepayId);
+                            //Update balance and available on margin borrow success
+                            myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
+                            myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
+                            //Update actual state of funding for current pair to database
+                            await db.updateFunding(config.name, pair, repayAmount, "repay");
+                        }
+                    }
+                    //Up-to two api calls was made, add to counter
+                    apiCounter += 2;
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
-            console.error(spendAmount + " valueForSize margin : " + valueForSize);
         } else {
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
         }

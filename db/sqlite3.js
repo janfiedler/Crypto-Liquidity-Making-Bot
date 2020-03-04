@@ -146,9 +146,9 @@ let updateFunding = function(exchange, pair, amount, type){
     });
 };
 
-let saveFundingHistory = function(exchange, pair, amount, type, tranId, created){
+let saveFundingHistory = function(exchange, pair, amount, type, tranId){
     return new Promise(function (resolve) {
-        db.run(`insert INTO funding_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, created, function(err) {
+        db.run(`insert INTO funding_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, new Date().toISOString(), function(err) {
             if (err) {
                 console.error(err.message);
             } else {
@@ -158,9 +158,9 @@ let saveFundingHistory = function(exchange, pair, amount, type, tranId, created)
     });
 };
 
-let saveFundTransferHistory = function(exchange, pair, amount, type, tranId, created){
+let saveFundTransferHistory = function(exchange, pair, amount, type, tranId){
     return new Promise(function (resolve) {
-        db.run(`insert INTO funding_transfer_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, created, function(err) {
+        db.run(`insert INTO funding_transfer_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, new Date().toISOString(), function(err) {
             if (err) {
                 console.error(err.message);
             } else {
