@@ -23,6 +23,8 @@ let createTables = function(){
     return new Promise(async function (resolve) {
         await createTableOrders();
         await createTableCondition();
+        await createTableFunding();
+        await createTableFundingHistory();
         await createTableFundingTransferHistory();
         resolve(true);
     });
@@ -60,6 +62,32 @@ function createTableCondition(){
     });
 }
 
+function createTableFunding(){
+    return new Promise(function (resolve) {
+        db.run(`CREATE TABLE IF NOT EXISTS funding (exchange TEXT, pair TEXT, pair_id INTEGER, asset TEXT, amount REAL, updated TEXT);`, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                console.log("Table funding OK!");
+                resolve(true);
+            }
+        });
+    });
+}
+
+function createTableFundingHistory(){
+    return new Promise(function (resolve) {
+        db.run(`CREATE TABLE IF NOT EXISTS funding_history (exchange TEXT, pair TEXT, pair_id INTEGER, asset TEXT, amount REAL, type TEXT, tranId INTEGER, created TEXT);`, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                console.log("Table funding_history OK!");
+                resolve(true);
+            }
+        });
+    });
+}
+
 function createTableFundingTransferHistory(){
     return new Promise(function (resolve) {
         db.run(`CREATE TABLE IF NOT EXISTS funding_transfer_history (exchange TEXT, pair TEXT, pair_id INTEGER, asset TEXT, amount REAL, type TEXT, tranId INTEGER, created TEXT);`, function(err) {
@@ -73,9 +101,66 @@ function createTableFundingTransferHistory(){
     });
 }
 
-let saveFundTransferHistory = function(exchange, pair, asset, amount, type, tranId, created){
+let getFunding = function(exchange, pair){
     return new Promise(function (resolve) {
-        db.run(`insert INTO funding_transfer_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, asset, amount, type, tranId, created, function(err) {
+        db.get(`SELECT amount FROM funding WHERE exchange = ? AND pair = ? AND pair_id = ? AND asset = ?`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], (err, row) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                if(typeof row !== 'undefined' && row) {
+                    row.amount = tools.setPrecision(row.amount, pair.digitsPrice);
+                }
+                resolve(row);
+            }
+        });
+    });
+};
+
+let updateFunding = function(exchange, pair, amount, type){
+    return new Promise(function (resolve) {
+        let countCondition = "";
+        if(type === "borrow"){
+            countCondition = "+";
+        } else if (type === "repay"){
+            countCondition = "-";
+        }
+        db.run(`UPDATE funding SET amount = amount `+countCondition+` ?, updated = ? WHERE exchange = ? AND pair = ? AND pair_id = ? AND asset = ?;`, amount, new Date().toISOString(), exchange, pair.name, pair.id, pair.name.split(pair.separator)[1],
+            function(err) {
+                if (err) {
+                    console.log(err.message);
+                } else {
+                    if(this.changes > 0){
+                        resolve(true);
+                    } else {
+                        db.run(`insert INTO funding(exchange, pair, pair_id, asset, amount, updated) VALUES (?, ?, ?, ?, ?, ?);`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], 0, new Date().toISOString(),
+                            function(err) {
+                                if (err) {
+                                    return console.log(err.message);
+                                } else {
+                                    resolve(true);
+                                }
+                            });
+                    }
+                }
+        });
+    });
+};
+
+let saveFundingHistory = function(exchange, pair, amount, type, tranId, created){
+    return new Promise(function (resolve) {
+        db.run(`insert INTO funding_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, created, function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
+
+let saveFundTransferHistory = function(exchange, pair, amount, type, tranId, created){
+    return new Promise(function (resolve) {
+        db.run(`insert INTO funding_transfer_history(exchange, pair, pair_id, asset, amount, type, tranId, created) VALUES (?,?,?,?,?,?,?,?)`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, type, tranId, created, function(err) {
             if (err) {
                 console.error(err.message);
             } else {
@@ -535,6 +620,9 @@ module.exports = {
     updateProfit: updateProfit,
     setFreeze: setFreeze,
     killOrder: killOrder,
+    getFunding: getFunding,
+    updateFunding: updateFunding,
+    saveFundingHistory: saveFundingHistory,
     saveFundTransferHistory: saveFundTransferHistory,
     close: close
 };

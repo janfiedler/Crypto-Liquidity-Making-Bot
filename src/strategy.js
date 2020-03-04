@@ -127,7 +127,7 @@ let doAskOrder = async function(){
 
 let doBidOrder = async function (){
     let tickers = {};
-    // Parse all currency pair in config and check if is available balance for sell trade
+    // Parse all currency pair in config and check if is available balance for buy trade
     for(let i=0;i<config.pairs.length;i++){
         let skipDoBidOrder = false;
         let logMessageDetail;
@@ -223,6 +223,45 @@ let doBidOrder = async function (){
         } else if(pair.moneyManagement.buyPercentageAvailableBudget.active){
             const totalAmount = await tools.getAmountSpent(db, config.name, pair);
             valueForSize = (pair.moneyManagement.buyPercentageAvailableBudget.budgetLimit-totalAmount);
+        } else if(pair.active.margin && pair.moneyManagement.buyForAmount.active){
+            //For buy is allowed funding with margin
+
+            //Get total spent amount
+            const spentAmount = await tools.getAmountSpent(db, config.name, pair);
+            console.error("spentAmount: " + spentAmount);
+            //Get total borrowed amount
+            const borrowed = await db.getFunding(config.name, pair);
+            const borrowedAmount = borrowed.amount;
+            console.error("borrowedAmount: "+borrowedAmount);
+            //Set what amount will be spend in next order
+            const spendAmount = pair.moneyManagement.buyForAmount.value;
+
+            if( (spentAmount+spendAmount) > borrowedAmount){
+                //Need more amount then we have, let´s borrow
+                const borrowAmount =  (spentAmount+spendAmount) - borrowedAmount;
+                myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
+                myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
+                console.error("borrowAmount: " + borrowAmount);
+                console.error("borrowAmount: " + tools.setPrecision(borrowAmount, pair.digitsPrice));
+                //await api.marginBorrow(config.name, pair, borrowAmount);
+                //await db.saveFundTransferHistory(config.name, pair, asset, amount, type, result.tranId, new Date().toISOString());
+                //await api.accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromSpot");
+                //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromMargin");
+                //db.updateFunding(config.name, pair, 1, "borrow");
+            } else if ( (spentAmount+spendAmount) < borrowedAmount){
+                //Wee have more amount then we need, let´s repay!
+                const repayAmount = borrowedAmount - (spentAmount+spendAmount);
+                console.error("repayAmount: " + repayAmount);
+                console.error("repayAmount: " + tools.setPrecision(repayAmount, pair.digitsPrice));
+                //Check if we have availabe fund for repay on spot account
+                if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
+                    console.error("GO REPAY!!!");
+                    myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
+                    myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
+                }
+            }
+            valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
+            console.error(spendAmount + " valueForSize margin : " + valueForSize);
         } else {
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
         }
@@ -871,7 +910,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
         return false;
-    } else if (myAccount.available[pair.name.split(pair.separator)[1]] < (pair.minTradeAmount*targetBid) || myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSpendAmount){
+    } else if ( !pair.active.margin && (myAccount.available[pair.name.split(pair.separator)[1]] < (pair.minTradeAmount*targetBid) || myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSpendAmount) ){
         logMessage += " !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {

@@ -83,6 +83,7 @@ let getTicker = function(pair) {
                 if (!error && response.statusCode === 200) {
                     //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromSpot");
                     //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromMargin");
+                    //db.updateFunding(config.name, pair, 1, "borrow");
                     resolve({s:1, data: result, counter: 1});
                 } else {
                     console.error("binance getTicker");
@@ -277,7 +278,7 @@ let cancelOrder = function(pair, id, type, openedOrder){
     });
 };
 
-let accountTransfer = function(exchange, pair, asset, amount, type){
+let accountTransfer = function(exchange, pair, amount, type){
     return new Promise(async function (resolve) {
         let url = config.url + "/sapi/v1/margin/transfer";
         if(type === "fromSpot"){
@@ -287,7 +288,7 @@ let accountTransfer = function(exchange, pair, asset, amount, type){
             // Transfer from margin to spot.
             type = 2;
         }
-        let body = { "asset": asset, "amount": amount, "type": type};
+        let body = { "asset": pair.name.split(pair.separator)[1], "amount": amount, "type": type};
         const signed = sign(body);
 
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
@@ -296,8 +297,57 @@ let accountTransfer = function(exchange, pair, asset, amount, type){
                 console.error("### accountTransfer " + type);
                 console.error(result);
                 if(result.tranId){
-                    await db.saveFundTransferHistory(exchange, pair, asset, amount, type, result.tranId, new Date().toISOString());
-                    resolve(true);
+                    resolve(result.tranId);
+                } else {
+                    console.error(body);
+                    console.error(e);
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+            }
+        });
+    });
+};
+
+let marginBorrow = function(exchange, pair, amount){
+    return new Promise(async function (resolve) {
+        let url = config.url + "/sapi/v1/margin/loan";
+        let body = { "asset": pair.name.split(pair.separator)[1], "amount": amount};
+        const signed = sign(body);
+
+        request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                console.error("### accountTransfer " + type);
+                console.error(result);
+                if(result.tranId){
+                    resolve(result.tranId);
+                } else {
+                    console.error(body);
+                    console.error(e);
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+            }
+        });
+    });
+};
+
+let marginRepay  = function(exchange, pair, amount){
+    return new Promise(async function (resolve) {
+        let url = config.url + "/sapi/v1/margin/repay";
+        let body = { "asset": pair.name.split(pair.separator)[1], "amount": amount};
+        const signed = sign(body);
+
+        request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                console.error("### accountTransfer " + type);
+                console.error(result);
+                if(result.tranId){
+                    resolve(result.tranId);
                 } else {
                     console.error(body);
                     console.error(e);
@@ -319,6 +369,9 @@ module.exports = {
     getOrder: getOrder,
     cancelOrder: cancelOrder,
     accountTransfer: accountTransfer,
+    marginBorrow: marginBorrow,
+    marginRepay: marginRepay,
+
 };
 
 
