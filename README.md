@@ -139,6 +139,7 @@ Each object in array "exchanges" represent setting for specific exchange
                  "CF_API_KEY": "",
                  "CD_API_SECRET_KEY": "",
                  "sleepPause": 225,
+                 "validateTimeout": 60,
                  "stickToBigOrders": false,
                  "accounts": [{"name": "eur"}, {"name": "btc"}, {"name": "iot"}],
                  "pairs": [
@@ -187,6 +188,7 @@ Each object in array "exchanges" represent setting for specific exchange
                  "publicKey": "",
                  "clientId": "",
                  "sleepPause": 650,
+                 "validateTimeout": 60,
                  "stickToBigOrders": false,
                  "pusher": true,
                  "accounts": [{"name": "BTC"}, {"name": "CZK"}],
@@ -235,6 +237,7 @@ Each object in array "exchanges" represent setting for specific exchange
                  "apiKey": "",
                  "secretKey": "",
                  "sleepPause": 250,
+                 "validateTimeout": 60,
                  "stickToBigOrders": false,
                  "accounts": [{"name": "BTC"}, {"name": "IOTA"}, {"name": "BNB"}, {"name": "PIVX"}],
                  "pairs": [
@@ -324,6 +327,11 @@ You can disable / active details log with bot progress
 * "sleepPause": 225,
 ```
 Every exchange has API request limits per seconds or minutes. This is coefficient for every API call per one trade round how long wait before continue to avoid ban your IP. Do not change this value to a lower number.
+``` 
+
+* "validateTimeout": 60,
+```
+Timeout in minutes, after that it is forced validate opened order. This can happend on low volume days, when price didnt move for long time and your order can be already filled, and not validated.
 ``` 
 
 * "stickToBigOrders": false,

@@ -27,6 +27,7 @@ let config =
                 "CF_API_KEY": "",
                 "CD_API_SECRET_KEY": "",
                 "sleepPause": 225,
+                "validateTimeout": 60,
                 "stickToBigOrders": false,
                 "accounts": [{"name": "eur"}, {"name": "btc"}, {"name": "iot"}],
                 "pairs": [
@@ -34,6 +35,7 @@ let config =
                         "name": "IOT-EUR",
                         "id": 1,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
@@ -122,6 +124,7 @@ let config =
                         "name": "BTC-EUR",
                         "id": 2,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
@@ -216,6 +219,7 @@ let config =
                 "publicKey": "",
                 "clientId": "",
                 "sleepPause": 650,
+                "validateTimeout": 60,
                 "stickToBigOrders": false,
                 "pusher": true,
                 "accounts": [{"name": "BTC"}, {"name": "CZK"}],
@@ -224,6 +228,7 @@ let config =
                         "name": "BTC_CZK",
                         "id": 1,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
@@ -311,6 +316,7 @@ let config =
                         "name": "BTC_EUR",
                         "id": 2,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
@@ -405,6 +411,7 @@ let config =
                 "apiKey": "",
                 "secretKey": "",
                 "sleepPause": 250,
+                "validateTimeout": 60,
                 "stickToBigOrders": false,
                 "fees": {"maker": 0.1, "taker": 0.1},
                 "accounts": [{"name": "BTC"}, {"name": "IOTA"}, {"name": "BNB"}, {"name": "PIVX"}],
@@ -413,6 +420,7 @@ let config =
                         "name": "IOTA-BTC",
                         "id": 1,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
@@ -500,6 +508,7 @@ let config =
                         "name": "BNB-BTC",
                         "id": 2,
                         "active": {
+                            "margin": false,
                             "buy": true,
                             "buyRange": {
                                 "active": false,
