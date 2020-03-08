@@ -230,6 +230,7 @@ let doBidOrder = async function (){
             const spentAmount = await tools.getAmountSpent(db, config.name, pair);
                 //console.error("spentAmount: " + spentAmount);
             //Get total borrowed amount
+            //!!!! handle first run when no row in db
             const borrowed = await db.getFunding(config.name, pair);
             const borrowedAmount = borrowed.amount;
                 //console.error("borrowedAmount: "+borrowedAmount);
@@ -244,20 +245,28 @@ let doBidOrder = async function (){
                     //Request borrow funding with margin
                     const marginBorrowId = await api.marginBorrow(config.name, pair, borrowAmount);
                     if(marginBorrowId > 0){
-                        //Update balance and available on margin borrow success
-                        myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
-                        myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
-                        //Save margin borrow funding to history
-                        await db.saveFundingHistory(config.name, pair, borrowAmount, "borrow", marginBorrowId);
-                        //Transfer borrowed funding from margin to spot account
-                        const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
-                        //Save fund transfer to history
-                        await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
-                        //Update actual state of funding for current pair to database
-                        await db.updateFunding(config.name, pair, borrowAmount, "borrow");
+                        //Check if margin level > 2, than can we transfer and use for trading
+                        const marginDetail = await api.accountMarginDetail();
+                        console.error(JSON.stringify(marginDetail));
+                        if(marginDetail.data.marginLevel > 2){
+                            //Save margin borrow funding to history
+                            await db.saveFundingHistory(config.name, pair, borrowAmount, "borrow", marginBorrowId);
+                            //Transfer borrowed funding from margin to spot account
+                            const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
+                            //Update balance and available on margin borrow success
+                            myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
+                            myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
+                            //Save fund transfer to history
+                            await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
+                            //Update actual state of funding for current pair to database
+                            await db.updateFunding(config.name, pair, borrowAmount, "borrow");
+                        } else {
+                            await email.sendEmail("Binance Margin level < 2", pair.name +" #"+ pair.id +" margin level < 2: " + JSON.stringify(marginDetail));
+                            await tools.sleep(999999999);
+                        }
                     }
                     //Up-to two api calls was made, add to counter
-                    apiCounter += 2;
+                    apiCounter += 3;
                 }
             } else if ( (spentAmount+spendAmount) < borrowedAmount){
                 //Wee have more amount then we need, let´s repay!
@@ -354,6 +363,7 @@ let doBidOrder = async function (){
                     // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                     if(resultValidateOrder){
                         await processBidOrder(pair, valueForSize, targetBid);
+
                     } else {
                         await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
                         return false;
@@ -522,11 +532,18 @@ async function validateOrder(type, id, pair, openedOrder){
                 await email.sendEmail("API Timeout - getOrder NOT PROCESSED", pair.name +" #"+ pair.id +" need manual validate last getOrder: " + JSON.stringify(detailOrder.data));
                 logMessage += " !!! NOT PROCESSED, repeat !!!!\n";
                 logMessage += JSON.stringify(detailOrder.data.data)+"\n";
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
+                    return false;
+                }
                 return false;
             } else {
                 await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                if(!config.stopTradingOnError){
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
                     return false;
                 }
             }
@@ -538,7 +555,9 @@ async function validateOrder(type, id, pair, openedOrder){
     } else {
         await email.sendEmail("API Timeout validateOrder/cancelOrder", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(canceledOrder));
         logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
-        if(!config.stopTradingOnError){
+        if(config.stopTradingOnError){
+            await tools.sleep(999999999);
+        } else {
             return false;
         }
     }
@@ -848,11 +867,19 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 } else if(createdOrder.data.error.includes("not_submitted")){
                     //TRADING stopped, do manual validate what happened
                     await email.sendEmail("API Timeout - sell order not submitted", pair.name +" #"+ pair.id +" need manual validate last sell order: " + JSON.stringify(createdOrder));
+                    logMessage += JSON.stringify(createdOrder.data)+"\n";
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                    } else {
+                        return false;
+                    }
                 }  else {
                     console.error(createdOrder);
                     await email.sendEmail("API Timeout - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last sell order: " + JSON.stringify(createdOrder));
                     logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
-                    if(!config.stopTradingOnError){
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                    } else {
                         return false;
                     }
                 }
@@ -957,10 +984,19 @@ async function processBidOrder(pair, valueForSize, targetBid){
             } else if(createdOrder.data.error.includes("not_submitted")){
                 //TRADING stopped, do manual validate what happened
                 await email.sendEmail("API Timeout - buy order not submitted", pair.name +" #"+ pair.id +" need manual validate last buy order: " + JSON.stringify(createdOrder));
+                logMessage += " !!! NOT PROCESSED, repeat !!!!\n";
+                logMessage += JSON.stringify(createdOrder.data)+"\n";
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
+                    return false;
+                }
             } else {
-                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last uby order: " + JSON.stringify(createdOrder));
+                await email.sendEmail("API Timeout - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last buy order: " + JSON.stringify(createdOrder));
                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                if(!config.stopTradingOnError){
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
                     return false;
                 }
             }

@@ -81,9 +81,6 @@ let getTicker = function(pair) {
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
-                    //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromSpot");
-                    //accountTransfer(config.name, pair, pair.name.split(pair.separator)[1], 1 , "fromMargin");
-                    //db.updateFunding(config.name, pair, 1, "borrow");
                     resolve({s:1, data: result, counter: 1});
                 } else {
                     console.error("binance getTicker");
@@ -91,6 +88,7 @@ let getTicker = function(pair) {
                     resolve({s:0, data: result, counter: 1});
                 }
             } catch (e) {
+                console.error("binance getTicker");
                 console.error(body);
                 console.error(e);
                 resolve({s:0, data: {error: "getTicker"}, counter: 1});
@@ -227,6 +225,8 @@ let getOrder = function(pair, id, type, openedOrder){
                 } else {
                     console.error("binance getOrder");
                     console.error(body);
+                    console.error(JSON.stringify(openedOrder));
+                    console.error(id);
                     resolve({s:0, counter: 1, data: {error: JSON.stringify(result)}});
                 }
             } catch (e) {
@@ -275,6 +275,30 @@ let cancelOrder = function(pair, id, type, openedOrder){
             }
         });
 
+    });
+};
+
+let accountMarginDetail = function(){
+    return new Promise(async function (resolve) {
+        //Waiting function to prevent reach api limit
+        const url = config.url + "/sapi/v1/margin/account";
+        const signed = sign({});
+        request.get({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
+            try {
+                const result = JSON.parse(body);
+                if (!error && response.statusCode === 200) {
+                    resolve({s:1, data: result});
+                } else {
+                    console.error("binance marginDetail");
+                    console.error(body);
+                    resolve({s:0, data: result});
+                }
+            } catch (e) {
+                console.error(body);
+                console.error(e);
+                resolve({s:0, data: {error: "marginDetail"}});
+            }
+        });
     });
 };
 
@@ -368,6 +392,7 @@ module.exports = {
     createOrder: createOrder,
     getOrder: getOrder,
     cancelOrder: cancelOrder,
+    accountMarginDetail: accountMarginDetail,
     accountTransfer: accountTransfer,
     marginBorrow: marginBorrow,
     marginRepay: marginRepay,
