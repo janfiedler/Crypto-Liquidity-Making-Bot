@@ -521,6 +521,7 @@ async function validateOrder(type, id, pair, openedOrder){
     } else if(!canceledOrder.s && canceledOrder.data.error.includes('not found')){
         //Order was probably canceled manually, sync local DB
         const detailOrder = await api.getOrder(pair, id, type, openedOrder);
+        console.error(detailOrder);
         apiCounter += detailOrder.counter;
 
         if(detailOrder.s) {
