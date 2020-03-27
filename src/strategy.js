@@ -523,12 +523,13 @@ async function validateOrder(type, id, pair, openedOrder){
         const detailOrder = await api.getOrder(pair, id, type, openedOrder);
         console.error(detailOrder);
         apiCounter += detailOrder.counter;
-
         if(detailOrder.s) {
             logMessage += " ### orderDetail = api.getOrder(id)\n";
             orderDetail = detailOrder.data;
         } else {
-            if(detailOrder.data.error.includes("not_processed")){
+            if(detailOrder.data.error.includes("repeat")){
+                return false;
+            } else if(detailOrder.data.error.includes("not_processed")){
                 //Save order ID and make manual validate what happened
                 await email.sendEmail("API Timeout - getOrder NOT PROCESSED", pair.name +" #"+ pair.id +" need manual validate last getOrder: " + JSON.stringify(detailOrder.data));
                 logMessage += " !!! NOT PROCESSED, repeat !!!!\n";

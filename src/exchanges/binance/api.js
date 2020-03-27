@@ -210,7 +210,7 @@ let getOrder = function(pair, id, type, openedOrder){
         request.get({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
+                if (!error && response.statusCode === 200 && result.status === "FILLED") {
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.clientOrderId;
                     detailOrder.pair = pair.name;
@@ -222,6 +222,13 @@ let getOrder = function(pair, id, type, openedOrder){
                     detailOrder.fee = tools.getPercentage(config.fees.maker, (detailOrder.price*detailOrder.size_filled), 10);
                     detailOrder.status = result.status;
                     resolve({s:1, counter: 1, data: detailOrder});
+                } else if (!error && response.statusCode === 200 && result.status === "NEW") {
+                    //getOrder is called when cancel order failed due to not found = is filled. But order is still tagged as OPEN
+                    console.error("binance getOrder not FILLED after not canceled");
+                    console.error(body);
+                    console.error(JSON.stringify(openedOrder));
+                    console.error(id);
+                    resolve({s:0, counter: 1, data: {error: "repeat"}});
                 } else {
                     console.error("binance getOrder");
                     console.error(body);
