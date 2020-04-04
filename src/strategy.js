@@ -861,6 +861,17 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
                     const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
                     await db.setFailedSellOrder(failedSellOrder);
+                    //If sell order failed to to insufficient size, we need deduct funded value, because we cannot return it automatically.
+                    if(pair.active.margin){
+                        const failedBorrowedAmount =  tools.setPrecision( pendingSellOrder.sell_size*pendingSellOrder.buy_price , pair.digitsPrice);
+                        console.error("Failed sell order due to insufficient size, not possible do refund!");
+                        console.error(failedBorrowedAmount + " " + pair.name.split(pair.separator)[1]);
+                        //Save fund transfer to history
+                        await db.saveFundTransferHistory(config.name, pair, failedBorrowedAmount, "failed", 0);
+                        //Update actual state of funding for current pair to database
+                        await db.updateFunding(config.name, pair, failedBorrowedAmount, "repay");
+
+                    }
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
                 } else if(createdOrder.data.error.includes("rejected")){
