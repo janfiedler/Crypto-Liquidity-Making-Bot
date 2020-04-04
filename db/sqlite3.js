@@ -109,8 +109,10 @@ let getFunding = function(exchange, pair){
             } else {
                 if(typeof row !== 'undefined' && row) {
                     row.amount = tools.setPrecision(row.amount, pair.digitsPrice);
+                    resolve(row);
+                } else {
+                    resolve({amount: 0})
                 }
-                resolve(row);
             }
         });
     });
@@ -132,7 +134,7 @@ let updateFunding = function(exchange, pair, amount, type){
                     if(this.changes > 0){
                         resolve(true);
                     } else {
-                        db.run(`insert INTO funding(exchange, pair, pair_id, asset, amount, updated) VALUES (?, ?, ?, ?, ?, ?);`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], 0, new Date().toISOString(),
+                        db.run(`insert INTO funding(exchange, pair, pair_id, asset, amount, updated) VALUES (?, ?, ?, ?, ?, ?);`, exchange, pair.name, pair.id, pair.name.split(pair.separator)[1], amount, new Date().toISOString(),
                             function(err) {
                                 if (err) {
                                     return console.log(err.message);
