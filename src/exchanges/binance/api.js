@@ -331,11 +331,11 @@ let accountTransfer = function(exchange, pair, amount, type){
                     resolve(result.tranId);
                 } else {
                     console.error(body);
-                    console.error(e);
+                    console.error(error);
                 }
-            } catch (e) {
+            } catch (error) {
                 console.error(body);
-                console.error(e);
+                console.error(error);
             }
         });
     });
