@@ -170,8 +170,8 @@ let limitOrder = function(type, pair, size, price){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### createOrder " + type);
-                console.error(result);
+                //console.error("### createOrder " + type);
+                //console.error(result);
                 if (!error && response.statusCode === 200 && result.status === "NEW") {
                     let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.clientOrderId;
@@ -260,8 +260,8 @@ let cancelOrder = function(pair, id, type, openedOrder){
         request.delete({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### cancelOrder");
-                console.error(result);
+                //console.error("### cancelOrder");
+                //console.error(result);
                 if (!error && response.statusCode === 200 && result.status === "CANCELED") {
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.origClientOrderId;

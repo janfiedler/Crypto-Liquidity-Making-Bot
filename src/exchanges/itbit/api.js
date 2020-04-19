@@ -315,9 +315,9 @@ let limitOrder = function (type, pair, size, price) {
         const limitOrderResult = await makePrivateRequest("POST", "/wallets/" + walletId + "/orders", args);
         //console.log("limitOrder");
         //console.log(limitOrderResult);
-        console.error("### createOrder " + type);
-        console.error(limitOrderResult.statusCode);
-        console.error(limitOrderResult.data);
+        //console.error("### createOrder " + type);
+        //console.error(limitOrderResult.statusCode);
+        //console.error(limitOrderResult.data);
         if(!limitOrderResult.error && limitOrderResult.statusCode === 201 && limitOrderResult.data.status === "submitted"){
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.id;
@@ -342,9 +342,9 @@ let limitOrder = function (type, pair, size, price) {
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
-        console.error("### getOrder");
-        console.error(getOrderResult.statusCode);
-        console.error(getOrderResult.data);
+        //console.error("### getOrder");
+        //console.error(getOrderResult.statusCode);
+        //console.error(getOrderResult.data);
         if(!getOrderResult.error && getOrderResult.statusCode === 200 && getOrderResult.data.status === "pendingsubmission"){
             //Order not cancelled yet, need handle it again!
             console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
@@ -405,9 +405,9 @@ let cancelOrder = function (pair, id, type, openedOrder){
          */
         const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
         //console.log("cancelOrder");
-        console.error("### cancelOrder");
-        console.error(cancelResult.statusCode);
-        console.error(cancelResult.data);
+        //console.error("### cancelOrder");
+        //console.error(cancelResult.statusCode);
+        //console.error(cancelResult.data);
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
