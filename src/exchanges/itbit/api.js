@@ -217,7 +217,12 @@ let getBalance = async function(){
             return wallets.data[0];
         }
     } else {
-        return await getWallet(config.walletId);
+        const wallet = await getWallet(config.walletId);
+        console.log(JSON.stringify(wallet));
+        if(!wallet.error && wallet.statusCode === 200){
+            walletId = config.walletId;
+            return wallet.data;
+        }
     }
 };
 
