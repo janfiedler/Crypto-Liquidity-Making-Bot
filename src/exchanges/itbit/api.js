@@ -342,9 +342,9 @@ let limitOrder = function (type, pair, size, price) {
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
-        //console.error("### getOrder");
-        //console.error(getOrderResult.statusCode);
-        //console.error(getOrderResult.data);
+        console.error("### getOrder");
+        console.error(getOrderResult.statusCode);
+        console.error(getOrderResult.data);
         if(!getOrderResult.error && getOrderResult.statusCode === 200 && getOrderResult.data.status === "pendingsubmission"){
             //Order not cancelled yet, need handle it again!
             console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
