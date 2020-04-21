@@ -529,17 +529,6 @@ async function validateOrder(type, id, pair, openedOrder){
         } else {
             if(detailOrder.data.error.includes("repeat")){
                 return false;
-            } else if(detailOrder.data.error.includes("not_processed")){
-                //Save order ID and make manual validate what happened
-                await email.sendEmail("API Timeout - getOrder NOT PROCESSED", pair.name +" #"+ pair.id +" need manual validate last getOrder: " + JSON.stringify(detailOrder.data));
-                logMessage += " !!! NOT PROCESSED, repeat !!!!\n";
-                logMessage += JSON.stringify(detailOrder.data.data)+"\n";
-                if(config.stopTradingOnError){
-                    await tools.sleep(999999999);
-                } else {
-                    return false;
-                }
-                return false;
             } else {
                 await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";

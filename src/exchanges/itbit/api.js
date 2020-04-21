@@ -345,11 +345,7 @@ let getOrder = function(pair, id, type, openedOrder){
         console.error("### getOrder");
         console.error(getOrderResult.statusCode);
         console.error(getOrderResult.data);
-        if(!getOrderResult.error && getOrderResult.statusCode === 200 && getOrderResult.data.status === "pendingsubmission"){
-            //Order not cancelled yet, need handle it again!
-            console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
-            resolve({s:0, counter:10, data: {error: "not_processed", data: getOrderResult.data}});
-        } else if(!getOrderResult.error && getOrderResult.statusCode === 200){
+        if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "filled" || getOrderResult.data.status === "cancelled") ){
             //console.log("getOrder");
             //console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;
@@ -388,6 +384,13 @@ let getOrder = function(pair, id, type, openedOrder){
                 detailOrder.fee = 0;
                 resolve({s:1, counter: 1, data: detailOrder});
             }
+        } else if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "open" || getOrderResult.data.status === "pendingsubmission")){
+            //Order not filled/cancelled yet, need handle it again!
+            console.error("itbit getOrder not filled/canceled");
+            console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
+            console.error(JSON.stringify(openedOrder));
+            console.error(id);
+            resolve({s:0, counter: 10, data: {error: "repeat"}});
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
@@ -404,10 +407,10 @@ let cancelOrder = function (pair, id, type, openedOrder){
         console.log(trades);
          */
         const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
-        //console.log("cancelOrder");
-        //console.error("### cancelOrder");
-        //console.error(cancelResult.statusCode);
-        //console.error(cancelResult.data);
+        console.log("cancelOrder");
+        console.error("### cancelOrder");
+        console.error(cancelResult.statusCode);
+        console.error(cancelResult.data);
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
