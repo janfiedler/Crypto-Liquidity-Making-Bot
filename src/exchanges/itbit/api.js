@@ -345,7 +345,7 @@ let getOrder = function(pair, id, type, openedOrder){
         console.error("### getOrder");
         console.error(getOrderResult.statusCode);
         console.error(getOrderResult.data);
-        if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "filled" || getOrderResult.data.status === "cancelled") ){
+        if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "filled" || getOrderResult.data.status === "cancelled" || getOrderResult.data.status === "rejected") ){
             //console.log("getOrder");
             //console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;
@@ -384,7 +384,7 @@ let getOrder = function(pair, id, type, openedOrder){
                 detailOrder.fee = 0;
                 resolve({s:1, counter: 1, data: detailOrder});
             }
-        } else if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "open" || getOrderResult.data.status === "pendingsubmission")){
+        } else if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "submitted" || getOrderResult.data.status === "open" || getOrderResult.data.status === "pendingsubmission")){
             //Order not filled/cancelled yet, need handle it again!
             console.error("itbit getOrder not filled/canceled");
             console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
