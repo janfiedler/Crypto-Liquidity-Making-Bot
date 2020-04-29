@@ -863,6 +863,9 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     }
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
+                } else if(createdOrder.data.error.includes("repeat")){
+                    logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" Repeat order due to:\n "+createdOrder.data.reason+"!\n";
+                    return false;
                 } else if(createdOrder.data.error.includes("rejected")){
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" rejected due to order would immediately match and take!\n";
                     return false;
@@ -980,6 +983,9 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 console.error("Minimum Order Size: insufficient buy size!");
             } else if(createdOrder.data.error.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
+            } else if(createdOrder.data.error.includes("repeat")){
+                logMessage += " !!! Repeat BUY order due to:\n "+createdOrder.data.reason+"!\n";
+                return false;
             } else if(createdOrder.data.error.includes("rejected")){
                 logMessage += " !!! Order rejected would immediately match and take!\n";
                 return false;
