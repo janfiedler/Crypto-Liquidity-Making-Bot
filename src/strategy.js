@@ -295,11 +295,24 @@ let doBidOrder = async function (){
                         if(accountTransferId > 0){
                             //Save fund transfer to history
                             await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId);
-                            //Request repay borrowed fund
-                            const marginRepayId = await api.marginRepay(config.name, pair, repayAmount);
-                            //Save repay borrowed funding to history
-                            await db.saveFundingHistory(config.name, pair, repayAmount, "repay", marginRepayId);
-                            //Update balance and available on margin borrow success
+                            //Check margin detail to get data for repay
+                            let marginDetail = await api.accountMarginDetail();
+                            //Find correct asset for actual trade what we want repay
+                            const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
+                            let marginRepayAmount = repayAmount;
+
+                            if((marginPairDetail.borrowed-marginRepayAmount) < 0){
+                                //If we try repay more then we have borrowed. Repay only rest of borrowed funds
+                                marginRepayAmount = marginPairDetail.borrowed;
+                            }
+                            if(marginPairDetail.borrowed > 0){
+                                //Request repay borrowed fund
+                                const marginRepayId = await api.marginRepay(config.name, pair, marginRepayAmount);
+                                //Save repay borrowed funding to history
+                                await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId);
+                            }
+                            //console.error("### marginRepayAmount: " + marginRepayAmount);
+                            //Update balance and available after margin repay success
                             myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
                             myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
                             //Update actual state of funding for current pair to database
@@ -307,7 +320,7 @@ let doBidOrder = async function (){
                         }
                     }
                     //Up-to two api calls was made, add to counter
-                    apiCounter += 2;
+                    apiCounter += 3;
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
