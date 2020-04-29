@@ -242,31 +242,46 @@ let doBidOrder = async function (){
                 const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , pair.digitsPrice);
                     //console.error("borrowAmount: " + borrowAmount);
                 if(borrowAmount > 0){
-                    //Request borrow funding with margin
-                    const marginBorrowId = await api.marginBorrow(config.name, pair, borrowAmount);
-                    if(marginBorrowId > 0){
-                        //Check if margin level > 2, than can we transfer and use for trading
-                        const marginDetail = await api.accountMarginDetail();
-                        console.error(JSON.stringify(marginDetail));
-                        if(marginDetail.data.marginLevel > 2){
+                    //Check if we need borrow or we have free capital
+                    let marginDetail = await api.accountMarginDetail();
+                    //console.error(JSON.stringify(marginDetail));
+                    //Find correct asset for actual trade what we want borrow
+                    const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
+
+                    if(marginPairDetail.free < borrowAmount && marginDetail.data.marginLevel > 2){
+                        //Request borrow funding with margin if we have marginLevel > 2 so we  have chance transfer funds.
+                        const marginBorrowId = await api.marginBorrow(config.name, pair, (borrowAmount-marginPairDetail.free));
+                        if(marginBorrowId > 0){
                             //Save margin borrow funding to history
-                            await db.saveFundingHistory(config.name, pair, borrowAmount, "borrow", marginBorrowId);
-                            //Transfer borrowed funding from margin to spot account
-                            const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
-                            //Update balance and available on margin borrow success
-                            myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
-                            myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
-                            //Save fund transfer to history
-                            await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
-                            //Update actual state of funding for current pair to database
-                            await db.updateFunding(config.name, pair, borrowAmount, "borrow");
-                        } else {
-                            await email.sendEmail("Binance Margin level < 2", pair.name +" #"+ pair.id +" margin level < 2: " + JSON.stringify(marginDetail));
-                            await tools.sleep(999999999);
+                            await db.saveFundingHistory(config.name, pair, (borrowAmount-marginPairDetail.free), "borrow", marginBorrowId);
+                            //Update actual marginDetail after borrow funds
+                            marginDetail = await api.accountMarginDetail();
                         }
+                        //console.error("### We need borrow " + (borrowAmount-marginPairDetail.free) + " from " + borrowAmount);
+                        apiCounter += 3;
+                    } else if (marginPairDetail.free >= borrowAmount){
+                        //console.error("### We have own " + borrowAmount + " from " + marginPairDetail.free);
+                        //We dont need to buy, just transfer our free capital
+                        apiCounter += 2;
                     }
-                    //Up-to two api calls was made, add to counter
-                    apiCounter += 3;
+
+                    //Check if margin level > 2, than can we transfer and use for trading
+                    if(marginDetail.data.marginLevel > 2){
+                        //Transfer our or borrowed capital from margin account to spot account
+                        const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
+                        apiCounter++;
+                        //Update balance and available on margin borrow success
+                        myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
+                        myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
+                        //Save fund transfer to history
+                        await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
+                        //Update actual state of funding (from own or exchange) for current pair to database
+                        await db.updateFunding(config.name, pair, borrowAmount, "borrow");
+                        //Up-to x api calls was made, add to counter
+                    } else {
+                        await email.sendEmail("Binance Margin level < 2", pair.name +" #"+ pair.id +" margin level < 2: " + JSON.stringify(marginDetail));
+                        await tools.sleep(999999999);
+                    }
                 }
             } else if ( (spentAmount+spendAmount) < borrowedAmount){
                 //Wee have more amount then we need, let´s repay!
