@@ -228,19 +228,19 @@ let doBidOrder = async function (){
 
             //Get total spent amount
             const spentAmount = await tools.getAmountSpent(db, config.name, pair);
-                //console.error("spentAmount: " + spentAmount);
+            //console.error("spentAmount: " + spentAmount);
             //Get total borrowed amount
             //!!!! handle first run when no row in db
             const borrowed = await db.getFunding(config.name, pair);
             const borrowedAmount = borrowed.amount;
-                //console.error("borrowedAmount: "+borrowedAmount);
+            //console.error("borrowedAmount: "+borrowedAmount);
             //Set what amount will be spend in next order
             const spendAmount = pair.moneyManagement.buyForAmount.value;
 
             if( (spentAmount+spendAmount) > borrowedAmount){
                 //Need more amount then we have, let´s borrow
                 const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , pair.digitsPrice);
-                    //console.error("borrowAmount: " + borrowAmount);
+                //console.error("borrowAmount: " + borrowAmount);
                 if(borrowAmount > 0){
                     //Check if we need borrow or we have free capital
                     let marginDetail = await api.accountMarginDetail();
@@ -249,18 +249,20 @@ let doBidOrder = async function (){
                     const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
 
                     if(marginPairDetail.free < borrowAmount && marginDetail.data.marginLevel > 2){
+                        //Round number how much we need borrow
+                        const weNeedBorrow = tools.setPrecision((borrowAmount-marginPairDetail.free) , pair.digitsPrice);
                         //Request borrow funding with margin if we have marginLevel > 2 so we  have chance transfer funds.
-                        const marginBorrowId = await api.marginBorrow(config.name, pair, (borrowAmount-marginPairDetail.free));
+                        const marginBorrowId = await api.marginBorrow(config.name, pair,  weNeedBorrow);
                         if(marginBorrowId > 0){
                             //Save margin borrow funding to history
-                            await db.saveFundingHistory(config.name, pair, (borrowAmount-marginPairDetail.free), "borrow", marginBorrowId);
+                            await db.saveFundingHistory(config.name, pair, weNeedBorrow, "borrow", marginBorrowId);
                             //Update actual marginDetail after borrow funds
                             marginDetail = await api.accountMarginDetail();
                         }
-                        //console.error("### We need borrow " + (borrowAmount-marginPairDetail.free) + " from " + borrowAmount);
+                        console.error("### We need borrow " + weNeedBorrow + " from " + borrowAmount);
                         apiCounter += 3;
                     } else if (marginPairDetail.free >= borrowAmount){
-                        //console.error("### We have own " + borrowAmount + " from " + marginPairDetail.free);
+                        console.error("### We have own " + borrowAmount + " from " + marginPairDetail.free);
                         //We dont need to buy, just transfer our free capital
                         apiCounter += 2;
                     }
@@ -299,6 +301,7 @@ let doBidOrder = async function (){
                             let marginDetail = await api.accountMarginDetail();
                             //Find correct asset for actual trade what we want repay
                             const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
+                            console.error("### repayAmount: " + repayAmount);
                             let marginRepayAmount = repayAmount;
 
                             if((marginPairDetail.borrowed-marginRepayAmount) < 0){
@@ -311,7 +314,7 @@ let doBidOrder = async function (){
                                 //Save repay borrowed funding to history
                                 await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId);
                             }
-                            //console.error("### marginRepayAmount: " + marginRepayAmount);
+                            console.error("### marginRepayAmount: " + marginRepayAmount);
                             //Update balance and available after margin repay success
                             myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
                             myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;

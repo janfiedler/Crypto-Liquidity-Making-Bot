@@ -362,11 +362,11 @@ let marginBorrow = function(exchange, pair, amount){
                     resolve(result.tranId);
                 } else {
                     console.error(body);
-                    console.error(e);
+                    console.error(error);
                 }
             } catch (e) {
                 console.error(body);
-                console.error(e);
+                console.error(error);
             }
         });
     });
