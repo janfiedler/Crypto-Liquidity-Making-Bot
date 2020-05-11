@@ -49,6 +49,15 @@ let doAskOrder = async function(){
         const pendingSellOrder = await db.getLowestSellTargetPrice(config.name, pair);
         if(!pendingSellOrder){
             logMessage += " ### PendingSellOrder not found, skipp the loop.\n";
+            //For case when all pendingSellOrders are frozen. lastTickers is used to get price from doBuy, if budget limit is not reached.
+            process.send({
+                "type": "ticker",
+                "exchange": config.name,
+                "pair": pair,
+                "tick": {"ask": lastTickers[pair.name+"_"+pair.id].askBorder, "bid": lastTickers[pair.name+"_"+pair.id].bidBorder}
+            });
+            //Need throttling for disabled pair to avoid full cpu usage and problem with stopping bot in correct way.
+            await tools.sleep(1);
             //Nothing to sell, skip the loop.
             continue;
         }
