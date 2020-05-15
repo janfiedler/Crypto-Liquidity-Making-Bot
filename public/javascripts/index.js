@@ -11,6 +11,7 @@ $( document ).ready(function() {
 
         if (tbody){
             const totalDigits = (window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"] + window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]);
+            const pairSellUnit = data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1];
             /*
             console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"]);
             console.log(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]);
@@ -21,12 +22,26 @@ $( document ).ready(function() {
                 $(tP).text(data.tP.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
-                }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+                }) + ' ' + pairSellUnit);
+                //Daily profit
                 let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(dP).text(data.dP.total.toLocaleString(undefined, {
+                $(dP).text(data.dP.toLocaleString(undefined, {
+                   minimumFractionDigits: 0,
+                   maximumFractionDigits: totalDigits
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
+
+                let mP = document.getElementById("monthlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+                $(mP).text(data.mP.toLocaleString(undefined, {
+                   minimumFractionDigits: 0,
+                   maximumFractionDigits: totalDigits
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
+
+                let yP = document.getElementById("yearlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
+                $(yP).text(data.yP.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
-                }) + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
+
             }
             let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.fS > 0){
@@ -46,17 +61,18 @@ $( document ).ready(function() {
                 }) + ' <i title="Frozen amount" class="text-primary">('+ data.fA.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                }) +')</i> ' +  ' / ' + data.mA+ ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+                }) +')</i> ' +  ' / ' + data.mA+ ' ' + pairSellUnit);
             } else {
                 $(tA).text(data.tA.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                }) + ' / ' + data.mA + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+                }) + ' / ' + data.mA + ' ' + pairSellUnit);
             }
+
             let rB = document.getElementById("rateBid_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            $(rB).text(data.t.bid + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            $(rB).text(data.t.bid + ' ' + pairSellUnit);
             let rA = document.getElementById("rateAsk_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-            $(rA).text(data.t.ask + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]);
+            $(rA).text(data.t.ask + ' ' + pairSellUnit);
 
             $(tbody).find('tr').remove();
             let totalPl = 0;
@@ -107,10 +123,10 @@ $( document ).ready(function() {
                 })+'</td><td>'+order.oA.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td><td '+plColor+'><strong>'+order.pl.toLocaleString(undefined, {
+                })+' '+pairSellUnit+'</td><td '+plColor+'><strong>'+order.pl.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
-                })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+                })+' '+pairSellUnit+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
                 if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length){
                     $(tbody).find("tr").last().css("display: block;");
                 }
@@ -118,7 +134,7 @@ $( document ).ready(function() {
             $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+totalPl.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: totalDigits
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</strong></td><td></td></tr>');
+            })+' '+pairSellUnit+'</strong></td><td></td></tr>');
         }
     });
 
@@ -126,19 +142,20 @@ $( document ).ready(function() {
         //console.log(data);
         let tbody = document.getElementById("tbody_filledBuyOrders");
         if (tbody){
+            const pairSellUnit = data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1];
             $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.n+" #"+data.p.i+'</td><td>'+data.s.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.bP.toLocaleString(undefined, {
+            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Currency: '+pairSellUnit+'">'+data.bP.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+'</td>><td title="Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.sP.toLocaleString(undefined, {
+            })+'</td>><td title="Currency: '+pairSellUnit+'">'+data.sP.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
             })+'</td><td title="Fee: '+data.f+'">'+(data.s*data.bP).toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td></tr>');
+            })+' '+pairSellUnit+'</td></tr>');
         }
     });
 
@@ -221,5 +238,21 @@ $( document ).ready(function() {
                 console.log("Kill order Unauthorized");
             }
         });
+    }
+
+    function getPercentageValue(dividend, divisor, rounded, digits){
+        let value = ((dividend / divisor) * 100)*Math.pow(10,digits);
+        switch(rounded){
+            case "floor":
+                value = Math.floor(value);
+                break;
+            case "round":
+                value = Math.round(value);
+                break;
+            case "ceil":
+                value = Math.ceil(value);
+                break;
+        }
+        return value/Math.pow(10, digits);
     }
 });

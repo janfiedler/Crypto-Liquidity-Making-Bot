@@ -465,14 +465,18 @@ let getNegativeProfit = function(exchange, pair){
     });
 };
 
-let getDailyProfit = function(exchange, pair, pairId, date){
+let getDateProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
         db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND completed_at like ?`, exchange, pair, pairId, "completed", "collection", "withdraw", date, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
-                resolve(row);
-            }
+                if(row.total === null){
+                    resolve(0);
+                } else {
+                    resolve(row.total);
+                }
+             }
         });
     });
 };
@@ -613,7 +617,7 @@ module.exports = {
     getProfit: getProfit,
     getPositiveProfit: getPositiveProfit,
     getNegativeProfit: getNegativeProfit,
-    getDailyProfit: getDailyProfit,
+    getDateProfit: getDateProfit,
     getTotalSellSize: getTotalSellSize,
     getAllSellOrders: getAllSellOrders,
     getAllNonFrozenSellOrdersCount: getAllNonFrozenSellOrdersCount,

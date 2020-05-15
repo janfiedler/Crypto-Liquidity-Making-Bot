@@ -23,12 +23,11 @@ websocket.emitPendingOrders = async function(data){
         const po = await db.getAllSellOrders(data.exchange, data.pair.name, data.pair.id);
         const tS = await db.getTotalSellSize(data.exchange, {"name": data.pair.name, "id": data.pair.id, "digitsSize": data.pair.digitsSize});
 
+        let dailyProfit = await db.getDateProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,10)+"%");
+        let monthlyProfit = await db.getDateProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,7)+"%");
+        let yearlyProfit = await db.getDateProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,4)+"%");
+        let totalProfit = await db.getProfit(data.exchange, data.pair);
 
-        const dailyProfit = await db.getDailyProfit(data.exchange, data.pair.name, data.pair.id, new Date().toISOString().substr(0,10)+"%");
-        const totalProfit = await db.getProfit(data.exchange, data.pair);
-        if(dailyProfit.total === null){
-            dailyProfit.total = 0;
-        }
         let pendingOrders = [];
         let totalAmount = 0;
         let frozenAmount = 0;
@@ -61,7 +60,7 @@ websocket.emitPendingOrders = async function(data){
         } else if (data.pair.moneyManagement.buySize.active){
             budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
-        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "fS": frozenSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "fS": frozenSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "mP": monthlyProfit, "yP": yearlyProfit, "pO": pendingOrders});
     }
 };
 
