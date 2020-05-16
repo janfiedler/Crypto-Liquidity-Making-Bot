@@ -28,19 +28,19 @@ $( document ).ready(function() {
                 $(dP).text(data.dP.toLocaleString(undefined, {
                    minimumFractionDigits: 0,
                    maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
-
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
+                //Monthly profit
                 let mP = document.getElementById("monthlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
                 $(mP).text(data.mP.toLocaleString(undefined, {
                    minimumFractionDigits: 0,
                    maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
-
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.mP*12), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
+                //Yearly profit
                 let yP = document.getElementById("yearlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
                 $(yP).text(data.yP.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
+                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue(data.yP, data.tA, "floor", 2)+'% / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
 
             }
             let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
