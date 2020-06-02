@@ -303,11 +303,22 @@ let doBidOrder = async function (){
                         //Transfer our or borrowed capital from margin account to spot account
                         const accountTransferId = await api.accountTransfer(config.name, pair, borrowAmount , "fromMargin");
                         apiCounter++;
+                        if(!accountTransferId.s){
+                            apiCounter++;
+                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                            if(config.stopTradingOnError){
+                                await tools.sleep(999999999);
+                                return false;
+                            } else {
+                                return false;
+                            }
+                        }
                         //Update balance and available on margin borrow success
                         myAccount.balance[pair.name.split(pair.separator)[1]] += borrowAmount;
                         myAccount.available[pair.name.split(pair.separator)[1]] += borrowAmount;
                         //Save fund transfer to history
-                        await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId);
+                        await db.saveFundTransferHistory(config.name, pair, borrowAmount, "fromMargin", accountTransferId.data);
                         //Update actual state of funding (from own or exchange) for current pair to database
                         await db.updateFunding(config.name, pair, borrowAmount, "borrow");
                         //Up-to x api calls was made, add to counter
@@ -325,9 +336,20 @@ let doBidOrder = async function (){
                     if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
                         //First we need transfer fund from spot to margin account to be repaid
                         const accountTransferId = await api.accountTransfer(config.name, pair, repayAmount , "fromSpot");
-                        if(accountTransferId > 0){
+                        if(!accountTransferId.s){
+                            apiCounter++;
+                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                            if(config.stopTradingOnError){
+                                await tools.sleep(999999999);
+                                return false;
+                            } else {
+                                return false;
+                            }
+                        }
+                        if(accountTransferId.data > 0){
                             //Save fund transfer to history
-                            await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId);
+                            await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId.data);
                             //Check margin detail to get data for repay
                             let marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){

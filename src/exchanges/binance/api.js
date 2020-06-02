@@ -332,17 +332,18 @@ let accountTransfer = function(exchange, pair, amount, type){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### accountTransfer");
-                console.error(result);
                 if(result.tranId){
-                    resolve(result.tranId);
+                    resolve({s:1, data: result.tranId});
                 } else {
+                    console.error("### accountTransfer");
                     console.error(body);
-                    console.error(error);
+                    resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (error) {
+                console.error("### accountTransfer");
                 console.error(body);
                 console.error(error);
+                resolve({s:0, counter: 10, data: {error:error}});
             }
         });
     });
