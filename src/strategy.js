@@ -386,8 +386,19 @@ let doBidOrder = async function (){
                             if(marginPairDetail.borrowed > 0){
                                 //Request repay borrowed fund
                                 const marginRepayId = await api.marginRepay(config.name, pair, marginRepayAmount);
+                                if(!marginRepayId.s){
+                                    apiCounter++;
+                                    await email.sendEmail("API Error marginRepayId "+type, pair.name +" #"+ pair.id +" need manual validate marginRepayId: " + JSON.stringify(marginRepayId));
+                                    logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                                    if(config.stopTradingOnError){
+                                        await tools.sleep(999999999);
+                                        return false;
+                                    } else {
+                                        return false;
+                                    }
+                                }
                                 //Save repay borrowed funding to history
-                                await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId);
+                                await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId.data);
                             }
                             console.error("### marginRepayAmount: " + marginRepayAmount);
                             //Update balance and available after margin repay success

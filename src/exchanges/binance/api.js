@@ -384,17 +384,18 @@ let marginRepay  = function(exchange, pair, amount){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### marginRepay");
-                console.error(result);
                 if(result.tranId){
-                    resolve(result.tranId);
+                    resolve({s:1, data: result.tranId});
                 } else {
+                    console.error("### Binance error marginRepay");
                     console.error(body);
-                    console.error(e);
+                    resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (e) {
+                console.error("### Binance error marginRepay" );
                 console.error(body);
-                console.error(e);
+                console.error(error);
+                resolve({s:0, counter: 10, data: {error:error}});
             }
         });
     });
