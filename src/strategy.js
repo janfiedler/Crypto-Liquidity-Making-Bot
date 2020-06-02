@@ -273,9 +273,20 @@ let doBidOrder = async function (){
                         const weNeedBorrow = tools.setPrecision((borrowAmount-marginPairDetail.free) , pair.digitsPrice);
                         //Request borrow funding with margin if we have marginLevel > 2 so we  have chance transfer funds.
                         const marginBorrowId = await api.marginBorrow(config.name, pair,  weNeedBorrow);
-                        if(marginBorrowId > 0){
+                        if(!marginBorrowId.s){
+                            apiCounter++;
+                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                            if(config.stopTradingOnError){
+                                await tools.sleep(999999999);
+                                return false;
+                            } else {
+                                return false;
+                            }
+                        }
+                        if(marginBorrowId.data > 0){
                             //Save margin borrow funding to history
-                            await db.saveFundingHistory(config.name, pair, weNeedBorrow, "borrow", marginBorrowId);
+                            await db.saveFundingHistory(config.name, pair, weNeedBorrow, "borrow", marginBorrowId.data);
                             //Update actual marginDetail after borrow funds
                             marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){

@@ -335,12 +335,12 @@ let accountTransfer = function(exchange, pair, amount, type){
                 if(result.tranId){
                     resolve({s:1, data: result.tranId});
                 } else {
-                    console.error("### accountTransfer");
+                    console.error("### Binance error accountTransfer");
                     console.error(body);
                     resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (error) {
-                console.error("### accountTransfer");
+                console.error("### Binance error accountTransfer");
                 console.error(body);
                 console.error(error);
                 resolve({s:0, counter: 10, data: {error:error}});
@@ -358,17 +358,18 @@ let marginBorrow = function(exchange, pair, amount){
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
-                console.error("### marginBorrow" );
-                console.error(result);
                 if(result.tranId){
-                    resolve(result.tranId);
+                    resolve({s:1, data: result.tranId});
                 } else {
+                    console.error("### Binance error marginBorrow" );
                     console.error(body);
-                    console.error(error);
+                    resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (e) {
+                console.error("### Binance error marginBorrow" );
                 console.error(body);
                 console.error(error);
+                resolve({s:0, counter: 10, data: {error:error}});
             }
         });
     });
