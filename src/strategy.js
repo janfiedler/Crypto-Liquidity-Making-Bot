@@ -254,6 +254,7 @@ let doBidOrder = async function (){
                     //Check if we need borrow or we have free capital
                     let marginDetail = await api.accountMarginDetail();
                     if(!marginDetail.s){
+                        apiCounter++;
                         await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                         logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                         if(config.stopTradingOnError){
@@ -278,6 +279,7 @@ let doBidOrder = async function (){
                             //Update actual marginDetail after borrow funds
                             marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){
+                                apiCounter++;
                                 await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                                 if(config.stopTradingOnError){
@@ -329,6 +331,7 @@ let doBidOrder = async function (){
                             //Check margin detail to get data for repay
                             let marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){
+                                apiCounter++;
                                 await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                                 if(config.stopTradingOnError){
