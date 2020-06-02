@@ -253,6 +253,16 @@ let doBidOrder = async function (){
                 if(borrowAmount > 0){
                     //Check if we need borrow or we have free capital
                     let marginDetail = await api.accountMarginDetail();
+                    if(!marginDetail.s){
+                        await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                        logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                        if(config.stopTradingOnError){
+                            await tools.sleep(999999999);
+                            return false;
+                        } else {
+                            return false;
+                        }
+                    }
                     //console.error(JSON.stringify(marginDetail));
                     //Find correct asset for actual trade what we want borrow
                     const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
@@ -267,6 +277,16 @@ let doBidOrder = async function (){
                             await db.saveFundingHistory(config.name, pair, weNeedBorrow, "borrow", marginBorrowId);
                             //Update actual marginDetail after borrow funds
                             marginDetail = await api.accountMarginDetail();
+                            if(!marginDetail.s){
+                                await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                                if(config.stopTradingOnError){
+                                    await tools.sleep(999999999);
+                                    return false;
+                                } else {
+                                    return false;
+                                }
+                            }
                         }
                         console.error("### We need borrow " + weNeedBorrow + " from " + borrowAmount);
                         apiCounter += 3;
@@ -308,6 +328,16 @@ let doBidOrder = async function (){
                             await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId);
                             //Check margin detail to get data for repay
                             let marginDetail = await api.accountMarginDetail();
+                            if(!marginDetail.s){
+                                await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                                if(config.stopTradingOnError){
+                                    await tools.sleep(999999999);
+                                    return false;
+                                } else {
+                                    return false;
+                                }
+                            }
                             //Find correct asset for actual trade what we want repay
                             const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
                             console.error("### repayAmount: " + repayAmount);

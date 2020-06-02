@@ -302,14 +302,15 @@ let accountMarginDetail = function(){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result});
                 } else {
-                    console.error("binance marginDetail");
+                    console.error("Binance error marginDetail");
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve({s:0, counter: 10, data: {error: body}});
                 }
             } catch (e) {
+                console.error("Binance error marginDetail");
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "marginDetail"}});
+                resolve({s:0, counter: 10, data: {error: e}});
             }
         });
     });
