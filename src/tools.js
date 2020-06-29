@@ -62,6 +62,17 @@ let parseBalance = function(config, funds){
                 }
             }
             break;
+        case "kraken":
+            let keys = Object.keys(funds);
+            for(let i=0; i<keys.length; i++){
+                let currencyCode = keys[i];
+                if(config.accounts.some(currency => currency.name.toLocaleUpperCase() === currencyCode)){
+                    myAccount[config.name].balance[currencyCode] = parseFloat( funds[currencyCode]);
+                    myAccount[config.name].available[currencyCode] = parseFloat( funds[currencyCode]);
+                }
+                console.log(currencyCode, funds[currencyCode]);
+            }
+            break;
     }
     return myAccount;
 };

@@ -59,6 +59,14 @@ async function handleWorkers(type){
                         await itbit.stop();
                     }
                     break;
+                case "kraken":
+                    const kraken = require('./exchanges/kraken/');
+                    if(type === "START"){
+                        kraken.start(config.exchanges[i]);
+                    } else if(type === "STOP") {
+                        await kraken.stop();
+                    }
+                    break;
             }
         }
     }

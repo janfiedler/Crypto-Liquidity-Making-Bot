@@ -341,7 +341,7 @@ let doBidOrder = async function (){
             } else if ( (spentAmount+spendAmount) < borrowedAmount){
                 //Wee have more amount then we need, let´s repay!
                 const repayAmount = tools.setPrecision(borrowedAmount - (spentAmount+spendAmount), pair.digitsPrice);
-                    //console.error("repayAmount: " + repayAmount);
+                //console.error("repayAmount: " + repayAmount);
                 if(repayAmount > 0){
                     //Check if we have available fund on spot account for repay margin funding
                     if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
@@ -791,6 +791,10 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "kraken":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
                 }
             } else if(orderDetail.fee < 0){
                 switch (config.name) {
@@ -827,6 +831,10 @@ let processFulfilledOrder = function(pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "kraken":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
@@ -875,6 +883,10 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
+                    case "kraken":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
                 }
             } else if(orderDetail.fee < 0){
                 switch (config.name) {
@@ -913,6 +925,10 @@ let processPartiallyFilled = function (pair, orderDetail){
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
                     case "itbit":
+                        myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
+                        break;
+                    case "kraken":
                         myAccount.balance[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         myAccount.available[pair.name.split(pair.separator)[1]] -= orderDetail.fee;
                         break;
@@ -1090,6 +1106,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
     } else {
         logMessage += " ### Let´go open new buy order!\n";
         const createdOrder = await api.createOrder(pair,"BUY",null, valueForSize, targetBid);
+        console.log(logMessage);
         apiCounter++;
         if(createdOrder.s){
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;
