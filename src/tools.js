@@ -70,7 +70,6 @@ let parseBalance = function(config, funds){
                     myAccount[config.name].balance[currencyCode] = parseFloat( funds[currencyCode]);
                     myAccount[config.name].available[currencyCode] = parseFloat( funds[currencyCode]);
                 }
-                console.log(currencyCode, funds[currencyCode]);
             }
             break;
     }
