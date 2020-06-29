@@ -1106,7 +1106,6 @@ async function processBidOrder(pair, valueForSize, targetBid){
     } else {
         logMessage += " ### Let´go open new buy order!\n";
         const createdOrder = await api.createOrder(pair,"BUY",null, valueForSize, targetBid);
-        console.log(logMessage);
         apiCounter++;
         if(createdOrder.s){
             myAccount.available[pair.name.split(pair.separator)[1]] -= createdOrder.data.funds;
