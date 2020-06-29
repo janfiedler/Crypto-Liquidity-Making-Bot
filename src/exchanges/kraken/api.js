@@ -354,7 +354,7 @@ let limitOrder = async function(type, pair, size, price){
             createdOrder.price = parseFloat(limitOrderResult.data.result.descr.order.split(" ")[5]);
             createdOrder.size = parseFloat(limitOrderResult.data.result.descr.order.split(" ")[1]);
             createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
-            console.log(createdOrder);
+            //console.log(createdOrder);
             return {s:1, counter:0, data: createdOrder};
         } else {
             await tools.sleep(9999999);
