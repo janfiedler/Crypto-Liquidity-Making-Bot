@@ -49,7 +49,7 @@ const rawRequest = async (url, headers, data, timeout) => {
     });
     //console.error(options);
 
-    let functionName = 'ItBit.executeRequest()', requestDesc;
+    let functionName = 'kraken.executeRequest()', requestDesc;
 
     if (options.method === 'GET') {
         requestDesc = util.format('%s request to url %s',
