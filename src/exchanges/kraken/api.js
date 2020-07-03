@@ -371,6 +371,7 @@ let getOrder = async function(pair, id, type, openedOrder){
 
     if(!getOrderResult.error && getOrderResult.statusCode === 200){
         if(getOrderResult.data.error.length > 0){
+            console.error(JSON.stringify(getOrderResult));
             return {s:0, counter: 10, data: {error: getOrderResult.data.error[0]}};
         } else if( getOrderResult.data.error.length === 0 && getOrderResult.data.result[id].status === "canceled" || getOrderResult.data.result[id].status === "closed"){
             let detailOrder = new tools.orderDetailForm;
@@ -399,7 +400,7 @@ let getOrder = async function(pair, id, type, openedOrder){
             return {s:1, counter: 2, data: detailOrder};
         } else {
             // Order not closed yet, repeat
-            return {s:0, counter: 10, data: {error: ""}};
+            return {s:0, counter: 10, data: {error: JSON.stringify(getOrderResult)}};
         }
     } else {
         console.error("kraken getOrder");
