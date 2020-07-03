@@ -398,8 +398,11 @@ let getOrder = async function(pair, id, type, openedOrder){
 
             //console.log(detailOrder);
             return {s:1, counter: 2, data: detailOrder};
-        } else {
+        } else if( getOrderResult.data.error.length === 0 && getOrderResult.data.result[id].status === "open"){
             // Order not closed yet, repeat
+            return {s:0, counter: 15, data: {error: "repeat"}};
+        } else {
+            // Uknown error
             return {s:0, counter: 10, data: {error: JSON.stringify(getOrderResult)}};
         }
     } else {
