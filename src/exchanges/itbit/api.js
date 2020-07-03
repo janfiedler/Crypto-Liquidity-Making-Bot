@@ -136,7 +136,7 @@ function executeRequest(options) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
                 console.log(errorMessage);
                 error = {error: true, statusCode: -1, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
             else if(!res){
