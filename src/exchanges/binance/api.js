@@ -210,7 +210,7 @@ let getOrder = function(pair, id, type, openedOrder){
         request.get({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200 && (result.status === "FILLED" || result.status === "CANCELED") ) {
+                if (!error && response.statusCode === 200 && (result.status === "PARTIALLY_FILLED" || result.status === "FILLED" || result.status === "CANCELED") ) {
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.clientOrderId;
                     detailOrder.pair = pair.name;
