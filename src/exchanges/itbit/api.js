@@ -137,6 +137,8 @@ function executeRequest(options) {
                 console.log(errorMessage);
                 error = {error: true, statusCode: -1, data: errorMessage};
                 console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
+                //List of found errors when failed GET request
+                //err = {"code":"ESOCKETTIMEDOUT","connect":false} No opened order found on itbit exchange
                 resolve(error);
             }
             else if(!res){
