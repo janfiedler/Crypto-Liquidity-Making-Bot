@@ -68,20 +68,20 @@ const rawRequest = async (url, headers, data, timeout) => {
             if (err) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
                 console.log(errorMessage);
-                error = {error: true, statusCode: -1, data: errorMessage};
+                error = {error: true, statusCode: -2, data: errorMessage};
                 console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
             else if(!res){
                 errorMessage = util.format('%s failed %s. Invalid response from server', functionName, requestDesc);
                 error = {error: true, statusCode: -1, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
             else if (!body) {
                 errorMessage = util.format('%s failed %s. Not response from server', functionName, requestDesc);
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
                 // the following is to trap the JSON response
