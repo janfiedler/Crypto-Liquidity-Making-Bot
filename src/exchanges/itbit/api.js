@@ -24,7 +24,7 @@ let setConfig = function(data){
 
     this.serverV1 = "https://api.itbit.com/v1";
     this.serverV2 = "https://www.itbit.com/api/v2";
-    this.timeout = 20000;  // milli seconds
+    this.timeout = 60000;  // milli seconds
 
     // initialize nonce to current unix time in seconds
     this.nonce = (new Date()).getTime();

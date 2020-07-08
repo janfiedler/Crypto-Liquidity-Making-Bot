@@ -182,7 +182,7 @@ async function publicMethod(method, params, callback) {
 
     const path     = '/0/public/' + method;
     const url      = config.url + path;
-    const response = await rawRequest(url, {}, params, 5000);
+    const response = await rawRequest(url, {}, params, 60000);
 
     if(typeof callback === 'function') {
         response
@@ -228,7 +228,7 @@ async function privateMethod(method, params, callback) {
         'API-Sign' : signature,
     };
 
-    const response = await rawRequest(url, headers, params, 5000);
+    const response = await rawRequest(url, headers, params, 60000);
 
     if(typeof callback === 'function') {
         response
