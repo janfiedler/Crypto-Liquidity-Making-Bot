@@ -255,7 +255,7 @@ let doBidOrder = async function (){
                     let marginDetail = await api.accountMarginDetail();
                     if(!marginDetail.s){
                         apiCounter++;
-                        await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                        await email.sendEmail("API Error accountMarginDetail ", pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                         logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                         if(config.stopTradingOnError){
                             await tools.sleep(999999999);
@@ -275,7 +275,7 @@ let doBidOrder = async function (){
                         const marginBorrowId = await api.marginBorrow(config.name, pair,  weNeedBorrow);
                         if(!marginBorrowId.s){
                             apiCounter++;
-                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            await email.sendEmail("API Error accountTransferId ", pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
                             logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                             if(config.stopTradingOnError){
                                 await tools.sleep(999999999);
@@ -291,7 +291,7 @@ let doBidOrder = async function (){
                             marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){
                                 apiCounter++;
-                                await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                                await email.sendEmail("API Error accountMarginDetail ", pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                                 if(config.stopTradingOnError){
                                     await tools.sleep(999999999);
@@ -316,7 +316,7 @@ let doBidOrder = async function (){
                         apiCounter++;
                         if(!accountTransferId.s){
                             apiCounter++;
-                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            await email.sendEmail("API Error accountTransferId ", pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
                             logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                             if(config.stopTradingOnError){
                                 await tools.sleep(999999999);
@@ -349,7 +349,7 @@ let doBidOrder = async function (){
                         const accountTransferId = await api.accountTransfer(config.name, pair, repayAmount , "fromSpot");
                         if(!accountTransferId.s){
                             apiCounter++;
-                            await email.sendEmail("API Error accountTransferId "+type, pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                            await email.sendEmail("API Error accountTransferId ", pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
                             logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                             if(config.stopTradingOnError){
                                 await tools.sleep(999999999);
@@ -365,7 +365,7 @@ let doBidOrder = async function (){
                             let marginDetail = await api.accountMarginDetail();
                             if(!marginDetail.s){
                                 apiCounter++;
-                                await email.sendEmail("API Error accountMarginDetail "+type, pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                                await email.sendEmail("API Error accountMarginDetail ", pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
                                 logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                                 if(config.stopTradingOnError){
                                     await tools.sleep(999999999);
@@ -388,7 +388,7 @@ let doBidOrder = async function (){
                                 const marginRepayId = await api.marginRepay(config.name, pair, marginRepayAmount);
                                 if(!marginRepayId.s){
                                     apiCounter++;
-                                    await email.sendEmail("API Error marginRepayId "+type, pair.name +" #"+ pair.id +" need manual validate marginRepayId: " + JSON.stringify(marginRepayId));
+                                    await email.sendEmail("API Error marginRepayId ", pair.name +" #"+ pair.id +" need manual validate marginRepayId: " + JSON.stringify(marginRepayId));
                                     logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
                                     if(config.stopTradingOnError){
                                         await tools.sleep(999999999);
