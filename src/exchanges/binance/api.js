@@ -302,12 +302,14 @@ let accountMarginDetail = function(){
                 if (!error && response.statusCode === 200) {
                     resolve({s:1, data: result});
                 } else {
-                    console.error("Binance error marginDetail");
+                    console.error("Binance error marginDetail response");
+                    console.error(signed);
                     console.error(body);
                     resolve({s:0, counter: 10, data: {error: body}});
                 }
             } catch (e) {
                 console.error("Binance error marginDetail");
+                console.error(signed);
                 console.error(body);
                 console.error(e);
                 resolve({s:0, counter: 10, data: {error: e}});
@@ -335,12 +337,14 @@ let accountTransfer = function(exchange, pair, amount, type){
                 if(result.tranId){
                     resolve({s:1, data: result.tranId});
                 } else {
-                    console.error("### Binance error accountTransfer");
+                    console.error("### Binance error accountTransfer response");
+                    console.error(signed);
                     console.error(body);
                     resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (error) {
                 console.error("### Binance error accountTransfer");
+                console.error(signed);
                 console.error(body);
                 console.error(error);
                 resolve({s:0, counter: 10, data: {error:error}});
@@ -361,12 +365,14 @@ let marginBorrow = function(exchange, pair, amount){
                 if(result.tranId){
                     resolve({s:1, data: result.tranId});
                 } else {
-                    console.error("### Binance error marginBorrow" );
+                    console.error("### Binance error marginBorrow response");
+                    console.error(signed);
                     console.error(body);
                     resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (e) {
                 console.error("### Binance error marginBorrow" );
+                console.error(signed);
                 console.error(body);
                 console.error(error);
                 resolve({s:0, counter: 10, data: {error:error}});
@@ -387,12 +393,14 @@ let marginRepay  = function(exchange, pair, amount){
                 if(result.tranId){
                     resolve({s:1, data: result.tranId});
                 } else {
-                    console.error("### Binance error marginRepay");
+                    console.error("### Binance error marginRepay response");
+                    console.error(signed);
                     console.error(body);
                     resolve({s:0, counter: 10, data: {error:body}});
                 }
             } catch (e) {
                 console.error("### Binance error marginRepay" );
+                console.error(signed);
                 console.error(body);
                 console.error(error);
                 resolve({s:0, counter: 10, data: {error:error}});
