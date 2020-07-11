@@ -333,6 +333,9 @@ let limitOrder = function (type, pair, size, price) {
             resolve({s:0, counter:30, data: {error: "not_submitted", data: limitOrderResult.data}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 422 && JSON.stringify(limitOrderResult.data).includes("Error code 81001")) {
             resolve({s: 0, counter: 30, data: {error: "repeat", reason: "The wallet provided does not have the funds required to place the order!"}});
+        } else if(limitOrderResult.error && limitOrderResult.statusCode === 504) {
+            //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
+            resolve({s: 0, counter: 30, data: {error: "Not response from server"}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
             resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT"}});
