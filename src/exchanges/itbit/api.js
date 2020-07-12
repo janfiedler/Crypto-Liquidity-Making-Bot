@@ -333,6 +333,8 @@ let limitOrder = function (type, pair, size, price) {
             resolve({s:0, counter:30, data: {error: "not_submitted", data: limitOrderResult.data}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 422 && JSON.stringify(limitOrderResult.data).includes("Error code 81001")) {
             resolve({s: 0, counter: 30, data: {error: "repeat", reason: "The wallet provided does not have the funds required to place the order!"}});
+        } else if(limitOrderResult.error && limitOrderResult.statusCode === 429 && JSON.stringify(limitOrderResult.data).includes("Error Rate limit exceeded")) {
+            resolve({s: 0, counter: 30, data: {error: "repeat", reason: "Error Rate limit exceeded, too many requests per minute."}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 504) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
             resolve({s: 0, counter: 30, data: {error: "Not response from server"}});
@@ -404,6 +406,8 @@ let getOrder = function(pair, id, type, openedOrder){
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});
+        } else if(getOrderResult.error && getOrderResult.statusCode === 429 && JSON.stringify(getOrderResult.data).includes("Error Rate limit exceeded")) {
+            resolve({s: 0, counter: 30, data: {error: "repeat", reason: "Error Rate limit exceeded, too many requests per minute."}});
         } else if(getOrderResult.error) {
             resolve({s:0, counter: 30, data: {error: JSON.stringify(getOrderResult.data)}});
         }
@@ -435,6 +439,8 @@ let cancelOrder = function (pair, id, type, openedOrder){
         } else if(cancelResult.error && cancelResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter:1, data: {error: "itbit cancelOrder failed"}});
+        } else if(cancelResult.error && cancelResult.statusCode === 429 && JSON.stringify(cancelResult.data).includes("Error Rate limit exceeded")) {
+            resolve({s: 0, counter: 30, data: {error: "repeat", reason: "Error Rate limit exceeded, too many requests per minute."}});
         } else if(cancelResult.error) {
             resolve({s:0, counter: 30, data: {error: JSON.stringify(cancelResult.data)}});
         }
