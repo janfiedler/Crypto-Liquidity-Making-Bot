@@ -132,7 +132,9 @@ function executeRequest(options) {
             let error = null;   // default to no errors
             let errorMessage = null;
             if(JSON.stringify(options).includes("Authorization")){
-                console.log("### executeRequest" + "\n" + new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" +  + JSON.stringify(requestDesc) + "\n" +  + JSON.stringify(err) + "\n" + JSON.stringify(res.statusCode) + "\n" + JSON.stringify(body));
+                let resStatus = 0;
+                if(typeof res.statusCode !== 'undefined' && res.statusCode){resStatus = res.statusCode}
+                console.log("### executeRequest" + "\n" + new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" +  + JSON.stringify(requestDesc) + "\n" +  + JSON.stringify(err) + "\n" + resStatus + "\n" + JSON.stringify(body));
             }
             if (err) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
