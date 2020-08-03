@@ -140,7 +140,7 @@ function executeRequest(options) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
                 console.log(errorMessage);
                 error = {error: true, statusCode: -2, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 //List of found errors when failed GET request
                 //err = {"code":"ESOCKETTIMEDOUT","connect":false} No opened order found on itbit exchange
                 resolve(error);
@@ -148,13 +148,13 @@ function executeRequest(options) {
             else if(!res){
                 errorMessage = util.format('%s failed %s. Invalid response from server', functionName, requestDesc);
                 error = {error: true, statusCode: -1, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
             else if (!body) {
                 errorMessage = util.format('%s failed %s. Not response from server', functionName, requestDesc);
                 error = {error: true, statusCode: res.statusCode, data: errorMessage};
-                console.error(new Date().toISOString() + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
+                console.error(new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" + JSON.stringify(error) + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(body) + "\n" + JSON.stringify(res));
                 resolve(error);
             }
             // if request was not able to parse json response into an object
@@ -341,12 +341,12 @@ let limitOrder = function (type, pair, size, price) {
             resolve({s: 0, counter: 30, data: {error: "repeat", reason: "Error Rate limit exceeded, too many requests per minute."}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 504) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
-            resolve({s: 0, counter: 30, data: {error: "Not response from server"}});
+            resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
             resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT"}});
         } else if(limitOrderResult.error) {
-            resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data)}});
+            resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data), order: args}});
         } else {
             console.error(limitOrderResult.statusCode);
             console.error(JSON.stringify(limitOrderResult.data));
