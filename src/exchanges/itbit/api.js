@@ -131,11 +131,13 @@ function executeRequest(options) {
         request(options, function (err, res, body) {
             let error = null;   // default to no errors
             let errorMessage = null;
+            /*
             if(JSON.stringify(options).includes("Authorization")){
                 let resStatus = 0;
                 if(typeof res.statusCode !== 'undefined' && res.statusCode){resStatus = res.statusCode}
                 console.log("### executeRequest" + "\n" + new Date().toISOString() + "\n" + JSON.stringify(options) + "\n" +  + JSON.stringify(requestDesc) + "\n" +  + JSON.stringify(err) + "\n" + resStatus + "\n" + JSON.stringify(body));
             }
+            */
             if (err) {
                 errorMessage = util.format('%s failed %s', functionName, requestDesc);
                 console.log(errorMessage);
