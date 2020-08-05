@@ -1024,12 +1024,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 }  else {
                     console.error(createdOrder);
                     await email.sendEmail("API UNKNOWN - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
-                    logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
-                    if(config.stopTradingOnError){
-                        await tools.sleep(999999999);
-                    } else {
-                        return false;
-                    }
+                    await tools.sleep(999999999);
                 }
             }
         } else {
@@ -1152,12 +1147,7 @@ async function processBidOrder(pair, valueForSize, targetBid){
                 await tools.sleep(999999999);
             } else {
                 await email.sendEmail("API UNKNOWN ERROR - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last BUY order: " + JSON.stringify(createdOrder));
-                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                if(config.stopTradingOnError){
-                    await tools.sleep(999999999);
-                } else {
-                    return false;
-                }
+                await tools.sleep(999999999);
             }
         }
     }
