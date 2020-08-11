@@ -229,7 +229,7 @@ let getOrder = function(pair, id, type, openedOrder){
                     console.error(JSON.stringify(openedOrder));
                     console.error(id);
                     resolve({s:0, counter: 1, data: {error: "repeat"}});
-                } else if(error && result.code === -2013 && result.msg.includes("Order does not exist.")){
+                } else if(!error && result.code === -2013 && result.msg.includes("Order does not exist.")){
                     console.error("binance getOrder not FOUND after cancel order, probably lag of exchange");
                     console.error(body);
                     console.error(JSON.stringify(openedOrder));
