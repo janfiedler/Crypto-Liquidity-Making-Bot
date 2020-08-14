@@ -343,10 +343,40 @@ let limitOrder = function (type, pair, size, price) {
             resolve({s: 0, counter: 30, data: {error: "repeat", reason: "Error Rate limit exceeded, too many requests per minute."}});
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 504) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
-            resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
+            await tools.sleep(30000);
+            let revalidate = await getLastOrders(type, pair, parseFloat(size).toFixed(pair.digitsSize), parseFloat(price).toFixed(pair.digitsPrice));
+            if(revalidate.s){
+                console.error("Order was made, save it and continue");
+                let createdOrder = new tools.orderCreatedForm;
+                createdOrder.id = revalidate.data.id;
+                createdOrder.price = parseFloat(revalidate.data.price);
+                createdOrder.size = parseFloat(revalidate.data.amount);
+                createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
+                console.error(JSON.stringify(createdOrder));
+                //resolve({s:1, counter:1, data: createdOrder});
+                resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
+            } else {
+                console.error("Order wasnt made, lets continue");
+                resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
+            }
         } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
-            resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT"}});
+            await tools.sleep(30000);
+            let revalidate = await getLastOrders(type, pair, parseFloat(size).toFixed(pair.digitsSize), parseFloat(price).toFixed(pair.digitsPrice));
+            if(revalidate.s){
+                console.error("Order was made, save it and continue");
+                let createdOrder = new tools.orderCreatedForm;
+                createdOrder.id = limitOrderResult.data.id;
+                createdOrder.price = parseFloat(limitOrderResult.data.price);
+                createdOrder.size = parseFloat(limitOrderResult.data.amount);
+                createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
+                console.error(JSON.stringify(createdOrder));
+                //resolve({s:1, counter:1, data: createdOrder});
+                resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}});
+            } else {
+                console.error("Order wasnt made, lets continue");
+                resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}});
+            }
         } else if(limitOrderResult.error) {
             resolve({s:0, counter:30, data: {error: JSON.stringify(limitOrderResult.data), order: args}});
         } else {
@@ -418,6 +448,29 @@ let getOrder = function(pair, id, type, openedOrder){
             resolve({s:0, counter: 30, data: {error: JSON.stringify(getOrderResult.data)}});
         }
     });
+};
+
+let getLastOrders = function(type, pair, amount, price){
+    return new Promise(async function (resolve) {
+        let args = {
+            instrument: pair.name.replace(pair.separator,'')
+        }
+        const getLastOrdersResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/", args);
+        if(!getLastOrdersResult.error && getLastOrdersResult.statusCode === 200){
+            for(let i=0;i<getLastOrdersResult.data.length;i++){
+                if(getLastOrdersResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrdersResult.data[i].amount) === amount && parseFloat(getLastOrdersResult.data[i].price) === price){
+                    resolve({s:1, counter: 1, data: getLastOrdersResult.data[i]});
+                }
+            }
+            resolve({s:0, counter:1, data: {error: "not found"}});
+        } else {
+            console.error("### getLastOrders");
+            console.error(getLastOrdersResult.statusCode);
+            console.error(getLastOrdersResult.data);
+            resolve({s:0, counter:1, data: {error: "not found"}});
+        }
+    });
+
 };
 
 let cancelOrder = function (pair, id, type, openedOrder){
