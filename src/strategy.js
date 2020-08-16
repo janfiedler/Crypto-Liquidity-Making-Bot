@@ -1016,11 +1016,21 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 } else if(createdOrder.data.error.includes("ESOCKETTIMEDOUT")){
                     //TRADING stopped, do manual validate what happened
                     await email.sendEmail("API ESOCKETTIMEDOUT - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
-                    await tools.sleep(999999999);
+                    logMessage += JSON.stringify(createdOrder.data)+"\n";
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                    } else {
+                        return false;
+                    }
                 } else if(createdOrder.data.error.includes("Not response from server")){
                     //TRADING stopped, do manual validate what happened
                     await email.sendEmail("API ERROR 504 - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
-                    await tools.sleep(999999999);
+                    logMessage += JSON.stringify(createdOrder.data)+"\n";
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                    } else {
+                        return false;
+                    }
                 }  else {
                     console.error(createdOrder);
                     await email.sendEmail("API UNKNOWN - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
@@ -1140,11 +1150,21 @@ async function processBidOrder(pair, valueForSize, targetBid){
             } else if(createdOrder.data.error.includes("ESOCKETTIMEDOUT")){
                 //TRADING stopped, do manual validate what happened
                 await email.sendEmail("API ESOCKETTIMEDOUT - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last BUY order: " + JSON.stringify(createdOrder));
-                await tools.sleep(999999999);
+                logMessage += JSON.stringify(createdOrder.data)+"\n";
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
+                    return false;
+                }
             } else if(createdOrder.data.error.includes("Not response from server")){
                 //TRADING stopped, do manual validate what happened
                 await email.sendEmail("API ERROR 504 - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last BUY order: " + JSON.stringify(createdOrder));
-                await tools.sleep(999999999);
+                logMessage += JSON.stringify(createdOrder.data)+"\n";
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                } else {
+                    return false;
+                }
             } else {
                 await email.sendEmail("API UNKNOWN ERROR - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last BUY order: " + JSON.stringify(createdOrder));
                 await tools.sleep(999999999);

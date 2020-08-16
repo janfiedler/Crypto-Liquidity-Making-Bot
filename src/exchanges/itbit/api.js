@@ -346,7 +346,7 @@ let limitOrder = function (type, pair, size, price) {
             await tools.sleep(60000);
             let revalidate = await getLastOrders(type, pair, args.amount, args.price);
             if(revalidate.s){
-                console.error("Order was made, save it and continue");
+                console.error("Order was found, continue!");
                 let createdOrder = new tools.orderCreatedForm;
                 createdOrder.id = revalidate.data.id;
                 createdOrder.price = parseFloat(revalidate.data.price);
@@ -354,10 +354,10 @@ let limitOrder = function (type, pair, size, price) {
                 createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
                 createdOrder.created_at = revalidate.data.createdTime;
                 console.error(JSON.stringify(createdOrder));
-                //resolve({s:1, counter:1, data: createdOrder});
-                resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
+                resolve({s:1, counter:2, data: createdOrder});
+                //resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
             } else {
-                console.error("Order wasnt made, lets continue");
+                console.error("Order not found, continue!");
                 resolve({s: 0, counter: 30, data: {error: "Not response from server", order: args}});
             }
         } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
@@ -365,7 +365,7 @@ let limitOrder = function (type, pair, size, price) {
             await tools.sleep(60000);
             let revalidate = await getLastOrders(type, pair, args.amount, args.price);
             if(revalidate.s){
-                console.error("Order was made, save it and continue");
+                console.error("Order was found, continue!");
                 let createdOrder = new tools.orderCreatedForm;
                 createdOrder.id = limitOrderResult.data.id;
                 createdOrder.price = parseFloat(limitOrderResult.data.price);
@@ -373,10 +373,10 @@ let limitOrder = function (type, pair, size, price) {
                 createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
                 createdOrder.created_at = revalidate.data.createdTime;
                 console.error(JSON.stringify(createdOrder));
-                //resolve({s:1, counter:1, data: createdOrder});
-                resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}});
+                resolve({s:1, counter:2, data: createdOrder});
+                //resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}});
             } else {
-                console.error("Order wasnt made, lets continue");
+                console.error("Order not found, continue!");
                 resolve({s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}});
             }
         } else if(limitOrderResult.error) {
