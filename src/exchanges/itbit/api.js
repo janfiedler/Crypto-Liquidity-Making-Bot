@@ -460,7 +460,6 @@ let getLastOrders = function(type, pair, amount, price){
         }
         const getLastOrdersResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/", args);
         console.error("### getLastOrders");
-        console.error(JSON.stringify(getLastOrdersResult));
         if(!getLastOrdersResult.error && getLastOrdersResult.statusCode === 200){
             for(let i=0;i<getLastOrdersResult.data.length;i++){
                 if(getLastOrdersResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrdersResult.data[i].amount).toFixed(pair.digitsSize) === amount && parseFloat(getLastOrdersResult.data[i].price).toFixed(pair.digitsPrice) === price){
