@@ -344,7 +344,7 @@ let limitOrder = function (type, pair, size, price) {
         } else if(limitOrderResult.error && limitOrderResult.statusCode === 504) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
             await tools.sleep(60000);
-            let revalidate = await getLastOrders(type, pair, args.amount, args.price);
+            let revalidate = await getLastOrder(type, pair, args.amount, args.price);
             if(revalidate.s){
                 console.error("Order was found, continue!");
                 let createdOrder = new tools.orderCreatedForm;
@@ -363,7 +363,7 @@ let limitOrder = function (type, pair, size, price) {
         } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
             //Need validate last orders on exchange, because when we get timeout, action can be already done on exchange.
             await tools.sleep(60000);
-            let revalidate = await getLastOrders(type, pair, args.amount, args.price);
+            let revalidate = await getLastOrder(type, pair, args.amount, args.price);
             if(revalidate.s){
                 console.error("Order was found, continue!");
                 let createdOrder = new tools.orderCreatedForm;
@@ -452,27 +452,27 @@ let getOrder = function(pair, id, type, openedOrder){
     });
 };
 
-let getLastOrders = function(type, pair, amount, price){
+let getLastOrder = function(type, pair, amount, price){
     return new Promise(async function (resolve) {
         let args = {
             instrument: pair.name.replace(pair.separator,''),
-            perPage: 10
+            perPage: 1
         }
-        const getLastOrdersResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/", args);
-        console.error("### getLastOrders");
-        if(!getLastOrdersResult.error && getLastOrdersResult.statusCode === 200){
-            for(let i=0;i<getLastOrdersResult.data.length;i++){
-                if(getLastOrdersResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrdersResult.data[i].amount).toFixed(pair.digitsSize) === amount && parseFloat(getLastOrdersResult.data[i].price).toFixed(pair.digitsPrice) === price){
+        const getLastOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/", args);
+        console.error("### getLastOrder");
+        if(!getLastOrderResult.error && getLastOrderResult.statusCode === 200){
+            for(let i=0;i<getLastOrderResult.data.length;i++){
+                if(getLastOrderResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrderResult.data[i].amount).toFixed(pair.digitsSize) === amount && parseFloat(getLastOrderResult.data[i].price).toFixed(pair.digitsPrice) === price){
                     console.error("!!! FOUND !!!");
-                    resolve({s:1, counter: 1, data: getLastOrdersResult.data[i]});
+                    resolve({s:1, counter: 1, data: getLastOrderResult.data[i]});
                     break;
                 }
             }
             resolve({s:0, counter:1, data: {error: "not found"}});
         } else {
-            console.error("### getLastOrders ERROR");
-            console.error(getLastOrdersResult.statusCode);
-            console.error(getLastOrdersResult.data);
+            console.error("### getLastOrder ERROR");
+            console.error(getLastOrderResult.statusCode);
+            console.error(getLastOrderResult.data);
             resolve({s:0, counter:1, data: {error: "not found"}});
         }
     });
