@@ -187,6 +187,8 @@ let limitOrder = function(type, pair, size, price){
                     const errMsg = JSON.stringify(result.msg);
                     if(errMsg.includes("Order would immediately match and take")){
                         resolve({s:0, counter:1, data: {error: "rejected"}});
+                    } else if(errMsg.includes("Timestamp for this request is outside of the recvWindow")){
+                        resolve({s:0, counter:1, data: {error: "repeat", reason: "Timestamp for this request is outside of the recvWindow"}});
                     } else {
                         resolve({s:0, counter:1, data: {error: errMsg}});
                     }
