@@ -983,20 +983,36 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 return false;
             } else {
                 if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
-                    const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
-                    await db.setFailedSellOrder(failedSellOrder);
-                    //If sell order failed to to insufficient size, we need deduct funded value, because we cannot return it automatically.
-                    if(pair.active.margin){
-                        const failedBorrowedAmount =  tools.setPrecision( pendingSellOrder.sell_size*pendingSellOrder.buy_price , pair.digitsPrice);
-                        console.error("Failed sell order due to insufficient size, not possible do refund!");
-                        console.error(failedBorrowedAmount + " " + pair.name.split(pair.separator)[1]);
-                        //Save fund transfer to history
-                        await db.saveFundTransferHistory(config.name, pair, failedBorrowedAmount, "failed", 0);
-                        //Update actual state of funding for current pair to database
-                        await db.updateFunding(config.name, pair, failedBorrowedAmount, "repay");
+                    const nextSellOrder = await db.getNextSellOrder(config.name, pair, pendingSellOrder);
+                    if(nextSellOrder.length === 1){
+                        // We have next sell order, where we can adjust sell_size from insufficient size order
+                        const adjustFailedSellOrder = await db.adjustFailedSellOrder(pair, pendingSellOrder, nextSellOrder[0]);
+                        if(adjustFailedSellOrder){
+                            //Disable failed order after sell_size was merged to nextSellOrder.
+                            const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "Merged to buy_id " +nextSellOrder[0].buy_id};
+                            await db.setFailedSellOrder(failedSellOrder);
+                            await email.sendEmail("API Adjusted - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder[0]) + " from failed sell order " + JSON.stringify(pendingSellOrder));
+                            logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" merged to "+nextSellOrder[0].buy_id+" due to insufficient order size!\n";
+                        } else {
+                            await email.sendEmail("API Adjusted Failed - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder[0]) + " from failed sell order " + JSON.stringify(pendingSellOrder));
+                            await tools.sleep(999999999);
+                        }
+                    } else{
+                        const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "insufficient_size"};
+                        await db.setFailedSellOrder(failedSellOrder);
+                        //If sell order failed to to insufficient size, we need deduct funded value, because we cannot return it automatically.
+                        if(pair.active.margin){
+                            const failedBorrowedAmount =  tools.setPrecision( pendingSellOrder.sell_size*pendingSellOrder.buy_price , pair.digitsPrice);
+                            console.error("Failed sell order due to insufficient size, not possible do refund!");
+                            console.error(failedBorrowedAmount + " " + pair.name.split(pair.separator)[1]);
+                            //Save fund transfer to history
+                            await db.saveFundTransferHistory(config.name, pair, failedBorrowedAmount, "failed", 0);
+                            //Update actual state of funding for current pair to database
+                            await db.updateFunding(config.name, pair, failedBorrowedAmount, "repay");
 
+                        }
+                        logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     }
-                    logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" finished due to insufficient order size!\n";
                     return false;
                 } else if(createdOrder.data.error.includes("repeat")){
                     logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" Repeat order due to:\n "+createdOrder.data.reason+"!\n";

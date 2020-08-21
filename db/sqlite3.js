@@ -377,6 +377,18 @@ let setPendingSellOrder = function(data, sell_target_price){
     });
 };
 
+let adjustFailedSellOrder = function(pair, failedOrder, nextOrder){
+    return new Promise(function (resolve) {
+        db.run(`UPDATE orders SET buy_status = ?, sell_size = sell_size + ? WHERE buy_id = ? AND sell_id IS NULL AND sell_status = ?;`, "adjusted", tools.setPrecisionDown(failedOrder.sell_size, pair.digitsSize), nextOrder.buy_id, "pending", function(err) {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+};
+
 let setFailedSellOrder = function(failedOrder){
     return new Promise(function (resolve) {
         db.run(`UPDATE orders SET status = ?, sell_status = ?, completed_at = ? WHERE buy_id = ? AND sell_id IS NULL;`, "failed", failedOrder.status, new Date().toISOString(), failedOrder.id, function(err) {
@@ -517,7 +529,17 @@ let getAllNonFrozenSellOrdersCount  = function(exchange, pair, pairId){
     });
 };
 
-
+let getNextSellOrder = function(exchange, pair, pendingSellOrder){
+    return new Promise(function (resolve) {
+        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ? AND sell_target_price > ? ORDER BY sell_target_price ASC LIMIT 1`, exchange, pair.name, pair.id, "sell", "pending", pendingSellOrder.sell_target_price, (err, rows) => {
+            if (err) {
+                console.error(err.message);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
 
 let getAllCompletedOrders = function(){
     return new Promise(function (resolve) {
@@ -610,6 +632,7 @@ module.exports = {
     setSellTargetPrice: setSellTargetPrice,
     deleteOpenedSellOrder: deleteOpenedSellOrder,
     setPendingSellOrder: setPendingSellOrder,
+    adjustFailedSellOrder: adjustFailedSellOrder,
     setFailedSellOrder: setFailedSellOrder,
     setCompletedSellOrder: setCompletedSellOrder,
     reOpenPartFilledSellOrder: reOpenPartFilledSellOrder,
@@ -621,6 +644,7 @@ module.exports = {
     getTotalSellSize: getTotalSellSize,
     getAllSellOrders: getAllSellOrders,
     getAllNonFrozenSellOrdersCount: getAllNonFrozenSellOrdersCount,
+    getNextSellOrder: getNextSellOrder,
     getAllCompletedOrders: getAllCompletedOrders,
     getCompletedOrder: getCompletedOrder,
     updateProfit: updateProfit,

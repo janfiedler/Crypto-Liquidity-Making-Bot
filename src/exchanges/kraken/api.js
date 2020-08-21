@@ -347,7 +347,11 @@ let limitOrder = async function(type, pair, size, price){
 
     if(!limitOrderResult.error && limitOrderResult.statusCode === 200){
         if(limitOrderResult.data.error.length > 0) {
-            return {s:0, counter: 9999999, data: {error: JSON.stringify(limitOrderResult.data.error[0])}};
+            if(limitOrderResult.data.error[0].includes("Invalid arguments:volume")){
+                return {s:0, counter:1, data: {error: "insufficient size"}};
+            } else {
+                return {s:0, counter: 9999999, data: {error: JSON.stringify(limitOrderResult.data.error[0])}};
+            }
         } else if(limitOrderResult.data.error.length === 0){
             let createdOrder = new tools.orderCreatedForm;
             createdOrder.id = limitOrderResult.data.result.txid[0];
