@@ -342,7 +342,15 @@ let createOrder = async function(pair, type, pendingSellOrder, valueForSize, pri
 };
 
 let limitOrder = async function(type, pair, size, price){
-    const limitOrderResult = await api('AddOrder', { "pair": pair.name.replace(pair.separator,''), "type": type, "ordertype": "limit", "price": price, "volume": size, "oflags": "fciq,post" });
+    let args = {
+        pair: pair.name.replace(pair.separator,''),
+        type: type,
+        ordertype: "limit",
+        price: price,
+        volume: size,
+        oflags: "fciq,post"
+    };
+    const limitOrderResult = await api('AddOrder', args);
     //console.log(limitOrderResult);
 
     if(!limitOrderResult.error && limitOrderResult.statusCode === 200){
@@ -361,10 +369,13 @@ let limitOrder = async function(type, pair, size, price){
             //console.log(createdOrder);
             return {s:1, counter:0, data: createdOrder};
         } else {
+            console.error("#Kraken unknown ERROR limitOrder");
             await tools.sleep(9999999);
         }
+    } else if(limitOrderResult.error && limitOrderResult.statusCode === -2) {
+        return {s: 0, counter: 30, data: {error: "ESOCKETTIMEDOUT", order: args}};
     } else if (limitOrderResult.error){
-        return {s:0, data:  {error: limitOrderResult.error}, counter: 999999};
+        return {s:0, data: {error: JSON.stringify(limitOrderResult)}, counter: 999999};
     }
 };
 
