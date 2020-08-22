@@ -450,10 +450,10 @@ let cancelOrder = async function(pair, id, type, openedOrder){
             //Because cancel order do not response with order detail, we need request order detail in next step
             return {s:0, counter:0, data: {error: "not found"}};
         } else {
-            return {s:0, counter: 30, data: {error: JSON.stringify(cancelOrderResult.error)}};
+            return {s:0, counter: 30, data: {error: JSON.stringify(cancelOrderResult)}};
         }
     } else {
-        return {s:0, counter: 30, data: {error: JSON.stringify(cancelOrderResult.error)}};
+        return {s:0, counter: 30, data: {error: JSON.stringify(cancelOrderResult)}};
     }
 };
 
