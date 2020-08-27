@@ -379,7 +379,7 @@ let setPendingSellOrder = function(data, sell_target_price){
 
 let adjustFailedSellOrder = function(pair, failedOrder, nextOrder){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET buy_status = ?, sell_size = sell_size + ? WHERE buy_id = ? AND sell_id IS NULL AND sell_status = ?;`, "adjusted", tools.setPrecisionDown(failedOrder.sell_size, pair.digitsSize), nextOrder.buy_id, "pending", function(err) {
+        db.run(`UPDATE orders SET buy_status = ?, sell_size = sell_size + ? WHERE buy_id = ? AND sell_status = ?;`, "adjusted", tools.setPrecisionDown(failedOrder.sell_size, pair.digitsSize), nextOrder.buy_id, "pending", function(err) {
             if (err) {
                 console.error(err.message);
             } else {
