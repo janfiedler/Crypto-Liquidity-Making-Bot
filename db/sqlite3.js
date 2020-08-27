@@ -391,7 +391,7 @@ let adjustFailedSellOrder = function(pair, failedOrder, nextOrder){
 
 let setFailedSellOrder = function(failedOrder){
     return new Promise(function (resolve) {
-        db.run(`UPDATE orders SET status = ?, sell_status = ?, completed_at = ? WHERE buy_id = ? AND sell_id IS NULL;`, "failed", failedOrder.status, new Date().toISOString(), failedOrder.id, function(err) {
+        db.run(`UPDATE orders SET status = ?, sell_status = ?, completed_at = ? WHERE buy_id = ? AND (sell_id IS NULL || sell_id = ?);`, "failed", failedOrder.status, new Date().toISOString(), failedOrder.id, "", function(err) {
             if (err) {
                 console.error(err.message);
             } else {
