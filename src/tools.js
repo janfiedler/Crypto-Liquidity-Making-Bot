@@ -240,7 +240,7 @@ let getAmountSpent = async function(db, exchange, pair){
         const po = await db.getAllSellOrders(exchange, pair.name, pair.id);
         let totalAmount = 0;
         for(let i=0;i<po.length;i++){
-            if(po[i].buy_fee > 0){
+            if(po[i].buy_fee > 0 && exchange.name !== "binance"){
                 totalAmount += (po[i].buy_price * po[i].sell_size)+po[i].buy_fee;
             } else {
                 totalAmount += (po[i].buy_price * po[i].sell_size);

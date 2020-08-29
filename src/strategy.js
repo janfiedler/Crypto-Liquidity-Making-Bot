@@ -236,7 +236,8 @@ let doBidOrder = async function (){
             //For buy is allowed funding with margin
 
             //Get total spent amount
-            const spentAmount = await tools.getAmountSpent(db, config.name, pair);
+            let spentAmount = await tools.getAmountSpent(db, config.name, pair);
+            spentAmount = tools.setPrecision(spentAmount , pair.digitsPrice);
             //console.error("spentAmount: " + spentAmount);
             //Get total borrowed amount
             //!!!! handle first run when no row in db
@@ -338,78 +339,10 @@ let doBidOrder = async function (){
                         await tools.sleep(999999999);
                     }
                 }
-            } else if ( (spentAmount+spendAmount) < borrowedAmount){
-                //Wee have more amount then we need, let´s repay!
-                const repayAmount = tools.setPrecision(borrowedAmount - (spentAmount+spendAmount), pair.digitsPrice);
-                //console.error("repayAmount: " + repayAmount);
-                if(repayAmount > 0){
-                    //Check if we have available fund on spot account for repay margin funding
-                    if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) > 0){
-                        //First we need transfer fund from spot to margin account to be repaid
-                        const accountTransferId = await api.accountTransfer(config.name, pair, repayAmount , "fromSpot");
-                        if(!accountTransferId.s){
-                            apiCounter++;
-                            await email.sendEmail("API Error accountTransferId ", pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
-                            logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                            if(config.stopTradingOnError){
-                                await tools.sleep(999999999);
-                                return false;
-                            } else {
-                                return false;
-                            }
-                        }
-                        if(accountTransferId.data > 0){
-                            //Save fund transfer to history
-                            await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId.data);
-                            //Check margin detail to get data for repay
-                            let marginDetail = await api.accountMarginDetail();
-                            if(!marginDetail.s){
-                                apiCounter++;
-                                await email.sendEmail("API Error accountMarginDetail ", pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
-                                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                                if(config.stopTradingOnError){
-                                    await tools.sleep(999999999);
-                                    return false;
-                                } else {
-                                    return false;
-                                }
-                            }
-                            //Find correct asset for actual trade what we want repay
-                            const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
-                            console.error("### repayAmount: " + repayAmount);
-                            let marginRepayAmount = repayAmount;
-
-                            if((marginPairDetail.borrowed-marginRepayAmount) < 0){
-                                //If we try repay more then we have borrowed. Repay only rest of borrowed funds
-                                marginRepayAmount = marginPairDetail.borrowed;
-                            }
-                            if(marginPairDetail.borrowed > 0){
-                                //Request repay borrowed fund
-                                const marginRepayId = await api.marginRepay(config.name, pair, marginRepayAmount);
-                                if(!marginRepayId.s){
-                                    apiCounter++;
-                                    await email.sendEmail("API Error marginRepayId ", pair.name +" #"+ pair.id +" need manual validate marginRepayId: " + JSON.stringify(marginRepayId));
-                                    logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                                    if(config.stopTradingOnError){
-                                        await tools.sleep(999999999);
-                                        return false;
-                                    } else {
-                                        return false;
-                                    }
-                                }
-                                //Save repay borrowed funding to history
-                                await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId.data);
-                            }
-                            console.error("### marginRepayAmount: " + marginRepayAmount);
-                            //Update balance and available after margin repay success
-                            myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
-                            myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
-                            //Update actual state of funding for current pair to database
-                            await db.updateFunding(config.name, pair, repayAmount, "repay");
-                        }
-                    }
-                    //Up-to two api calls was made, add to counter
-                    apiCounter += 3;
+            } else if ((spentAmount+spendAmount) < borrowedAmount){
+                let marginNotInBalance = tools.setPrecision(borrowedAmount-(spentAmount+spendAmount), 8);
+                if(marginNotInBalance > 0){
+                    console.error(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ marginNotInBalance);
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
@@ -702,6 +635,7 @@ async function validateOrder(type, id, pair, openedOrder){
         return true;
     } else if(orderDetail.size_filled === orderDetail.size){
         // Order was fulfilled
+        await processFulfilledOrder(pair, orderDetail);
         switch(orderDetail.type){
             case "BUY":
                 let sell_target_price;
@@ -722,12 +656,16 @@ async function validateOrder(type, id, pair, openedOrder){
             case "SELL":
                 await db.setCompletedSellOrder(orderDetail);
                 await processCalculateProfit(pair, orderDetail);
+                //Check if for order was used margin funding. If yes, repay amount
+                if(pair.active.margin){
+                    await processMarginRepay(pair, orderDetail);
+                }
                 break;
         }
-        await processFulfilledOrder(pair, orderDetail);
         return false;
     } else if(orderDetail.size_filled < orderDetail.size){
         // Order was partially_filled
+        await processPartiallyFilled(pair, orderDetail);
         switch(orderDetail.type){
             case "BUY":
                 let sell_target_price;
@@ -749,10 +687,12 @@ async function validateOrder(type, id, pair, openedOrder){
                 await db.setCompletedSellOrder(orderDetail);
                 await db.reOpenPartFilledSellOrder(config.name, pair, openedOrder, (orderDetail.size-orderDetail.size_filled));
                 await processCalculateProfit(pair, orderDetail);
+                //Check if for order was used margin funding. If yes, repay amount
+                if(pair.active.margin){
+                    await processMarginRepay(pair, orderDetail);
+                }
                 break;
         }
-
-        await processPartiallyFilled(pair, orderDetail);
         return false;
     } else {
         logMessage += " !!! Something bad happened when validateOrder "+orderDetail.id+" !\n";
@@ -770,6 +710,87 @@ let processCalculateProfit = async function(pair, orderDetail){
     });
     await db.updateProfit(profit, completedOrder.sell_id);
 };
+
+let processMarginRepay = async function(pair, orderDetail){
+    const completedOrder = await db.getCompletedOrder(orderDetail.id);
+    //If order has profit, repay only based on buy_price. If negative, based on sell_price.
+    let repayAmount = 0;
+    if(completedOrder.profit > 0){
+        //We cam repay more with rond up, because we are in profit
+        repayAmount = tools.setPrecisionUp((completedOrder.buy_price*completedOrder.sell_filled), 8);
+    } else {
+        repayAmount = tools.setPrecisionDown((completedOrder.sell_price*completedOrder.sell_filled), 8);
+    }
+    console.error("### calculatedRepayAmount: " + repayAmount);
+    if(repayAmount > 0){
+        //Check if we have available fund on spot account for repay margin funding
+        if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) >= 0){
+            //First we need transfer fund from spot to margin account to be repaid
+            const accountTransferId = await api.accountTransfer(config.name, pair, repayAmount , "fromSpot");
+            if(!accountTransferId.s){
+                apiCounter++;
+                await email.sendEmail("API Error accountTransferId ", pair.name +" #"+ pair.id +" need manual validate accountTransferId: " + JSON.stringify(accountTransferId));
+                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                if(config.stopTradingOnError){
+                    await tools.sleep(999999999);
+                    return false;
+                } else {
+                    return false;
+                }
+            }
+            if(accountTransferId.data > 0){
+                //Save fund transfer to history
+                await db.saveFundTransferHistory(config.name, pair, repayAmount, "fromSpot", accountTransferId.data);
+                //Check margin detail to get data for repay
+                let marginDetail = await api.accountMarginDetail();
+                if(!marginDetail.s){
+                    apiCounter++;
+                    await email.sendEmail("API Error accountMarginDetail ", pair.name +" #"+ pair.id +" need manual validate accountMarginDetail: " + JSON.stringify(marginDetail));
+                    logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+                //Find correct asset for actual trade what we want repay
+                const marginPairDetail = marginDetail.data.userAssets.find(o => o.asset === pair.name.split(pair.separator)[1]);
+                console.error("### repayAmount: " + repayAmount);
+                let marginRepayAmount = repayAmount;
+
+                if((marginPairDetail.borrowed-marginRepayAmount) < 0){
+                    //If we try repay more then we have borrowed. Repay only rest of borrowed funds
+                    marginRepayAmount = marginPairDetail.borrowed;
+                }
+                if(marginPairDetail.borrowed > 0){
+                    //Request repay borrowed fund
+                    const marginRepayId = await api.marginRepay(config.name, pair, marginRepayAmount);
+                    if(!marginRepayId.s){
+                        apiCounter++;
+                        await email.sendEmail("API Error marginRepayId ", pair.name +" #"+ pair.id +" need manual validate marginRepayId: " + JSON.stringify(marginRepayId));
+                        logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                        if(config.stopTradingOnError){
+                            await tools.sleep(999999999);
+                            return false;
+                        } else {
+                            return false;
+                        }
+                    }
+                    //Save repay borrowed funding to history
+                    await db.saveFundingHistory(config.name, pair, marginRepayAmount, "repay", marginRepayId.data);
+                }
+                console.error("### marginRepayAmount: " + marginRepayAmount);
+                //Update balance and available after margin repay success
+                myAccount.balance[pair.name.split(pair.separator)[1]] -= repayAmount;
+                myAccount.available[pair.name.split(pair.separator)[1]] -= repayAmount;
+                //Update actual state of funding for current pair to database
+                await db.updateFunding(config.name, pair, repayAmount, "repay");
+            }
+        }
+
+    }
+}
 
 let processFulfilledOrder = function(pair, orderDetail){
     switch(orderDetail.type){
