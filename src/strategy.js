@@ -1139,7 +1139,7 @@ async function sellOldestOrderWithLossWhenProfit(config_name, pair, targetAsk){
     const so = await db.getAllNonFrozenSellOrdersCount(config_name, pair.name, pair.id);
 
     if(pl < 0) {
-        if ((availableProfitForLosses - Math.abs(pl)) > 0 && so.count >= pair.strategy.sellOldestOrderWithLossWhenProfit.minPendingSellOrders) {
+        if ((availableProfitForLosses - Math.abs(pl)) > 0 && so.count > pair.strategy.sellOldestOrderWithLossWhenProfit.minPendingSellOrders) {
             await db.setSellTargetPrice(config_name, pair, oldestOrder.buy_id, 0);
             return true;
         } else {
