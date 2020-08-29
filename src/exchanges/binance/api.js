@@ -55,7 +55,7 @@ let getBalance = function(){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getBalance"}});
+                resolve({s:0, data: {error: e.message}});
             }
         });
     });
@@ -91,7 +91,7 @@ let getTicker = function(pair) {
                 console.error("binance getTicker");
                 console.error(body);
                 console.error(e);
-                resolve({s:0, data: {error: "getTicker"}, counter: 1});
+                resolve({s:0, data: {error: e.message}, counter: 1});
             }
         });
     });
@@ -247,7 +247,7 @@ let getOrder = function(pair, id, type, openedOrder){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter: 1, data: {error: "getOrder"}});
+                resolve({s:0, counter: 1, data: {error: e.message}});
             }
         });
     });
@@ -286,7 +286,7 @@ let cancelOrder = function(pair, id, type, openedOrder){
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, data: {error: "cancelOrder"}});
+                resolve({s:0, counter:1, data: {error: e.message}});
             }
         });
 
@@ -314,7 +314,7 @@ let accountMarginDetail = function(){
                 console.error(signed);
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter: 10, data: {error: e}});
+                resolve({s:0, counter: 10, data: {error: e.message}});
             }
         });
     });
@@ -349,7 +349,7 @@ let accountTransfer = function(exchange, pair, amount, type){
                 console.error(signed);
                 console.error(body);
                 console.error(error);
-                resolve({s:0, counter: 10, data: {error:error}});
+                resolve({s:0, counter: 10, data: {error:error.message}});
             }
         });
     });
@@ -377,7 +377,7 @@ let marginBorrow = function(exchange, pair, amount){
                 console.error(signed);
                 console.error(body);
                 console.error(error);
-                resolve({s:0, counter: 10, data: {error:error}});
+                resolve({s:0, counter: 10, data: {error:error.message}});
             }
         });
     });
@@ -405,7 +405,7 @@ let marginRepay  = function(exchange, pair, amount){
                 console.error(signed);
                 console.error(body);
                 console.error(error);
-                resolve({s:0, counter: 10, data: {error:error}});
+                resolve({s:0, counter: 10, data: {error:error.message}});
             }
         });
     });
