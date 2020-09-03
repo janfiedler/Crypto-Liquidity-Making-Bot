@@ -383,9 +383,7 @@ let getOrder = async function(pair, id, type, openedOrder){
 
     const getOrderResult = await api('QueryOrders', {"txid": id});
 
-    if(typeof getOrderResult.data.result[id].status === 'undefined' || getOrderResult.data.result[id].status === null ){
-        console.error(JSON.stringify(getOrderResult));
-    }
+    console.error(JSON.stringify(getOrderResult));
 
     if(!getOrderResult.error && getOrderResult.statusCode === 200){
         if(getOrderResult.data.error.length > 0){
