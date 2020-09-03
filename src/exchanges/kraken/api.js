@@ -382,13 +382,16 @@ let limitOrder = async function(type, pair, size, price){
 let getOrder = async function(pair, id, type, openedOrder){
 
     const getOrderResult = await api('QueryOrders', {"txid": id});
-    //console.log(JSON.stringify(getOrderResult));
+
+    if(typeof getOrderResult.data.result[id].status === 'undefined' || getOrderResult.data.result[id].status === null ){
+        console.error(JSON.stringify(getOrderResult));
+    }
 
     if(!getOrderResult.error && getOrderResult.statusCode === 200){
         if(getOrderResult.data.error.length > 0){
             console.error(JSON.stringify(getOrderResult));
             return {s:0, counter: 10, data: {error: getOrderResult.data.error[0]}};
-        } else if( getOrderResult.data.error.length === 0 && getOrderResult.data.result[id].status === "canceled" || getOrderResult.data.result[id].status === "closed"){
+        } else if( getOrderResult.data.error.length === 0 && (getOrderResult.data.result[id].status === "canceled" || getOrderResult.data.result[id].status === "closed")){
             let detailOrder = new tools.orderDetailForm;
             detailOrder.id = id;
             detailOrder.pair = pair.name;
