@@ -340,9 +340,9 @@ let doBidOrder = async function (){
                     }
                 }
             } else if ((spentAmount+spendAmount) < borrowedAmount){
-                let marginNotInBalance = tools.setPrecision(borrowedAmount-(spentAmount+spendAmount), 8);
-                if(marginNotInBalance > 0){
-                    console.error(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ marginNotInBalance);
+                let leftToRepay = tools.setPrecision(borrowedAmount-(spentAmount+spendAmount), 8);
+                if(leftToRepay > 0){
+                    console.error(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ leftToRepay);
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
