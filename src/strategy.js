@@ -568,42 +568,48 @@ async function validateOrder(type, id, pair, openedOrder){
     if (canceledOrder.s){
         logMessage += " ### orderDetail = api.cancelOrder(id)\n";
         orderDetail = canceledOrder.data;
-    } else if(!canceledOrder.s && canceledOrder.data.error.includes('not found')){
-        //Order was probably canceled manually, sync local DB
-        const detailOrder = await api.getOrder(pair, id, type, openedOrder);
-        apiCounter += detailOrder.counter;
-        if(detailOrder.s) {
-            logMessage += " ### orderDetail = api.getOrder(id)\n";
-            orderDetail = detailOrder.data;
-        } else {
-            if(detailOrder.data.error.includes("repeat")){
-                return false;
+    } else {
+        if(canceledOrder.data.error.includes("emergency stop")){
+            await email.sendEmail("API EMERGENCY STOP - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
+            await tools.sleep(999999999);
+        } else if(canceledOrder.data.error.includes('not found')){
+            //Order was probably canceled manually, sync local DB
+            const detailOrder = await api.getOrder(pair, id, type, openedOrder);
+            apiCounter += detailOrder.counter;
+            if(detailOrder.s) {
+                logMessage += " ### orderDetail = api.getOrder(id)\n";
+                orderDetail = detailOrder.data;
             } else {
-                await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
-                logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
-                if(config.stopTradingOnError){
-                    await tools.sleep(999999999);
-                } else {
+                if(detailOrder.data.error.includes("repeat")){
                     return false;
+                } else {
+                    await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
+                    logMessage += " !!! EMERGENCY ERROR happened! Validate orders!\n";
+                    if(config.stopTradingOnError){
+                        await tools.sleep(999999999);
+                    } else {
+                        return false;
+                    }
                 }
             }
-        }
-    } else if(!canceledOrder.s && canceledOrder.data.error.includes('has wrong status.')){
-        //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
-        logMessage += " !!! Catched cancelOrder has wrong status\n";
-        return false;
-    } else if(!canceledOrder.s && canceledOrder.data.error.includes("repeat")){
-        logMessage += " !!! validateOrder Repeat order due to:\n "+canceledOrder.data.reason+"!\n";
-        return false;
-    } else {
-        await email.sendEmail("API Timeout validateOrder/cancelOrder", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(canceledOrder));
-        logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
-        if(config.stopTradingOnError){
-            await tools.sleep(999999999);
-        } else {
+        } else if(canceledOrder.data.error.includes('has wrong status.')){
+            //Coinfalcon used to respond with this message if the order was not open anymore (fully filled or already cancelled). However they also respond with this (rarely) when the order is still actually open.
+            logMessage += " !!! Catched cancelOrder has wrong status\n";
             return false;
+        } else if(canceledOrder.data.error.includes("repeat")){
+            logMessage += " !!! validateOrder Repeat order due to:\n "+canceledOrder.data.reason+"!\n";
+            return false;
+        } else {
+            await email.sendEmail("API Timeout validateOrder/cancelOrder", pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(canceledOrder));
+            logMessage += " !!! EMERGENCY cancelOrder ERROR happened! Validate orders!\n";
+            if(config.stopTradingOnError){
+                await tools.sleep(999999999);
+            } else {
+                return false;
+            }
         }
     }
+
     logMessage += JSON.stringify(orderDetail)+"\n";
     //Check if order was partially_filled or fulfilled.
     if(orderDetail.size_filled === 0){

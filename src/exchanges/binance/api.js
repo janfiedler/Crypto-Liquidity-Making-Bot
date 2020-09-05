@@ -279,16 +279,22 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     detailOrder.status = result.status;
                     resolve({s:1, counter:1, data: detailOrder});
                 } else if(!error && response.statusCode === 200){
-                    resolve({s:0, counter:1, data: {"error": "unknown status"}});
+                    resolve({s:0, counter:1, data: {error: "emergency stop", reason: "unknown status"}});
                 } else {
                     console.error("binance cancelOrder");
                     console.error(body);
-                    resolve({s:0, counter:1, data: {"error": "not found"}});
+                    const errMsg = JSON.stringify(result.msg);
+                    if(errMsg.includes("Unknown order sent")){
+                        resolve({s:0, counter:1, data: {"error": "not found"}});
+                    } else {
+                        resolve({s:0, counter:1, data: {error: "emergency stop", reason: errMsg}});
+                    }
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, data: {error: e.message}});
+                //resolve({s:0, counter:1, data: {error: e.message}});
+                resolve({s:0, counter:1, data: {error: "emergency stop", reason: e.message}});
             }
         });
 
