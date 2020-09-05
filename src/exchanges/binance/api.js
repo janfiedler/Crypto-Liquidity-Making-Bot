@@ -180,7 +180,7 @@ let limitOrder = function(type, pair, size, price){
                     createdOrder.funds = tools.setPrecision(createdOrder.price*createdOrder.size, pair.digitsPrice);
                     resolve({s:1, counter:1, data: createdOrder});
                 } else if(!error && response.statusCode === 200){
-                    resolve({s:0, counter:1, data: {"error": "unknown status"}});
+                    resolve({s:0, counter:1, data: {error: "emergency stop", reason: "unknown status"}});
                 } else {
                     console.error("binance limitOrder");
                     console.error(body);
@@ -189,15 +189,17 @@ let limitOrder = function(type, pair, size, price){
                         resolve({s:0, counter:1, data: {error: "rejected"}});
                     } else if(errMsg.includes("Timestamp for this request is outside of the recvWindow")){
                         resolve({s:0, counter:1, data: {error: "repeat", reason: "Timestamp for this request is outside of the recvWindow"}});
+                    } else if(errMsg.includes("MIN_NOTIONAL")){
+                        resolve({s:0, counter:1, data: {error: "insufficient size", reason: errMsg}});
                     } else {
-                        resolve({s:0, counter:1, data: {error: errMsg}});
+                        resolve({s:0, counter:1, data: {error: "emergency stop", reason: errMsg}});
                     }
 
                 }
             } catch (e) {
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, data: {error: e.message}});
+                resolve({s:0, counter:1, data: {error: "emergency stop", reason: e.message}});
             }
         });
     });

@@ -1003,7 +1003,10 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                 await db.setOpenedSellerOrder(pair, pendingSellOrder, createdOrder);
                 return false;
             } else {
-                if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
+                if(createdOrder.data.error.includes("emergency stop")){
+                    await email.sendEmail("API EMERGENCY STOP - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
+                    await tools.sleep(999999999);
+                } else if(createdOrder.data.error.includes("insufficient size")){
                     const nextSellOrder = await db.getNextSellOrder(config.name, pair, pendingSellOrder);
                     if(nextSellOrder.length === 1){
                         // We have next sell order, where we can adjust sell_size from insufficient size order
@@ -1164,7 +1167,10 @@ async function processBidOrder(pair, valueForSize, targetBid){
             await db.saveOpenedBuyOrder(config.name, pair, createdOrder);
             return true;
         } else {
-            if(createdOrder.data.error.includes("insufficient size") || createdOrder.data.error.includes("Filter failure: MIN_NOTIONAL")){
+            if(createdOrder.data.error.includes("emergency stop")){
+                await email.sendEmail("API EMERGENCY STOP - createOrder BUY", pair.name +" #"+ pair.id +" need manual validate last BUY order: " + JSON.stringify(createdOrder));
+                await tools.sleep(999999999);
+            } else if(createdOrder.data.error.includes("insufficient size")){
                 console.error("Minimum Order Size: insufficient buy size!");
             } else if(createdOrder.data.error.includes("Size order not set in config.")){
                 console.error("Size order not set in config.");
