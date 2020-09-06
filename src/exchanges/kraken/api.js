@@ -383,13 +383,13 @@ let getOrder = async function(pair, id, type, openedOrder){
 
     const getOrderResult = await api('QueryOrders', {"txid": id});
     console.error("#Kraken getOrder");
-    console.error(JSON.stringify(getOrderResult));
+    //console.error(JSON.stringify(getOrderResult));
 
     if(!getOrderResult.error && getOrderResult.statusCode === 200){
         if(getOrderResult.data.error.length > 0){
             console.error(JSON.stringify(getOrderResult));
             return {s:0, counter: 10, data: {error: getOrderResult.data.error[0]}};
-        } else if( getOrderResult.data.error.length === 0 && (getOrderResult.data.result[id].status === "canceled" || getOrderResult.data.result[id].status === "closed")){
+        } else if( Object.keys(getOrderResult.data.result).length > 0 && getOrderResult.data.error.length === 0 && (getOrderResult.data.result[id].status === "canceled" || getOrderResult.data.result[id].status === "closed")){
             let detailOrder = new tools.orderDetailForm;
             detailOrder.id = id;
             detailOrder.pair = pair.name;
