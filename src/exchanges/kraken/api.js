@@ -414,19 +414,19 @@ let getOrder = async function(pair, id, type, openedOrder){
 
             //console.log(detailOrder);
             return {s:1, counter: 2, data: detailOrder};
-        } else if( getOrderResult.data.error.length === 0 && getOrderResult.data.result[id].status === "open"){
+        } else if( Object.keys(getOrderResult.data.result).length > 0 && getOrderResult.data.error.length === 0 && getOrderResult.data.result[id].status === "open"){
             // Order not closed yet, repeat
             return {s:0, counter: 15, data: {error: "repeat"}};
         } else {
             // Uknown error
-            return {s:0, counter: 10, data: {error: JSON.stringify(getOrderResult)}};
+            return {s:0, counter: 10, data: {error: JSON.stringify(openedOrder), reason: JSON.stringify(getOrderResult)}};
         }
     } else {
         console.error("kraken getOrder");
         console.error(body);
         console.error(JSON.stringify(openedOrder));
         console.error(id);
-        return {s:0, counter: 2, data: {error: JSON.stringify(result)}};
+        return {s:0, counter: 2, data: {error: JSON.stringify(getOrderResult)}};
     }
 };
 
