@@ -182,7 +182,7 @@ let limitOrder = function(type, pair, size, price){
                 } else if(!error && response.statusCode === 200){
                     resolve({s:0, counter:1, data: {error: "emergency stop", reason: "unknown status"}});
                 } else {
-                    console.error("binance limitOrder");
+                    console.error("### Binance ERROR limitOrder");
                     console.error(body);
                     const errMsg = JSON.stringify(result.msg);
                     if(errMsg.includes("Order would immediately match and take")){
@@ -197,6 +197,7 @@ let limitOrder = function(type, pair, size, price){
 
                 }
             } catch (e) {
+                console.error("### Binance CATCH ERROR limitOrder");
                 console.error(body);
                 console.error(e);
                 resolve({s:0, counter:1, data: {error: "emergency stop", reason: e.message}});
@@ -214,7 +215,11 @@ let getOrder = function(pair, id, type, openedOrder){
         request.get({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200 && (result.status === "PARTIALLY_FILLED" || result.status === "FILLED" || result.status === "CANCELED") ) {
+                if (!error && response.statusCode === 200 && (result.status === "PARTIALLY_FILLED")){
+                    console.error("### Binance getOrder PARTIALLY_FILLED");
+                    console.error(body);
+                    resolve({s:0, counter:1, data: {error: "emergency stop", reason: body}});
+                } else if (!error && response.statusCode === 200 && (result.status === "FILLED" || result.status === "CANCELED") ) {
                     console.error("### Binance getOrder");
                     console.error(body);
                     let detailOrder = new tools.orderDetailForm;

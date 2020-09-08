@@ -581,7 +581,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 orderDetail = detailOrder.data;
             } else {
                 if(detailOrder.data.error.includes("emergency stop")){
-                    await email.sendEmail("API EMERGENCY STOP - validateOrder SELL", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(openedOrder) +"\n"+JSON.stringify(detailOrder));
+                    await email.sendEmail("API EMERGENCY STOP - validateOrder", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(openedOrder) +"\n"+JSON.stringify(detailOrder));
                     await tools.sleep(999999999);
                 } else if(detailOrder.data.error.includes("repeat")){
                     return false;
