@@ -580,7 +580,10 @@ async function validateOrder(type, id, pair, openedOrder){
                 logMessage += " ### orderDetail = api.getOrder(id)\n";
                 orderDetail = detailOrder.data;
             } else {
-                if(detailOrder.data.error.includes("repeat")){
+                if(detailOrder.data.error.includes("emergency stop")){
+                    await email.sendEmail("API EMERGENCY STOP - validateOrder SELL", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(openedOrder) +"\n"+JSON.stringify(detailOrder));
+                    await tools.sleep(999999999);
+                } else if(detailOrder.data.error.includes("repeat")){
                     return false;
                 } else {
                     await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
