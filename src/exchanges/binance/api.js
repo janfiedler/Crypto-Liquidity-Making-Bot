@@ -166,12 +166,13 @@ let limitOrder = function(type, pair, size, price){
 
         let body = { "symbol": pair.name.replace(pair.separator,''), "side": type, "type": "LIMIT_MAKER", "quantity": size, "price": price, "newOrderRespType": "FULL" };
         const signed = sign(body);
-
+        console.log("### Binance limitOrder source");
+        console.log(body)
         request.post({url: url, headers : signed.headers, qs: signed.totalParams}, async function(error, response, body) {
             try {
                 const result = JSON.parse(body);
                 //console.error("### createOrder " + type);
-                //console.error(result);
+                console.log(body+"\r\n"+"##################");
                 if (!error && response.statusCode === 200 && result.status === "NEW") {
                     let createdOrder = new tools.orderCreatedForm;
                     createdOrder.id = result.clientOrderId;
