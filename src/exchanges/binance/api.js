@@ -215,6 +215,8 @@ let getOrder = function(pair, id, type, openedOrder){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200 && (result.status === "PARTIALLY_FILLED" || result.status === "FILLED" || result.status === "CANCELED") ) {
+                    console.error("### Binance getOrder");
+                    console.error(body);
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.clientOrderId;
                     detailOrder.pair = pair.name;
@@ -228,25 +230,26 @@ let getOrder = function(pair, id, type, openedOrder){
                     resolve({s:1, counter: 1, data: detailOrder});
                 } else if (!error && response.statusCode === 200 && result.status === "NEW") {
                     //getOrder is called when cancel order failed due to not found = is filled. But order is still tagged as OPEN
-                    console.error("binance getOrder not FILLED after not canceled");
+                    console.error("### Binance getOrder not FILLED after not canceled");
                     console.error(body);
                     console.error(JSON.stringify(openedOrder));
                     console.error(id);
                     resolve({s:0, counter: 1, data: {error: "repeat"}});
                 } else if(!error && result.code === -2013 && result.msg.includes("Order does not exist.")){
-                    console.error("binance getOrder not FOUND after cancel order, probably lag of exchange");
+                    console.error("### Binance getOrder not FOUND after cancel order, probably lag of exchange");
                     console.error(body);
                     console.error(JSON.stringify(openedOrder));
                     console.error(id);
                     resolve({s:0, counter: 1, data: {error: "repeat"}});
                 } else {
-                    console.error("binance getOrder");
+                    console.error("### Binance getOrder");
                     console.error(body);
                     console.error(JSON.stringify(openedOrder));
                     console.error(id);
                     resolve({s:0, counter: 1, data: {error: JSON.stringify(result)}});
                 }
             } catch (e) {
+                console.error("### Binance CATCH ERROR getOrder");
                 console.error(body);
                 console.error(e);
                 resolve({s:0, counter: 1, data: {error: e.message}});
@@ -264,8 +267,8 @@ let cancelOrder = function(pair, id, type, openedOrder){
         request.delete({url: url, headers : signed.headers, qs: signed.totalParams}, async function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                //console.error("### cancelOrder");
-                //console.error(result);
+                console.error("### Binance cancelOrder");
+                console.error(body);
                 if (!error && response.statusCode === 200 && result.status === "CANCELED") {
                     let detailOrder = new tools.orderDetailForm;
                     detailOrder.id = result.origClientOrderId;
@@ -281,7 +284,7 @@ let cancelOrder = function(pair, id, type, openedOrder){
                 } else if(!error && response.statusCode === 200){
                     resolve({s:0, counter:1, data: {error: "emergency stop", reason: "unknown status"}});
                 } else {
-                    console.error("binance cancelOrder");
+                    console.error("### Binance ERROR cancelOrder");
                     console.error(body);
                     const errMsg = JSON.stringify(result.msg);
                     if(errMsg.includes("Unknown order sent")){
@@ -291,6 +294,7 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     }
                 }
             } catch (e) {
+                console.error("### Binance CATCH ERROR cancelOrder");
                 console.error(body);
                 console.error(e);
                 //resolve({s:0, counter:1, data: {error: e.message}});
