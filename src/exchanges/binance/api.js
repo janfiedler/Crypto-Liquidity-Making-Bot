@@ -295,6 +295,8 @@ let cancelOrder = function(pair, id, type, openedOrder){
                     const errMsg = JSON.stringify(result.msg);
                     if(errMsg.includes("Unknown order sent")){
                         resolve({s:0, counter:1, data: {"error": "not found"}});
+                    }else if(errMsg.includes("Timestamp for this request is outside of the recvWindow")){
+                        resolve({s:0, counter:1, data: {error: "repeat", reason: errMsg}});
                     } else {
                         resolve({s:0, counter:1, data: {error: "emergency stop", reason: errMsg}});
                     }
