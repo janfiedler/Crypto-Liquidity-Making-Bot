@@ -570,7 +570,7 @@ async function validateOrder(type, id, pair, openedOrder){
         orderDetail = canceledOrder.data;
     } else {
         if(canceledOrder.data.error.includes("emergency stop")){
-            await email.sendEmail("API EMERGENCY STOP - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(createdOrder));
+            await email.sendEmail("API EMERGENCY STOP - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(canceledOrder)+"\n"+JSON.stringify(openedOrder));
             await tools.sleep(999999999);
         } else if(canceledOrder.data.error.includes('not found')){
             //Order was probably canceled manually, sync local DB
@@ -581,7 +581,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 orderDetail = detailOrder.data;
             } else {
                 if(detailOrder.data.error.includes("emergency stop")){
-                    await email.sendEmail("API EMERGENCY STOP - validateOrder", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(openedOrder) +"\n"+JSON.stringify(detailOrder));
+                    await email.sendEmail("API EMERGENCY STOP - validateOrder", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(detailOrder) +"\n"+JSON.stringify(openedOrder));
                     await tools.sleep(999999999);
                 } else if(detailOrder.data.error.includes("repeat")){
                     return false;
