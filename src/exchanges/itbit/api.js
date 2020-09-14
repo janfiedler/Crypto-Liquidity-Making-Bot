@@ -392,12 +392,9 @@ let limitOrder = function (type, pair, size, price) {
 let getOrder = function(pair, id, type, openedOrder){
     return new Promise(async function (resolve) {
         const getOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/" + id, {});
-        //console.error("### getOrder");
-        //console.error(getOrderResult.statusCode);
-        //console.error(getOrderResult.data);
+        console.error("### itBit getOrder");
+        console.error(getOrderResult);
         if(!getOrderResult.error && getOrderResult.statusCode === 200 && (getOrderResult.data.status === "filled" || getOrderResult.data.status === "cancelled" || getOrderResult.data.status === "rejected") ){
-            //console.log("getOrder");
-            //console.log(getOrderResult);
             let detailOrder = new tools.orderDetailForm;
             detailOrder.id = getOrderResult.data.id;
             detailOrder.pair = pair.name;
@@ -486,10 +483,8 @@ let cancelOrder = function (pair, id, type, openedOrder){
         console.log(trades);
          */
         const cancelResult = await makePrivateRequest("DELETE", "/wallets/" + walletId + "/orders/" + id, {});
-        //console.log("cancelOrder");
-        //console.error("### cancelOrder");
-        //console.error(cancelResult.statusCode);
-        //console.error(cancelResult.data);
+        console.error("### itBit cancelOrder");
+        console.error(cancelResult);
         if(!cancelResult.error && cancelResult.statusCode === 202){
             if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
