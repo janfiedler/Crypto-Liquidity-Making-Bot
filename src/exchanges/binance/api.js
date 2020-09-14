@@ -217,9 +217,9 @@ let getOrder = function(pair, id, type, openedOrder){
             try {
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200 && (result.status === "PARTIALLY_FILLED")){
-                    console.error("### Binance getOrder PARTIALLY_FILLED");
+                    console.error("### Binance getOrder PARTIALLY_FILLED, api.cancelOrder is pending!");
                     console.error(body);
-                    resolve({s:0, counter:1, data: {error: "emergency stop", reason: body}});
+                    resolve({s:0, counter: 1, data: {error: "repeat", reason: "api.getOrder is still opened! api.cancelOrder is pending!"}});
                 } else if (!error && response.statusCode === 200 && (result.status === "FILLED" || result.status === "CANCELED") ) {
                     console.error("### Binance getOrder");
                     console.error(body);
