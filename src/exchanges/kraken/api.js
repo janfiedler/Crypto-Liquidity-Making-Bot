@@ -382,7 +382,7 @@ let limitOrder = async function(type, pair, size, price){
 let getOrder = async function(pair, id, type, openedOrder){
 
     const getOrderResult = await api('QueryOrders', {"txid": id});
-    console.error("#Kraken getOrder");
+    //console.error("#Kraken getOrder");
     //console.error(JSON.stringify(getOrderResult));
 
     if(!getOrderResult.error && getOrderResult.statusCode === 200){
