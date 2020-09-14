@@ -486,13 +486,16 @@ let cancelOrder = function (pair, id, type, openedOrder){
         console.error("### itBit cancelOrder");
         console.error(cancelResult);
         if(!cancelResult.error && cancelResult.statusCode === 202){
-            if(cancelResult.data.message.includes('Success') || cancelResult.data.message.includes('Order already cancelled')){
+            if(cancelResult.data.message.includes('Success')){
+                //A 202 response acknowledges that the cancellation request has been received and is being processed. It is not a guarantee that the order has been cancelled.
+                //We need repeat request to get status: 'Order already cancelled'
+                resolve({s: 0, counter: 1, data: {error: "repeat", reason: "It is not a guarantee that the order has been cancelled."}});
+            } else if(cancelResult.data.message.includes('Order already cancelled')){
                 //Because cancel order do not response with order detail, we need request order detail in next step
                 resolve({s:0, counter:1, data: {error: "not found"}});
             } else {
                 resolve({s:0, counter:1, data: {error: "itbit cancelOrder failed"}});
             }
-
         } else if(cancelResult.error && cancelResult.statusCode === 422) {
             //The order matching the provided id is not open
             resolve({s:0, counter:1, data: {error: "not found"}});
