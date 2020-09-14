@@ -342,7 +342,7 @@ let doBidOrder = async function (){
             } else if ((spentAmount+spendAmount) < borrowedAmount){
                 let leftToRepay = tools.setPrecision(borrowedAmount-(spentAmount+spendAmount), 8);
                 if(leftToRepay > 0){
-                    console.error(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ leftToRepay);
+                    console.log(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ leftToRepay);
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
