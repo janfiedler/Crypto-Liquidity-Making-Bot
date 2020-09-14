@@ -440,7 +440,7 @@ let getOrder = function(pair, id, type, openedOrder){
             //console.error(new Date().toISOString() + "\n" + JSON.stringify(getOrderResult.data));
             //console.error(JSON.stringify(openedOrder));
             //console.error(id);
-            resolve({s:0, counter: 10, data: {error: "repeat"}});
+            resolve({s:0, counter: 10, data: {error: "repeat", reason: getOrderResult.data.status}});
         } else if(getOrderResult.error && getOrderResult.statusCode === 404) {
             //The order matching the provided id is not open
             resolve({s:0, counter: 1, data: {error: "itbit getOrderError"}});

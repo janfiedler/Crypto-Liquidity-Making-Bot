@@ -584,6 +584,7 @@ async function validateOrder(type, id, pair, openedOrder){
                     await email.sendEmail("API EMERGENCY STOP - validateOrder", pair.name +" #"+ pair.id +" need manual validate getOrder: " + JSON.stringify(detailOrder) +"\n"+JSON.stringify(openedOrder));
                     await tools.sleep(999999999);
                 } else if(detailOrder.data.error.includes("repeat")){
+                    logMessage += " !!! validateOrder Repeat order due to\n "+detailOrder.data.reason+"!\n";
                     return false;
                 } else {
                     await email.sendEmail("API Timeout getOrder "+type, pair.name +" #"+ pair.id +" need manual validate last orders: " + JSON.stringify(detailOrder));
