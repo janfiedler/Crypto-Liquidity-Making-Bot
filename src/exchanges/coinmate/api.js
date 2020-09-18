@@ -2,10 +2,6 @@ let request = require('request');
 const crypto = require('crypto');
 const tools = require('../../tools');
 let config;
-let Pusher = require('pusher-js');
-let coinmatePusher = new Pusher('af76597b6b928970fbb0', {
-    encrypted: true
-});
 
 const WebSocket = require('ws');
 
@@ -165,7 +161,7 @@ let getTicker = async function (pair){
 };
 let parseTicker = function(type, book, pair, order){
     if(config.webSocket){
-        return parsePusherTicker(type, book, pair, order);
+        return parseWebSocketTicker(type, book, pair, order);
     } else {
         return parseApiTicker(type, book, pair, order);
     }
@@ -217,7 +213,7 @@ let parseApiTicker = function(type, book, pair, order){
     return ticks;
 };
 
-let parsePusherTicker = function(type, book, pair, order){
+let parseWebSocketTicker = function(type, book, pair, order){
     let ticks = {bid:[],bidBorder: 0, ask:[], askBorder:0};
     let ii=0;
     for(let i=0;i<book.asks.length;i++){
