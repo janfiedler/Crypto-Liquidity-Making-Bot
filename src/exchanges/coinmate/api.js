@@ -6,35 +6,89 @@ let Pusher = require('pusher-js');
 let coinmatePusher = new Pusher('af76597b6b928970fbb0', {
     encrypted: true
 });
-let pusher_order_book = [];
+
+const WebSocket = require('ws');
+
+let ws = null;
+let webSocketUrl = "wss://coinmate.io/api/websocket";
+
+let websocket_order_book = [];
 let order_book = [];
 
-let setGetOrdersListByPusher = function(){
+
+let initWebSocketConnection = function (){
     return new Promise(function (resolve) {
+        //Create the WebSocket object
+        ws = new WebSocket(webSocketUrl);
+
+        ws.on('open', async function open() {
+            console.log("Connected to websocket server at: " + webSocketUrl);
+            ws.isAlive = true;
+            await handleWebSocketSubscription("subscribe");
+            resolve(true);
+        });
+
+        ws.on('message', function incoming(data) {
+            parseWebSocketData(data);
+        });
+
+    });
+}
+
+let cancelWebSocketConnection = function (){
+    return new Promise(async function (resolve) {
+        if(ws.isAlive){
+            console.log("Canceling connection to websocket server at: " + webSocketUrl);
+            await handleWebSocketSubscription("unsubscribe");
+            if (ws.isAlive){
+                ws.close();
+            }
+            ws.on('close', function close() {
+                console.log("Disconnected to websocket server at: " + webSocketUrl);
+                ws.isAlive = false;
+                websocket_order_book = null;
+                resolve(true);
+            });
+        }
+    });
+}
+
+let handleWebSocketSubscription = function (type){
+    if(type === "subscribe"){
         for(let i=0;i<config.pairs.length;i++){
             if(config.pairs[i].active.buy || config.pairs[i].active.sell){
-                if(typeof pusher_order_book[config.pairs[i].name] === 'undefined'){
-                    pusher_order_book[config.pairs[i].name] = coinmatePusher.subscribe('order_book-' + config.pairs[i].name);
-                    console.log("subscribe " + config.pairs[i].name);
-                    pusher_order_book[config.pairs[i].name].bind('order_book', function(data) {
-                        if(config.debug){
-                            console.log("New data for " + config.pairs[i].name);
-                        }
-                        order_book[config.pairs[i].name] = data;
-                    });
+                if(typeof websocket_order_book[config.pairs[i].name] === 'undefined'){
+                    websocket_order_book[config.pairs[i].name] = true;
+                    console.log("Subscribe order book for " + config.pairs[i].name);
+                    webSocketEmit("subscribe", {"channel": 'order_book-' + config.pairs[i].name});
                 }
             }
         }
-        resolve(true);
-    });
-};
-
-let cancelPusher = function(){
-    for(let i=0;i<Object.keys(pusher_order_book).length;i++){
-        console.log("unsubscribe " + Object.keys(pusher_order_book)[i]);
-        coinmatePusher.unsubscribe('order_book-' + Object.keys(pusher_order_book)[i]);
+    } else if(type === "unsubscribe"){
+        for(let i=0;i<Object.keys(websocket_order_book).length;i++){
+            console.log("Unsubscribe order book for " + Object.keys(websocket_order_book)[i]);
+            webSocketEmit("unsubscribe", {"channel": 'order_book-' + Object.keys(websocket_order_book)[i]});
+        }
     }
-};
+
+}
+
+let parseWebSocketData = function (data){
+    try {
+        let incomeMessage = JSON.parse(data);
+        let channel = incomeMessage.channel.split('-');
+        if(channel[0] === "order_book"){
+            order_book[channel[1]] = incomeMessage.payload;
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+let webSocketEmit = function (event, data){
+        ws.send(JSON.stringify({"event": event, "data": data}));
+}
+
 
 let setConfig = function(data){
     config = data;
@@ -81,7 +135,7 @@ let getBalance = function(){
 };
 /* Get actual order book with buys and sells */
 let getTicker = async function (pair){
-    if(config.pusher){
+    if(config.webSocket){
         if(typeof order_book[pair.name] === 'undefined'){
             console.error(pair.name + " waiting on order book!");
             await tools.sleep(1000);
@@ -110,7 +164,7 @@ let getTicker = async function (pair){
     }
 };
 let parseTicker = function(type, book, pair, order){
-    if(config.pusher){
+    if(config.webSocket){
         return parsePusherTicker(type, book, pair, order);
     } else {
         return parseApiTicker(type, book, pair, order);
@@ -515,8 +569,8 @@ let getOrderHistory = function (currencyPair, limit){
 
 module.exports = {
     setConfig: setConfig,
-    setGetOrdersListByPusher: setGetOrdersListByPusher,
-    cancelPusher: cancelPusher,
+    initWebSocketConnection: initWebSocketConnection,
+    cancelWebSocketConnection: cancelWebSocketConnection,
     getBalance: getBalance,
     getTicker: getTicker,
     parseTicker: parseTicker,

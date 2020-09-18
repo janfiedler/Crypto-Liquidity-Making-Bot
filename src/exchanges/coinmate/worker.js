@@ -14,14 +14,14 @@ process.on('message', async function(data) {
         case "init":
             config = data.config;
             coinmate.setConfig(data.config);
-            if(config.pusher){
-                await coinmate.setGetOrdersListByPusher();
+            if(config.webSocket){
+                await coinmate.initWebSocketConnection();
             }
             init();
             break;
         case "stop":
-            if(config.pusher){
-                await coinmate.cancelPusher();
+            if(config.webSocket){
+                await coinmate.cancelWebSocketConnection();
             }
             stop = true;
             break

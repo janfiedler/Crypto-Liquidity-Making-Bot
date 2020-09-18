@@ -221,7 +221,7 @@ let config =
                 "sleepPause": 650,
                 "validateTimeout": 60,
                 "stickToBigOrders": false,
-                "pusher": true,
+                "webSocket": true,
                 "accounts": [{"name": "BTC"}, {"name": "CZK"}],
                 "pairs": [
                     {
