@@ -360,92 +360,65 @@ let createOrder = async function (pair, type, pendingSellOrder, valueForSize, pr
         case "BUY":
             size = tools.getBuyOrderSize(pair, valueForSize, price);
             if(size > 0){
-                return await buyLimitOrder(pair.name, size, price);
+                return await limitOrder("BUY", pair.name, size, price);
             } else {
                 return {s:0, data: {error: "Size order not set in config."}};
             }
         case "SELL":
             size = pendingSellOrder.sell_size.toString();
-            return await sellLimitOrder(pair.name, size, price);
+            return await limitOrder("SELL", pair.name, size, price);
     }
 };
-let buyLimitOrder = function (currencyPair, amount, price){
+
+let limitOrder = function (type, currencyPair, amount, price){
     return new Promise(function (resolve) {
+        let limitOrderType;
+        if(type === "BUY"){
+            limitOrderType = "buyLimit"
+        } else if (type === "SELL"){
+            limitOrderType = "sellLimit"
+        }
         request({
             method: 'POST',
-            url: 'https://coinmate.io/api/buyLimit',
+            url: 'https://coinmate.io/api/'+limitOrderType,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&postOnly=1" + "&" + sign()
         }, function (error, response, body) {
             try {
+                console.error("### coinmate create " + limitOrderType + " order");
+                console.error('Status:', response.statusCode);
+                console.error('Headers:', JSON.stringify(response.headers));
+                console.error('Response:', body);
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     if(result.error){
                         if(result.errorMessage.includes("Minimum Order Size")){
                             resolve({s:0, counter:1, data: {error: "insufficient size"}});
                         } else {
-                            resolve({s:0, counter:1, data: {error: JSON.stringify(result.errorMessage)}});
+                            resolve({s:0, counter:1, data: {error: "emergency stop", reason: result.errorMessage}});
                         }
-                    } else {
+                    } else if (!result.error && result.data !== null) {
                         let createdOrder = new tools.orderCreatedForm;
                         createdOrder.id = result.data;
                         createdOrder.price = price;
                         createdOrder.size = amount;
                         createdOrder.funds = amount * price;
                         resolve({s: 1, counter:1, data: createdOrder});
-                    }
-                } else {
-                    console.error("coinmate buyLimitOrder");
-                    console.error(body);
-                    resolve({s:0, counter:1, data:{error: body}});
-                }
-            } catch (e) {
-                console.error(body);
-                console.error(e);
-                resolve({s:0, counter:1, data:{error: e.toString()}});
-            }
-        });
-    });
-};
-
-let sellLimitOrder = function (currencyPair, amount, price){
-    return new Promise(function (resolve) {
-        request({
-            method: 'POST',
-            url: 'https://coinmate.io/api/sellLimit',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: "currencyPair=" + currencyPair + "&amount=" + amount + "&price=" +price + "&postOnly=1" + "&" + sign()
-        }, function (error, response, body) {
-            try {
-                const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
-                    if(result.error){
-                        if(result.errorMessage.includes("Minimum Order Size")){
-                            resolve({s:0, counter:1, data: {error: "insufficient size"}});
-                        } else {
-                            resolve({s:0, counter:1, data: {error: JSON.stringify(result.errorMessage)}});
-                        }
                     } else {
-                        let createdOrder = new tools.orderCreatedForm;
-                        createdOrder.id = result.data;
-                        createdOrder.price = price;
-                        createdOrder.size = amount;
-                        createdOrder.funds = amount*price;
-                        resolve({s:1, counter:1, data: createdOrder});
+                        resolve({s:0, counter:1, data: {error: "emergency stop", reason: body}});
                     }
                 } else {
-                    console.error("coinmate sellLimitOrder");
+                    console.error("### coinmate " + limitOrderType);
                     console.error(body);
-                    resolve({s:0, counter:1, data: {error: body}});
+                    resolve({s:0, counter:1, data: {error: "emergency stop", reason: body}});
                 }
             } catch (e) {
+                console.error("### coinmate " + limitOrderType);
                 console.error(body);
                 console.error(e);
-                resolve({s:0, counter:1, data: {error: body}});
+                resolve({s:0, counter:1, data: {error: "emergency stop", reason: e.message}});
             }
         });
     });
