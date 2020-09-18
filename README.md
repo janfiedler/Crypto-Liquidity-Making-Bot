@@ -338,10 +338,10 @@ Timeout in minutes, after that it is forced validate opened order. This can happ
 ```
 This is part of the strategy. If true, the bot will take as spot price (for obtaining target price) only from order, where size is bigger than two next orders. This is one strategy how to follow big orders. You get less filled trades, but you maybe get a fair price, because more traders think this is a good price for sell/buy order (support/resistance levels).
 ```
-* "pusher": true
+* "webSocket": true
 ```
-It is a specific parameter only for coinmate exchange. If the parameter is true, pusher for obtaining the order book will be used. This will save a lot of time instead of using API. 
-Sometimes can happen, the pusher is stacked. So you can turn it off and use standard API call.
+It is a specific parameter only for coinmate exchange. If the parameter is true, WebSocket for obtaining the order book will be used. This will save a lot of time instead of using RestAPI. 
+Sometimes can happen, the WebSocket is stacked. So you can turn it off and use standard RestAPI call.
 ```
 
 * "accounts": [{"name":"eur"},{"name":"btc"},...],
