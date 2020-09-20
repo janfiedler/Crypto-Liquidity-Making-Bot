@@ -570,7 +570,7 @@ async function validateOrder(type, id, pair, openedOrder){
         orderDetail = canceledOrder.data;
     } else {
         if(canceledOrder.data.error.includes("emergency stop")){
-            await email.sendEmail("API EMERGENCY STOP - createOrder SELL", pair.name +" #"+ pair.id +" need manual validate last SELL order: " + JSON.stringify(canceledOrder)+"\n"+JSON.stringify(openedOrder));
+            await email.sendEmail("API EMERGENCY STOP - createOrder validateOrder", pair.name +" #"+ pair.id +" need manual validate last cancelOrder: " + JSON.stringify(canceledOrder)+"\n"+JSON.stringify(openedOrder));
             await tools.sleep(999999999);
         } else if(canceledOrder.data.error.includes('not found')){
             //Order was probably canceled manually, sync local DB
