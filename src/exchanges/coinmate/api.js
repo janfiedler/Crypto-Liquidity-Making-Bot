@@ -309,7 +309,7 @@ let getOrder = async function (pair, id, type, openedOrder){
         }
         return {s: 1, counter: 1, data: orderDetail};
     } else {
-        return {s: 0, counter: 1, data: {error: JSON.stringify(rTH.errorMessage)}};
+        return {s: 0, counter: 1, data: {error: "repeat", reason: JSON.stringify(rTH)}};
     }
 };
 
@@ -438,22 +438,22 @@ let getTradeHistory = function (orderId ){
                 const result = JSON.parse(body);
                 if (!error && response.statusCode === 200) {
                     if (result.error) {
-                        console.error("coinmate getTradeHistory #1");
+                        console.error("### Coinmate getTradeHistory #1");
                         console.error(result);
                         resolve({ s: 0, data: {error: JSON.stringify(result.errorMessage)}});
                     } else {
                         resolve({ s: 1, data: result.data });
                     }
                 } else {
-                    console.error("coinmate getTradeHistory #2");
+                    console.error("## Coinmate getTradeHistory #2");
                     console.error(body);
                     resolve({s:0, data: {error: JSON.stringify(result.errorMessage)}});
                 }
             } catch (e) {
-                console.error("getTradeHistory:");
+                console.error("## Coinmate CATCH ERROR getTradeHistory:");
                 console.error(body);
                 console.error(e);
-                resolve({s:0});
+                resolve({s:0, data: {error: e.message}});
             }
         });
     });
