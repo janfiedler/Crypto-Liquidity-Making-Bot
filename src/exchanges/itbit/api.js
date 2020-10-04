@@ -453,7 +453,7 @@ let getLastOrder = function(type, pair, amount, price){
     return new Promise(async function (resolve) {
         let args = {
             instrument: pair.name.replace(pair.separator,''),
-            perPage: 1
+            perPage: 8
         }
         const getLastOrderResult = await makePrivateRequest("GET", "/wallets/" + walletId + "/orders/", args);
         console.error("### getLastOrder");
