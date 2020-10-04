@@ -459,7 +459,7 @@ let getLastOrder = function(type, pair, amount, price){
         console.error("### getLastOrder");
         if(!getLastOrderResult.error && getLastOrderResult.statusCode === 200){
             for(let i=0;i<getLastOrderResult.data.length;i++){
-                if(getLastOrderResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrderResult.data[i].amount).toFixed(pair.digitsSize) === amount && parseFloat(getLastOrderResult.data[i].price).toFixed(pair.digitsPrice) === price){
+                if(getLastOrderResult.data[i].instrument === pair.name.replace(pair.separator,'') && getLastOrderResult.data[i].side === type.toLowerCase() && parseFloat(getLastOrderResult.data[i].amount).toFixed(pair.digitsSize) === amount && parseFloat(getLastOrderResult.data[i].price).toFixed(pair.digitsPrice) === price){
                     console.error("!!! FOUND !!!");
                     resolve({s:1, counter: 1, data: getLastOrderResult.data[i]});
                     break;
