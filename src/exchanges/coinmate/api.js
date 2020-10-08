@@ -72,12 +72,15 @@ let handleWebSocketSubscription = function (type){
 let parseWebSocketData = function (data){
     try {
         let incomeMessage = JSON.parse(data);
-        let channel = incomeMessage.channel.split('-');
-        if(channel[0] === "order_book"){
-            order_book[channel[1]] = incomeMessage.payload;
+        if(incomeMessage.hasOwnProperty('channel') && incomeMessage.hasOwnProperty('payload')){
+            let channel = incomeMessage.channel.split('-');
+            if(channel[0] === "order_book"){
+                order_book[channel[1]] = incomeMessage.payload;
+            }
         }
     } catch (e) {
         console.error(e);
+        console.error(data);
     }
 }
 
