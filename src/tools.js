@@ -268,6 +268,19 @@ let getTimeBetween = function(date1, date2){
     return {days: days, hours: hours, minutes: minutes, seconds: seconds};
 };
 
+let isJSON = function(text){
+    if (typeof text!=="string"){
+        return false;
+    }
+    try{
+        JSON.parse(text);
+        return true;
+    }
+    catch (error){
+        return false;
+    }
+}
+
 /*
 const completedOrders = await db.getAllCompletedOrders();
 console.log(completedOrders.length);
@@ -305,5 +318,6 @@ module.exports = {
     calculateProfit: calculateProfit,
     calculatePendingProfit: calculatePendingProfit,
     getAmountSpent: getAmountSpent,
-    getTimeBetween: getTimeBetween
+    getTimeBetween: getTimeBetween,
+    isJSON: isJSON
 };
