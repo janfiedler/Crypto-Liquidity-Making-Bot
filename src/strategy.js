@@ -343,6 +343,7 @@ let doBidOrder = async function (){
                 let leftToRepay = tools.setPrecision(borrowedAmount-(spentAmount+spendAmount), 8);
                 if(leftToRepay > 0){
                     console.log(pair.name +" #"+ pair.id +" ("+spentAmount+"+"+spendAmount+") < "+borrowedAmount+" We need to do some more repay: "+ leftToRepay);
+                    await processMarginRepay(leftToRepay, pair, null);
                 }
             }
             valueForSize = myAccount.available[pair.name.split(pair.separator)[1]];
@@ -668,7 +669,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 await processCalculateProfit(pair, orderDetail);
                 //Check if for order was used margin funding. If yes, repay amount
                 if(pair.active.margin){
-                    await processMarginRepay(pair, orderDetail);
+                    await processMarginRepay(0, pair, orderDetail);
                 }
                 break;
         }
@@ -699,7 +700,7 @@ async function validateOrder(type, id, pair, openedOrder){
                 await processCalculateProfit(pair, orderDetail);
                 //Check if for order was used margin funding. If yes, repay amount
                 if(pair.active.margin){
-                    await processMarginRepay(pair, orderDetail);
+                    await processMarginRepay(0, pair, orderDetail);
                 }
                 break;
         }
@@ -721,17 +722,18 @@ let processCalculateProfit = async function(pair, orderDetail){
     await db.updateProfit(profit, completedOrder.sell_id);
 };
 
-let processMarginRepay = async function(pair, orderDetail){
-    const completedOrder = await db.getCompletedOrder(orderDetail.id);
-    //If order has profit, repay only based on buy_price. If negative, based on sell_price.
-    let repayAmount = 0;
-    if(completedOrder.profit > 0){
-        //We cam repay more with rond up, because we are in profit
-        repayAmount = tools.setPrecisionUp((completedOrder.buy_price*completedOrder.sell_filled), 8);
-    } else {
-        repayAmount = tools.setPrecisionDown((completedOrder.sell_price*completedOrder.sell_filled), 8);
+let processMarginRepay = async function(repayAmount, pair, orderDetail){
+    if(repayAmount === 0) {
+        const completedOrder = await db.getCompletedOrder(orderDetail.id);
+        //If order has profit, repay only based on buy_price. If negative, based on sell_price.
+        if (completedOrder.profit > 0) {
+            //We cam repay more with rond up, because we are in profit
+            repayAmount = tools.setPrecisionUp((completedOrder.buy_price * completedOrder.sell_filled), 8);
+        } else {
+            repayAmount = tools.setPrecisionDown((completedOrder.sell_price * completedOrder.sell_filled), 8);
+        }
+        console.error("### calculatedRepayAmount: " + repayAmount);
     }
-    console.error("### calculatedRepayAmount: " + repayAmount);
     if(repayAmount > 0){
         //Check if we have available fund on spot account for repay margin funding
         if( (myAccount.available[pair.name.split(pair.separator)[1]]-repayAmount) >= 0){
