@@ -249,7 +249,7 @@ let doBidOrder = async function (){
 
             if( (spentAmount+spendAmount) > borrowedAmount){
                 //Need more amount then we have, let´s borrow
-                const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , pair.digitsPrice);
+                const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , 8);
                 //console.error("borrowAmount: " + borrowAmount);
                 if(borrowAmount > 0){
                     //Check if we need borrow or we have free capital
@@ -271,7 +271,7 @@ let doBidOrder = async function (){
 
                     if(marginPairDetail.free < borrowAmount && marginDetail.data.marginLevel > 2){
                         //Round number how much we need borrow
-                        const weNeedBorrow = tools.setPrecision((borrowAmount-marginPairDetail.free) , pair.digitsPrice);
+                        const weNeedBorrow = tools.setPrecision((borrowAmount-marginPairDetail.free) , 8);
                         //Request borrow funding with margin if we have marginLevel > 2 so we  have chance transfer funds.
                         const marginBorrowId = await api.marginBorrow(config.name, pair,  weNeedBorrow);
                         if(!marginBorrowId.s){
@@ -1038,7 +1038,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                         await db.setFailedSellOrder(failedSellOrder);
                         //If sell order failed to to insufficient size, we need deduct funded value, because we cannot return it automatically.
                         if(pair.active.margin){
-                            const failedBorrowedAmount =  tools.setPrecision( pendingSellOrder.sell_size*pendingSellOrder.buy_price , pair.digitsPrice);
+                            const failedBorrowedAmount =  tools.setPrecision( pendingSellOrder.sell_size*pendingSellOrder.buy_price , 8);
                             console.error("Failed sell order due to insufficient size, not possible do refund!");
                             console.error(failedBorrowedAmount + " " + pair.name.split(pair.separator)[1]);
                             //Save fund transfer to history
