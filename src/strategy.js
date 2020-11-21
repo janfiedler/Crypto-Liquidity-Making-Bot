@@ -249,8 +249,8 @@ let doBidOrder = async function (){
 
             if( (spentAmount+spendAmount) > borrowedAmount){
                 //Need more amount then we have, let´s borrow
-                const borrowAmount =  tools.setPrecision( (spentAmount+spendAmount) - borrowedAmount , 8);
-                //console.error("borrowAmount: " + borrowAmount);
+                const borrowAmount =  tools.setPrecisionUp( (spentAmount+spendAmount) - borrowedAmount , 8);
+                console.error("borrowAmount: " + borrowAmount);
                 if(borrowAmount > 0){
                     //Check if we need borrow or we have free capital
                     let marginDetail = await api.accountMarginDetail();
