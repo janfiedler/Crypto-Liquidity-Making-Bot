@@ -249,7 +249,9 @@ let doBidOrder = async function (){
 
             if( (spentAmount+spendAmount) > borrowedAmount){
                 //Need more amount then we have, let´s borrow
-                const borrowAmount =  tools.setPrecisionUp( (spentAmount+spendAmount) - borrowedAmount , 8);
+                let borrowAmount =  tools.setPrecisionUp( (spentAmount+spendAmount) - borrowedAmount , 8);
+                //Borrow 10% more amount to cover real amount needed based on future opening price, we will return rest if needed in next loop.
+                borrowAmount = borrowAmount*1.1;
                 console.error("borrowAmount: " + borrowAmount);
                 if(borrowAmount > 0){
                     //Check if we need borrow or we have free capital
