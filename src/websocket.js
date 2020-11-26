@@ -60,7 +60,7 @@ websocket.emitPendingOrders = async function(data){
         } else if (data.pair.moneyManagement.buySize.active){
             budgetLimit = data.pair.moneyManagement.buySize.budgetLimit;
         }
-        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "fS": frozenSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit, "mP": monthlyProfit, "yP": yearlyProfit, "pO": pendingOrders});
+        emitToAll("ticker", {"p": {"e": data.exchange, "n": data.pair.name, "i": data.pair.id}, "tS": tS, "tA": totalAmount, "fA": frozenAmount, "fS": frozenSize, "mA": budgetLimit , "t": data.tick, "tP":totalProfit, "dP": dailyProfit.total, "dF": dailyProfit.fees, "mP": monthlyProfit.total, "mF": monthlyProfit.fees, "yP": yearlyProfit.total, "yF": yearlyProfit.fees, "pO": pendingOrders});
     }
 };
 

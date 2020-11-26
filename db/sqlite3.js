@@ -479,14 +479,14 @@ let getNegativeProfit = function(exchange, pair){
 
 let getDateProfit = function(exchange, pair, pairId, date){
     return new Promise(function (resolve) {
-        db.get(`SELECT SUM(profit) as total FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND completed_at like ?`, exchange, pair, pairId, "completed", "collection", "withdraw", date, (err, row) => {
+        db.get(`SELECT SUM(profit) as total, SUM(buy_fee + sell_fee) as fees FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status != ? AND sell_status != ? AND completed_at like ?`, exchange, pair, pairId, "completed", "collection", "withdraw", date, (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
                 if(row.total === null){
                     resolve(0);
                 } else {
-                    resolve(row.total);
+                    resolve(row);
                 }
              }
         });

@@ -25,19 +25,19 @@ $( document ).ready(function() {
                 }) + ' ' + pairSellUnit);
                 //Daily profit
                 let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(dP).text(data.dP.toLocaleString(undefined, {
+                $(dP).html('<span title="Total fees: ' + data.dF.toFixed(8) + '">' + data.dP.toLocaleString(undefined, {
                    minimumFractionDigits: 0,
                    maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
+                })+ '</span> ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
                 //Monthly profit
                 let mP = document.getElementById("monthlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(mP).text(data.mP.toLocaleString(undefined, {
+                $(mP).html('<span title="Total fees: ' + data.mF.toFixed(8) + '">' + data.mP.toLocaleString(undefined, {
                    minimumFractionDigits: 0,
                    maximumFractionDigits: totalDigits
                 }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.mP*12), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
                 //Yearly profit
                 let yP = document.getElementById("yearlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(yP).text(data.yP.toLocaleString(undefined, {
+                $(yP).html('<span title="Total fees: ' + data.yF.toFixed(8) + '">' + data.yP.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: totalDigits
                 }) + ' ' + pairSellUnit + ' / '+ getPercentageValue(data.yP, data.tA, "floor", 2)+'% / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
