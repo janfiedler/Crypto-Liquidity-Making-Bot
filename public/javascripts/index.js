@@ -19,54 +19,30 @@ $( document ).ready(function() {
             */
             let tP = document.getElementById("totalProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.tP){
-                $(tP).text(data.tP.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit);
+                $(tP).html(convertToLocaleString(data.tP, pairSellUnit, true, 0, totalDigits));
                 //Daily profit
                 let dP = document.getElementById("todayProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(dP).html('<span title="Total fees: ' + data.dF.toFixed(8) + '">' + data.dP.toLocaleString(undefined, {
-                   minimumFractionDigits: 0,
-                   maximumFractionDigits: totalDigits
-                })+ '</span> ' + pairSellUnit + ' / '+ getPercentageValue((data.dP*365), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
+                $(dP).html('<span title="Fees: ' + convertToLocaleString(data.dF, pairSellUnit, true, 0, totalDigits) + '">' + convertToLocaleString(data.dP, pairSellUnit, true, 0, totalDigits) + '</span> / '+ getPercentageValue((data.dP*365), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.dP*365), data.mA, "floor", 2)+'%');
                 //Monthly profit
                 let mP = document.getElementById("monthlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(mP).html('<span title="Total fees: ' + data.mF.toFixed(8) + '">' + data.mP.toLocaleString(undefined, {
-                   minimumFractionDigits: 0,
-                   maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue((data.mP*12), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
+                $(mP).html('<span title="Fees: ' + convertToLocaleString(data.mF, pairSellUnit, true, 0, totalDigits)+ '">' + convertToLocaleString(data.mP, pairSellUnit, true, 0, totalDigits) + ' </span> / '+ getPercentageValue((data.mP*12), data.tA, "floor", 2)+'% / '+ getPercentageValue((data.mP*12), data.mA, "floor", 2)+'%');
                 //Yearly profit
                 let yP = document.getElementById("yearlyProfit_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
-                $(yP).html('<span title="Total fees: ' + data.yF.toFixed(8) + '">' + data.yP.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: totalDigits
-                }) + ' ' + pairSellUnit + ' / '+ getPercentageValue(data.yP, data.tA, "floor", 2)+'% / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
+                $(yP).html('<span title="Fees: ' + convertToLocaleString(data.yF, pairSellUnit, true, 0, totalDigits) + '">' + convertToLocaleString(data.yP, pairSellUnit, true, 0, totalDigits) + ' </span>/ '+ getPercentageValue(data.yP, data.tA, "floor", 2)+'% / '+ getPercentageValue(data.yP, data.mA, "floor", 2)+'%');
 
             }
             let tS = document.getElementById("totalSize_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.fS > 0){
-                $(tS).html(data.tS + ' ' + ' <i title="Frozen size" class="text-primary">('+ data.fS.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
-                })  +')</i> ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
+                $(tS).html(data.tS + ' ' + ' <i title="Frozen size" class="text-primary">('+ convertToLocaleString(data.fS, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]) +')</i> ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
             } else {
                 $(tS).text(data.tS + ' ' + data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]);
             }
 
             let tA = document.getElementById("amountSpent_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
             if(data.fA > 0){
-                $(tA).html(data.tA.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                }) + ' <i title="Frozen amount" class="text-primary">('+ data.fA.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                }) +')</i> ' +  ' / ' + data.mA+ ' ' + pairSellUnit);
+                $(tA).html(convertToLocaleString(data.tA, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) + ' <i title="Frozen amount" class="text-primary">('+convertToLocaleString(data.fA, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) +')</i> ' +  ' / ' + data.mA+ ' ' + pairSellUnit);
             } else {
-                $(tA).text(data.tA.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                }) + ' / ' + data.mA + ' ' + pairSellUnit);
+                $(tA).html(convertToLocaleString(data.tA, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) + ' / ' + data.mA + ' ' + pairSellUnit);
             }
 
             let rB = document.getElementById("rateBid_" + data.p.e + "_" + data.p.n + "_" + data.p.i);
@@ -111,30 +87,19 @@ $( document ).ready(function() {
                         $(tbody).find(".hiddenOpenOrdersCount").text(totalHiddenOrders+"x more");
                     }
                 }
-                $(tbody).append('<tr '+trStyle+'><td>'+order.buy_id+'</td><td>'+order.buy_price.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                })+'</td><td>'+order.sell_size.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
-                })+'</td><td>'+order.sell_target_price.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                })+'</td><td>'+order.oA.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-                })+' '+pairSellUnit+'</td><td '+plColor+'><strong>'+order.pl.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: totalDigits
-                })+' '+pairSellUnit+'</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+                $(tbody).append('<tr '+trStyle+'><td>'+order.buy_id+'</td><td>'
+                    + convertToLocaleString(order.buy_price, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) + '</td><td>'
+                    + convertToLocaleString(order.sell_size, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]) + '</td><td>'
+                    + convertToLocaleString(order.sell_target_price, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) + '</td><td>'
+                    + convertToLocaleString(order.oA, pairSellUnit, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]) + '</td><td '+plColor+'><strong>'
+                    + convertToLocaleString(order.pl, pairSellUnit, true, 0, totalDigits) + '</strong></td><td id="'+order.buy_id+'" class="action">'+ico_frozen+ico_kill+'</td></tr>');
+
                 if(totalOpenOrders === 1 || totalOpenOrders === data.pO.length){
                     $(tbody).find("tr").last().css("display: block;");
                 }
             });
-            $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>'+totalPl.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: totalDigits
-            })+' '+pairSellUnit+'</strong></td><td></td></tr>');
+            $(tbody).append('<tr><td>'+totalOpenOrders+'x</td><td></td><td></td><td></td><td></td><td><strong>' + convertToLocaleString(totalPl, pairSellUnit, true, 0, totalDigits) + '</strong></td><td></td></tr>');
+
         }
     });
 
@@ -143,19 +108,13 @@ $( document ).ready(function() {
         let tbody = document.getElementById("tbody_filledBuyOrders");
         if (tbody){
             const pairSellUnit = data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1];
-            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.n+" #"+data.p.i+'</td><td>'+data.s.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Currency: '+pairSellUnit+'">'+data.bP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+'</td>><td title="Currency: '+pairSellUnit+'">'+data.sP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+'</td><td title="Fee: '+data.f+'">'+(data.s*data.bP).toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+' '+pairSellUnit+'</td></tr>');
+            const pairDigitsPrice = window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"];
+            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'">' +
+                '<td>'+data.p.n+" #"+data.p.i+'</td>' +
+                '<td>'+convertToLocaleString(data.s, data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0], false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"])+'</td>' +
+                '<td title="Currency: '+pairSellUnit+'">'+convertToLocaleString(data.bP, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"])+'</td>>' +
+                '<td title="Currency: '+pairSellUnit+'">'+convertToLocaleString(data.sP, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"])+'</td>' +
+                '<td title="Fee: '+convertToLocaleString(data.f, pairSellUnit, true, 0, 8)+'">' + convertToLocaleString((data.s*data.bP), pairSellUnit, false, 0, pairDigitsPrice) + '</td></tr>');
         }
     });
 
@@ -163,25 +122,37 @@ $( document ).ready(function() {
         //console.log(data);
         let tbody = document.getElementById("tbody_completedOrders");
         if (tbody){
+            const pairSellUnit = data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1];
             let plColor = "class='text-danger'";
             if(data.oP > 0){
                 plColor = "class='text-success'";
             }
-            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'"><td>'+data.p.n+" #"+data.p.i+'</td><td>'+data.s.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"]
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0]+'</td><td title="Fee: '+data.bF+' Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.bP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+'</td><td title="Fee: '+data.sF+' Currency: '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'">'+data.sP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"]
-            })+'</td><td '+plColor+'>'+data.oP.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: (window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"] + window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"])
-            })+' '+data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[1]+'</td></tr>');
+            $(tbody).prepend('<tr title="Exchange: '+data.p.e+' at '+new Date().toISOString()+'">' +
+                '<td>'+data.p.n+" #"+data.p.i+'</td>' +
+                '<td>'+convertToLocaleString(data.s, data.p.n.split(window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_separator"])[0], false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"])+'</td>' +
+                '<td title="Buy fee: '+convertToLocaleString(data.bF, pairSellUnit, true, 0, 8)+'">'+convertToLocaleString(data.bP, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"])+'</td>' +
+                '<td title="Sell fee: '+convertToLocaleString(data.sF, pairSellUnit, true, 0, 8)+'">'+convertToLocaleString(data.sP, null, false, 0, window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"])+'</td>' +
+                '<td title="Total fees: '+convertToLocaleString((data.bF+data.sF), pairSellUnit, true, 0, 8)+'" '+plColor+'>' + convertToLocaleString(data.oP, pairSellUnit, true, 0, (window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsPrice"] + window[data.p.e + "_" + data.p.n + "_" + data.p.i+"_digitsSize"])) + '</td></tr>');
         }
     });
+
+    function convertToLocaleString(value, currency, btcToSats,  min, max){
+        let append = "";
+        if(currency != null){
+            currency.toUpperCase();
+            if(currency.includes("BTC") && btcToSats){
+               //convert BTC to sats
+               value =  value * 100000000;
+               currency = "sats";
+               max = 0;
+            }
+            append = ' '+currency;
+        }
+        return value.toLocaleString(undefined, {
+            minimumFractionDigits: min,
+            maximumFractionDigits: max
+        })+append;
+    }
 
     function freezeHandler(ev) {
         ev.preventDefault();
