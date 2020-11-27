@@ -137,6 +137,9 @@ $( document ).ready(function() {
     });
 
     function convertToLocaleString(value, currency, btcToSats,  min, max){
+        if(value === undefined ){
+            value = 0;
+        }
         let append = "";
         if(currency != null){
             currency.toUpperCase();
