@@ -1022,17 +1022,17 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     await tools.sleep(999999999);
                 } else if(createdOrder.data.error.includes("insufficient size")){
                     const nextSellOrder = await db.getNextSellOrder(config.name, pair, pendingSellOrder);
-                    if(nextSellOrder.length === 1){
+                    if(nextSellOrder.hasOwnProperty('buy_id')){
                         // We have next sell order, where we can adjust sell_size from insufficient size order
-                        const adjustFailedSellOrder = await db.adjustFailedSellOrder(pair, pendingSellOrder, nextSellOrder[0]);
+                        const adjustFailedSellOrder = await db.adjustFailedSellOrder(pair, pendingSellOrder, nextSellOrder);
                         if(adjustFailedSellOrder){
                             //Disable failed order after sell_size was merged to nextSellOrder.
-                            const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "Merged to buy_id " +nextSellOrder[0].buy_id};
+                            const failedSellOrder = {"id": pendingSellOrder.buy_id, "status": "Merged to buy_id " +nextSellOrder.buy_id};
                             await db.setFailedSellOrder(failedSellOrder);
-                            await email.sendEmail("API Adjusted - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder[0]) + " from failed sell order " + JSON.stringify(pendingSellOrder));
-                            logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" merged to "+nextSellOrder[0].buy_id+" due to insufficient order size!\n";
+                            await email.sendEmail("API Adjusted - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder) + " from failed sell order " + JSON.stringify(pendingSellOrder));
+                            logMessage += " !!! Sell order "+pendingSellOrder.buy_id+" merged to "+nextSellOrder.buy_id+" due to insufficient order size!\n";
                         } else {
-                            await email.sendEmail("API Adjusted Failed - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder[0]) + " from failed sell order " + JSON.stringify(pendingSellOrder));
+                            await email.sendEmail("API Adjusted Failed - createOrder SELL", pair.name +" #"+ pair.id +" adjusted  order " + JSON.stringify(nextSellOrder) + " from failed sell order " + JSON.stringify(pendingSellOrder));
                             await tools.sleep(999999999);
                         }
                     } else{

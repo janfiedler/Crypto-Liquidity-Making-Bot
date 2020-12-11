@@ -531,11 +531,19 @@ let getAllNonFrozenSellOrdersCount  = function(exchange, pair, pairId){
 
 let getNextSellOrder = function(exchange, pair, pendingSellOrder){
     return new Promise(function (resolve) {
-        db.all(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ? AND sell_target_price > ? ORDER BY sell_target_price ASC LIMIT 1`, exchange, pair.name, pair.id, "sell", "pending", pendingSellOrder.sell_target_price, (err, rows) => {
+        //Added tools.addPipsToPrice added because SQLite may get real values as equal, when you selecting sell_target_price > ?
+        db.get(`SELECT * FROM orders WHERE exchange = ? AND pair = ? AND pair_id = ? AND status = ? AND sell_status = ? AND sell_target_price > ? ORDER BY sell_target_price ASC LIMIT 1`, exchange, pair.name, pair.id, "sell", "pending", tools.addPipsToPrice( pendingSellOrder.sell_target_price, pair.strategy.profitTarget.pips.value, pair.digitsPrice), (err, row) => {
             if (err) {
                 console.error(err.message);
             } else {
-                resolve(rows);
+                if(typeof row !== 'undefined' && row) {
+                    row.buy_price = tools.setPrecision(row.buy_price, pair.digitsPrice);
+                    row.buy_size = tools.setPrecision(row.buy_size, pair.digitsSize);
+                    row.sell_price = tools.setPrecision(row.sell_price, pair.digitsPrice);
+                    row.sell_target_price = tools.setPrecision(row.sell_target_price, pair.digitsPrice);
+                    row.sell_size = tools.setPrecision(row.sell_size, pair.digitsSize);
+                }
+                resolve(row);
             }
         });
     });
