@@ -1022,7 +1022,7 @@ async function processAskOrder(pair, ticker, targetAsk, pendingSellOrder){
                     await tools.sleep(999999999);
                 } else if(createdOrder.data.error.includes("insufficient size")){
                     const nextSellOrder = await db.getNextSellOrder(config.name, pair, pendingSellOrder);
-                    if(nextSellOrder.hasOwnProperty('buy_id')){
+                    if(typeof nextSellOrder !== 'undefined' && nextSellOrder.hasOwnProperty('buy_id')){
                         // We have next sell order, where we can adjust sell_size from insufficient size order
                         const adjustFailedSellOrder = await db.adjustFailedSellOrder(pair, pendingSellOrder, nextSellOrder);
                         if(adjustFailedSellOrder){
