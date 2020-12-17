@@ -425,7 +425,6 @@ let doBidOrder = async function (){
                     // Only if canceled order was not partially_filled or fulfilled can open new order. Need get actual feed.
                     if(resultValidateOrder){
                         await processBidOrder(pair, valueForSize, targetBid);
-
                     } else {
                         await processFinishLoop(apiCounter, pair, "bid", lastLogMessage[pair.name+"_"+pair.id].bid, logMessage);
                         return false;
