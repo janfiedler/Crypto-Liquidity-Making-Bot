@@ -155,6 +155,9 @@ let doBidOrder = async function (){
                 } else if (config.pairs[i].moneyManagement.buySize.budgetLimit > 0 && config.pairs[i].moneyManagement.buySize.budgetLimit <= totalAmountSpent){
                     logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" reached maximum budget limit "+totalAmountSpent+". We do not need to buy more.\n";
                     skipDoBidOrder = true;
+                } else if(config.pairs[i].moneyManagement.buySize.value < config.pairs[i].minTradeAmount){
+                    logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" !!! buySizeValue < minTradeAmount !!!\n";
+                    skipDoBidOrder = true;
                 }
             } else {
                 totalAmountSpent = await tools.getAmountSpent(db, config.name, config.pairs[i]);
@@ -176,7 +179,13 @@ let doBidOrder = async function (){
                         skipDoBidOrder = true;
                     }
                 } else if(config.pairs[i].moneyManagement.buyForAmount.active){
-                    if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= totalAmountSpent){
+                    if(config.pairs[i].moneyManagement.buyForAmount.value < config.pairs[i].minSpendAmount){
+                        logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" !!! buyForAmount < minSpendAmount !!!\n";
+                        skipDoBidOrder = true;
+                    } else if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= totalAmountSpent){
+                        skipDoBidOrder = true;
+                    } else if(!config.pairs[i].active.margin && myAccount.available[config.pairs[i].name.split(config.pairs[i].separator)[1]] < config.pairs[i].moneyManagement.buyForAmount.value){
+                        logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" !!! No available "+config.pairs[i].name.split(config.pairs[i].separator)[1]+" funds!\n";
                         skipDoBidOrder = true;
                     }
                 }
@@ -1168,9 +1177,6 @@ async function sellOldestOrderWithLossWhenProfit(config_name, pair, targetAsk){
 async function processBidOrder(pair, valueForSize, targetBid){
     if(targetBid === 0){
         logMessage += " !!! Skipping process bid order because targetBid === 0!\n";
-        return false;
-    } else if ( !pair.active.margin && (myAccount.available[pair.name.split(pair.separator)[1]] < (pair.minTradeAmount*targetBid) || myAccount.available[pair.name.split(pair.separator)[1]] < pair.minSpendAmount) ){
-        logMessage += " !!! No available "+pair.name.split(pair.separator)[1]+" funds!\n";
         return false;
     } else {
         logMessage += " ### Let´go open new buy order!\n";
