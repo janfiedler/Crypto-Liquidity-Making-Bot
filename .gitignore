@@ -63,6 +63,7 @@ typings/
 .idea/*
 #config.js mineiota
 config.js
+*.config.js
 package-lock.json
 #ignore filedb tables
 /db/*.json
