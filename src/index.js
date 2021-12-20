@@ -1,5 +1,6 @@
 let config = require('../config');
 let db = require('../db/sqlite3');
+const coinmate = require("./exchanges/coinmate/");
 
 process.on('SIGINT', () => {
     handleWorkers("STOP");
@@ -27,6 +28,14 @@ async function handleWorkers(type){
         if(config.exchanges[i].active) {
             config.exchanges[i].debug && console.log(config.exchanges[i].name+" "+type+" request");
             switch (config.exchanges[i].name) {
+                case "binance":
+                    const binance = require('./exchanges/binance/');
+                    if(type === "START"){
+                        binance.start(config.exchanges[i]);
+                    } else if(type === "STOP") {
+                        await binance.stop();
+                    }
+                    break;
                 case "coinfalcon":
                     const coinfalcon = require('./exchanges/coinfalcon/');
                     if(type === "START"){
@@ -43,12 +52,12 @@ async function handleWorkers(type){
                         await coinmate.stop();
                     }
                     break;
-                case "binance":
-                    const binance = require('./exchanges/binance/');
+                case "ftx":
+                    const ftx = require('./exchanges/ftx/');
                     if(type === "START"){
-                        binance.start(config.exchanges[i]);
+                        ftx.start(config.exchanges[i]);
                     } else if(type === "STOP") {
-                        await binance.stop();
+                        await ftx.stop();
                     }
                     break;
                 case "itbit":
