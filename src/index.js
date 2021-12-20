@@ -1,6 +1,5 @@
 let config = require('../config');
 let db = require('../db/sqlite3');
-const coinmate = require("./exchanges/coinmate/");
 
 process.on('SIGINT', () => {
     handleWorkers("STOP");
