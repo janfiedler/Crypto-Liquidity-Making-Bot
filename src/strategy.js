@@ -184,7 +184,7 @@ let doBidOrder = async function (){
                         skipDoBidOrder = true;
                     } else if (config.pairs[i].moneyManagement.buyForAmount.budgetLimit > 0 && config.pairs[i].moneyManagement.buyForAmount.budgetLimit <= totalAmountSpent){
                         skipDoBidOrder = true;
-                    } else if(!config.pairs[i].active.margin && myAccount.available[config.pairs[i].name.split(config.pairs[i].separator)[1]] < config.pairs[i].moneyManagement.buyForAmount.value){
+                    } else if(!config.pairs[i].active.margin && !config.pairs[i].strategy.buySpread.buyForHigherPrice && myAccount.available[config.pairs[i].name.split(config.pairs[i].separator)[1]] < config.pairs[i].moneyManagement.buyForAmount.value){
                         logMessageDetail = " ### Pair "+ config.pairs[i].name +" #"+ config.pairs[i].id +" !!! No available "+config.pairs[i].name.split(config.pairs[i].separator)[1]+" funds!\n";
                         skipDoBidOrder = true;
                     }
