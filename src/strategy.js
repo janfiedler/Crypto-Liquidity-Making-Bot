@@ -63,7 +63,7 @@ let doAskOrder = async function(){
         }
         // Check for actual opened sell order
         const resultOpenedSellOrder = await db.getOpenedSellOrder(config.name, pair);
-        //Fetch actual prices from coinfalcon exchange
+        //Fetch actual prices from exchange
         const resultTicker = await api.getTicker(pair);
         if(resultTicker.counter){
             apiCounter++;

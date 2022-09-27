@@ -117,12 +117,12 @@ let getBalance = function(){
         }, function (error, response, body) {
             try {
                 const result = JSON.parse(body);
-                if (!error && response.statusCode === 200) {
+                if (!error && !result.error && response.statusCode === 200) {
                     resolve({s:1, data: result.data});
                 } else {
-                    console.error("coinmate getBalance");
+                    console.error("ERROR coinmate getBalance");
                     console.error(body);
-                    resolve({s:0, data: result});
+                    resolve(false);
                 }
             } catch (e) {
                 console.error(body);

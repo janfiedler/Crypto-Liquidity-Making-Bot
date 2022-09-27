@@ -9,6 +9,13 @@ let stop = false;
 // Start with ask order because need check for sold out orders
 let doOrder = "ask";
 
+const handleStop = async function(){
+    if(config.webSocket){
+        await coinmate.cancelWebSocketConnection();
+    }
+    stop = true;
+}
+
 process.on('message', async function(data) {
     switch (data.type) {
         case "init":
@@ -20,10 +27,7 @@ process.on('message', async function(data) {
             init();
             break;
         case "stop":
-            if(config.webSocket){
-                await coinmate.cancelWebSocketConnection();
-            }
-            stop = true;
+            await handleStop();
             break
     }
 });
@@ -36,13 +40,21 @@ let init = async function(){
     await db.connect();
     await recalculateProfitTarget();
     myAccount = await getBalance();
-    await strategy.init(config, myAccount[config.name], db, coinmate);
-    begin();
+    if(myAccount){
+        await strategy.init(config, myAccount[config.name], db, coinmate);
+        begin();
+    } else {
+        await handleStop();
+    }
 };
 
 let getBalance = async function(){
     const rawBalance = await coinmate.getBalance();
-    return await tools.parseBalance(config, rawBalance);
+    if(rawBalance){
+        return tools.parseBalance(config, rawBalance);
+    } else {
+        return false;
+    }
 };
 
 let recalculateProfitTarget = async function(){
