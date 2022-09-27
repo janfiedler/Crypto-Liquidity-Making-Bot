@@ -43,8 +43,6 @@ let init = async function(){
     if(myAccount){
         await strategy.init(config, myAccount[config.name], db, coinmate);
         begin();
-    } else {
-        await handleStop();
     }
 };
 
